@@ -2,6 +2,7 @@
 
 import json
 from datetime import datetime, timezone
+from typing import Any
 from uuid import uuid4
 
 from agentpm.db.connection import execute, fetchone, fetchall, commit
@@ -11,6 +12,14 @@ from agentpm.core.project import get_project
 from agentpm.methodologies import get_methodology
 from agentpm.exceptions import NotFoundError, ValidationError
 from agentpm.graph.validation import validate_node_creation, validate_node_update
+
+
+# Sentinel value for "not provided" vs explicit None
+class _Unset:
+    """Sentinel for unset optional parameters."""
+    pass
+
+UNSET: Any = _Unset()
 
 
 def _now() -> datetime:
@@ -149,12 +158,12 @@ def update_node(
     title: str | None = None,
     description: str | None = None,
     status: str | None = None,
-    assignee: str | None = None,
-    milestone_id: str | None = None,
+    assignee: str | None | _Unset = UNSET,
+    milestone_id: str | None | _Unset = UNSET,
     estimated_minutes: int | None = None,
     story_points: int | None = None,
     priority: str | None = None,
-    blocked_reason: str | None = None,
+    blocked_reason: str | None | _Unset = UNSET,
     properties: dict | None = None,
     actor: str | None = None,
 ) -> Node:
@@ -166,8 +175,9 @@ def update_node(
     project = get_project(node.project_id)
     methodology = get_methodology(project.methodology)
 
-    # Validate updates
-    errors = validate_node_update(node, project.methodology, status, blocked_reason)
+    # Validate updates (convert UNSET to None for validation)
+    validate_blocked_reason = None if isinstance(blocked_reason, _Unset) else blocked_reason
+    errors = validate_node_update(node, project.methodology, status, validate_blocked_reason)
     if errors:
         raise ValidationError("\n".join(errors))
 
@@ -200,22 +210,22 @@ def update_node(
             updates.append("completed_at = ?")
             params.append(now)
 
-    if assignee is not None and assignee != node.assignee:
+    if not isinstance(assignee, _Unset) and assignee != node.assignee:
         updates.append("assignee = ?")
         params.append(assignee)
         log_activity(
             entity_type="node",
             entity_id=node_id,
-            action="assigned",
+            action="assigned" if assignee else "unassigned",
             old_value=node.assignee,
             new_value=assignee,
             node_type=node.node_type,
             actor=actor,
         )
 
-    if milestone_id is not None and milestone_id != node.milestone_id:
+    if not isinstance(milestone_id, _Unset) and milestone_id != node.milestone_id:
         updates.append("milestone_id = ?")
-        params.append(milestone_id if milestone_id else None)
+        params.append(milestone_id)
 
     if estimated_minutes is not None:
         updates.append("estimated_minutes = ?")
@@ -229,7 +239,7 @@ def update_node(
         updates.append("priority = ?")
         params.append(priority)
 
-    if blocked_reason is not None:
+    if not isinstance(blocked_reason, _Unset):
         updates.append("blocked_reason = ?")
         params.append(blocked_reason if blocked_reason else None)
 
