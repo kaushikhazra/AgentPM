@@ -1,6 +1,5 @@
 """High-level work item convenience API."""
 
-from agentpm.graph import create_node, get_node, create_edge, get_children
 from agentpm.core.project import get_project
 from agentpm.methodologies import get_methodology
 from agentpm.exceptions import NotFoundError
@@ -30,6 +29,8 @@ def create_story(
 
     For classic_agile: creates node_type="story"
     """
+    from agentpm.graph import create_node
+
     methodology = get_project_methodology(project_id)
     node_type = methodology.get_story_type()
 
@@ -64,6 +65,8 @@ def create_task(
 
     Automatically creates parent edge.
     """
+    from agentpm.graph import create_node, get_node, create_edge
+
     parent = get_node(parent_id)
     if parent is None:
         raise NotFoundError("Node", parent_id)
@@ -100,6 +103,8 @@ def get_story_with_tasks(story_id: str) -> dict:
     Returns:
         dict with 'story' and 'tasks' keys
     """
+    from agentpm.graph import get_node, get_children
+
     story = get_node(story_id)
     if story is None:
         raise NotFoundError("Node", story_id)

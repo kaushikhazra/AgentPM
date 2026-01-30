@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 
-from agentpm.graph import get_node, get_descendants, list_nodes
 from agentpm.core.project import get_project
 from agentpm.core.time_entry import get_time_total
 from agentpm.core.milestone import get_milestone, list_milestones
@@ -84,6 +83,8 @@ def get_node_rollup(node_id: str) -> RollupStats:
     4. Count by status
     5. Calculate percentages
     """
+    from agentpm.graph import get_node, get_descendants
+
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("Node", node_id)
@@ -96,6 +97,8 @@ def get_node_rollup(node_id: str) -> RollupStats:
 
 def get_milestone_rollup(milestone_id: str) -> RollupStats:
     """Rollup for all nodes in a milestone."""
+    from agentpm.graph import list_nodes
+
     milestone = get_milestone(milestone_id)
     if milestone is None:
         raise NotFoundError("Milestone", milestone_id)
@@ -106,6 +109,8 @@ def get_milestone_rollup(milestone_id: str) -> RollupStats:
 
 def get_project_rollup(project_id: str) -> RollupStats:
     """Rollup for entire project."""
+    from agentpm.graph import list_nodes
+
     project = get_project(project_id)
     if project is None:
         raise NotFoundError("Project", project_id)
