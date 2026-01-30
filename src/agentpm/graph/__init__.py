@@ -6,6 +6,7 @@ from agentpm.graph.nodes import (
     list_nodes,
     update_node,
     delete_node,
+    UNSET,
 )
 from agentpm.graph.edges import (
     create_edge,
@@ -28,6 +29,7 @@ __all__ = [
     "list_nodes",
     "update_node",
     "delete_node",
+    "UNSET",
     # Edges
     "create_edge",
     "get_edge",

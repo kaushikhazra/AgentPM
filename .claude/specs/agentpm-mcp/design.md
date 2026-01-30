@@ -1,9 +1,9 @@
 # AgentPM MCP Server - Design
 
 ## Technology Stack
-- **MCP SDK**: Official `mcp` Python package
-- **Transport**: stdio (primary), SSE (optional)
-- **Async**: Full async/await support
+- **MCP SDK**: FastMCP (`fastmcp` package) - higher-level wrapper around official MCP SDK
+- **Transport**: stdio (primary), SSE (optional via FastMCP)
+- **Sync**: Synchronous functions with FastMCP handling async internally
 
 ## Module Structure
 
