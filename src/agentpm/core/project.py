@@ -8,6 +8,7 @@ from agentpm.db.connection import execute, fetchone, fetchall, commit
 from agentpm.db.models import Project
 from agentpm.methodologies import methodology_exists
 from agentpm.exceptions import ValidationError
+from agentpm.core.company import get_company
 
 
 def create_project(
@@ -23,10 +24,11 @@ def create_project(
     if not methodology_exists(methodology):
         raise ValidationError(f"Unknown methodology: {methodology}")
 
-    # Validate company exists
-    company_row = fetchone("SELECT id FROM companies WHERE id = ?", (company_id,))
-    if company_row is None:
+    # Validate company exists (supports prefix matching)
+    company = get_company(company_id)
+    if company is None:
         raise ValidationError(f"Company not found: {company_id}")
+    company_id = company.id  # Use full ID
 
     project_id = uuid4().hex
     now = datetime.utcnow()
@@ -65,11 +67,21 @@ def create_project(
 
 
 def get_project(project_id: str) -> Project | None:
-    """Get a project by ID."""
+    """Get a project by ID (supports prefix matching)."""
+    # Try exact match first
     row = fetchone(
         "SELECT * FROM projects WHERE id = ?",
         (project_id,),
     )
+
+    # If not found, try prefix match
+    if row is None and len(project_id) >= 4:
+        rows = fetchall(
+            "SELECT * FROM projects WHERE id LIKE ?",
+            (project_id + "%",),
+        )
+        if len(rows) == 1:
+            row = rows[0]
 
     if row is None:
         return None

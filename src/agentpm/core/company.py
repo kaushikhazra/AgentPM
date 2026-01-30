@@ -46,11 +46,24 @@ def create_company(
 
 
 def get_company(company_id: str) -> Company | None:
-    """Get a company by ID."""
+    """Get a company by ID (supports prefix matching)."""
+    # Try exact match first
     row = fetchone(
         "SELECT * FROM companies WHERE id = ?",
         (company_id,),
     )
+
+    # If not found, try prefix match
+    if row is None and len(company_id) >= 4:
+        rows = fetchall(
+            "SELECT * FROM companies WHERE id LIKE ?",
+            (company_id + "%",),
+        )
+        if len(rows) == 1:
+            row = rows[0]
+        elif len(rows) > 1:
+            # Ambiguous prefix - return None to trigger "not found"
+            return None
 
     if row is None:
         return None
