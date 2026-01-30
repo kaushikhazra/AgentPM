@@ -73,6 +73,7 @@ def main(
 
 # Import and register subcommands
 from agentpm.cli import company, project, milestone, node, story, task, timer, tag
+from agentpm.cli import backup, export
 from agentpm.cli import dashboard as dashboard_mod
 from agentpm.cli import stats as stats_mod
 from agentpm.cli import search as search_mod
@@ -86,6 +87,8 @@ app.add_typer(story.app, name="story", help="Story shortcuts")
 app.add_typer(task.app, name="task", help="Task shortcuts")
 app.add_typer(timer.app, name="timer", help="Time tracking")
 app.add_typer(tag.app, name="tag", help="Tag management")
+app.add_typer(backup.app, name="backup", help="Database backup")
+app.add_typer(export.app, name="export", help="Data export")
 
 app.command(name="dashboard")(dashboard_mod.dashboard)
 app.command(name="stats")(stats_mod.stats)
