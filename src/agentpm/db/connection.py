@@ -24,7 +24,22 @@ def get_connection() -> sqlite3.Connection:
         # Enable foreign keys
         _connection.execute("PRAGMA foreign_keys = ON")
 
+        # Initialize schema (safe to run multiple times due to IF NOT EXISTS)
+        _init_schema()
+
     return _connection
+
+
+def _init_schema() -> None:
+    """Initialize the database schema (internal use)."""
+    global _connection
+
+    schema_path = Path(__file__).parent / "schema.sql"
+    with open(schema_path) as f:
+        schema_sql = f.read()
+
+    _connection.executescript(schema_sql)
+    _connection.commit()
 
 
 def close_connection() -> None:
@@ -37,16 +52,12 @@ def close_connection() -> None:
 
 
 def init_database() -> None:
-    """Initialize the database schema."""
-    conn = get_connection()
+    """Initialize the database schema.
 
-    # Read and execute schema
-    schema_path = Path(__file__).parent / "schema.sql"
-    with open(schema_path) as f:
-        schema_sql = f.read()
-
-    conn.executescript(schema_sql)
-    conn.commit()
+    Note: This is called automatically on first connection.
+    Can be called explicitly to ensure schema exists.
+    """
+    get_connection()  # Schema init happens automatically on connection
 
 
 @contextmanager
