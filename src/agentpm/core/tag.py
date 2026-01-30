@@ -98,8 +98,8 @@ def tag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:
     commit()
 
 
-def untag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:
-    """Remove a tag from a node."""
+def untag_node(node_id: str, tag_name: str, actor: str | None = None) -> bool:
+    """Remove a tag from a node. Returns True if tag was removed."""
     from agentpm.graph.nodes import get_node
 
     node = get_node(node_id)
@@ -108,7 +108,15 @@ def untag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:
 
     tag = get_tag_by_name(tag_name)
     if tag is None:
-        return  # Tag doesn't exist, nothing to remove
+        return False  # Tag doesn't exist, nothing to remove
+
+    # Check if tag is on node
+    row = fetchone(
+        "SELECT 1 FROM node_tags WHERE node_id = ? AND tag_id = ?",
+        (node_id, tag.id),
+    )
+    if row is None:
+        return False  # Tag not on node
 
     execute(
         "DELETE FROM node_tags WHERE node_id = ? AND tag_id = ?",
@@ -125,6 +133,7 @@ def untag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:
     )
 
     commit()
+    return True
 
 
 def get_node_tags(node_id: str) -> list[Tag]:
