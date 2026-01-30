@@ -41,10 +41,11 @@ def create_node(
     actor: str | None = None,
 ) -> Node:
     """Create a new node in the graph."""
-    # Get project and validate
+    # Get project and validate (supports prefix matching)
     project = get_project(project_id)
     if project is None:
         raise NotFoundError("project", project_id)
+    project_id = project.id  # Use full resolved ID
 
     # Validate node creation
     errors = validate_node_creation(project_id, node_type, project.methodology, properties)

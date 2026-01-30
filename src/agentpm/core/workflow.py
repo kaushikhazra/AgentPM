@@ -1,6 +1,5 @@
 """Status workflow shortcuts."""
 
-from agentpm.graph import get_node, update_node
 from agentpm.core.project import get_project
 from agentpm.core.time_entry import start_timer, stop_timer, get_active_timer
 from agentpm.methodologies import get_methodology
@@ -10,6 +9,8 @@ from agentpm.db.models import Node
 
 def _get_node_methodology(node_id: str):
     """Get the methodology for a node's project."""
+    from agentpm.graph import get_node
+
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("Node", node_id)
@@ -25,6 +26,8 @@ def start_node(node_id: str, actor: str | None = None) -> Node:
     1. Transition to in_progress (or methodology equivalent)
     2. Start timer
     """
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
     in_progress_status = methodology.get_in_progress_status(node.node_type)
 
@@ -43,6 +46,8 @@ def complete_node(node_id: str, actor: str | None = None) -> Node:
     1. Stop any active timer
     2. Transition to terminal status (done)
     """
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
     done_status = methodology.get_done_status(node.node_type)
 
@@ -57,6 +62,8 @@ def complete_node(node_id: str, actor: str | None = None) -> Node:
 
 def block_node(node_id: str, reason: str, actor: str | None = None) -> Node:
     """Block a node with a reason."""
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
 
     blocked_status = methodology.get_blocked_status(node.node_type)
@@ -75,6 +82,8 @@ def block_node(node_id: str, reason: str, actor: str | None = None) -> Node:
 
 def unblock_node(node_id: str, actor: str | None = None) -> Node:
     """Unblock a node, returning to in_progress."""
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
 
     if node.status != "blocked":
@@ -93,6 +102,8 @@ def unblock_node(node_id: str, actor: str | None = None) -> Node:
 
 def submit_for_review(node_id: str, actor: str | None = None) -> Node:
     """Submit a node for review (transition to in_review status)."""
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
 
     # Check if in_review is a valid status
@@ -112,6 +123,8 @@ def submit_for_review(node_id: str, actor: str | None = None) -> Node:
 
 def approve(node_id: str, actor: str | None = None) -> Node:
     """Approve a node that is in review (transition to done)."""
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
 
     if node.status != "in_review":
@@ -125,6 +138,8 @@ def approve(node_id: str, actor: str | None = None) -> Node:
 
 def reject(node_id: str, reason: str | None = None, actor: str | None = None) -> Node:
     """Reject a node that is in review (return to in_progress)."""
+    from agentpm.graph import update_node
+
     node, methodology = _get_node_methodology(node_id)
 
     if node.status != "in_review":

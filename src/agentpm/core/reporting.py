@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 
 from agentpm.db.connection import fetchall
 from agentpm.db.models import Node, Milestone, Project, TimeEntry, ActivityLog
-from agentpm.graph import get_node, list_nodes
 from agentpm.core.project import get_project, list_projects
 from agentpm.core.time_entry import get_active_timer, list_time_entries
 from agentpm.core.activity import list_activity
@@ -111,6 +110,8 @@ def get_dashboard() -> Dashboard:
     """
     Get current state summary across all projects.
     """
+    from agentpm.graph import get_node, list_nodes
+
     active_timer = get_active_timer()
     active_node = get_node(active_timer.node_id) if active_timer else None
 
@@ -150,6 +151,8 @@ def get_dashboard() -> Dashboard:
 
 def get_project_stats(project_id: str) -> ProjectStats:
     """Get comprehensive project statistics."""
+    from agentpm.graph import list_nodes
+
     project = get_project(project_id)
     if project is None:
         raise NotFoundError("Project", project_id)

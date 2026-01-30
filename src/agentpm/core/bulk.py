@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 
-from agentpm.graph import get_node, update_node, delete_node
 from agentpm.core.tag import tag_node
 from agentpm.db.models import Node
 from agentpm.exceptions import NotFoundError, ValidationError
@@ -22,6 +21,8 @@ def bulk_move_to_milestone(
     actor: str | None = None,
 ) -> BulkResult:
     """Move multiple nodes to a milestone (or remove from milestone if None)."""
+    from agentpm.graph import get_node, update_node
+
     succeeded = []
     failed = []
 
@@ -50,6 +51,8 @@ def bulk_update_status(
 
     Validates each transition individually - some may succeed while others fail.
     """
+    from agentpm.graph import get_node, update_node
+
     succeeded = []
     failed = []
 
@@ -76,6 +79,8 @@ def bulk_reassign(
     actor: str | None = None,
 ) -> BulkResult:
     """Reassign multiple nodes to a new assignee (or unassign if None)."""
+    from agentpm.graph import get_node, update_node
+
     succeeded = []
     failed = []
 
@@ -100,6 +105,8 @@ def bulk_tag(
     actor: str | None = None,
 ) -> BulkResult:
     """Add a tag to multiple nodes."""
+    from agentpm.graph import get_node
+
     succeeded = []
     failed = []
 
@@ -123,6 +130,8 @@ def bulk_delete(
     actor: str | None = None,
 ) -> BulkResult:
     """Delete multiple nodes."""
+    from agentpm.graph import delete_node
+
     succeeded = []
     failed = []
 
@@ -145,6 +154,8 @@ def bulk_update_priority(
     actor: str | None = None,
 ) -> BulkResult:
     """Update priority of multiple nodes."""
+    from agentpm.graph import get_node, update_node
+
     valid_priorities = ["low", "medium", "high", "critical"]
     if priority not in valid_priorities:
         raise ValidationError(
