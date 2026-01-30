@@ -1,91 +1,91 @@
 # AgentPM Foundation - Tasks
 
 ## Project Setup
-- [ ] Create pyproject.toml with project metadata and dependencies
+- [x] Create pyproject.toml with project metadata and dependencies
   _FND-1: Project Setup_
-- [ ] Create src/agentpm package structure with __init__.py files
+- [x] Create src/agentpm package structure with __init__.py files
   _FND-1: Project Setup_
-- [ ] Configure pytest in pyproject.toml
+- [x] Configure pytest in pyproject.toml
   _FND-1: Project Setup_
-- [ ] Create tests/ directory with conftest.py
+- [x] Create tests/ directory with conftest.py
   _FND-1: Project Setup_
 
 ## Configuration
-- [ ] Create config.py with database path configuration
+- [x] Create config.py with database path configuration
   _FND-2: Database Initialization_
-- [ ] Support AGENTPM_DB environment variable
+- [x] Support AGENTPM_DB environment variable
   _FND-2: Database Initialization_
-- [ ] Create default directory (~/.agentpm/) if needed
+- [x] Create default directory (~/.agentpm/) if needed
   _FND-2: Database Initialization_
 
 ## Database Layer
-- [ ] Create db/schema.sql with full schema
+- [x] Create db/schema.sql with full schema
   _FND-2: Database Initialization_
-- [ ] Create db/connection.py with connection management
+- [x] Create db/connection.py with connection management
   _FND-2: Database Initialization_
-  - [ ] get_connection() function
-  - [ ] Enable foreign keys pragma
-  - [ ] Initialize schema on first connect
-- [ ] Write tests for database initialization
+  - [x] get_connection() function
+  - [x] Enable foreign keys pragma
+  - [x] Initialize schema on first connect
+- [x] Write tests for database initialization
   _FND-2: Database Initialization_
 
 ## Pydantic Models
-- [ ] Create db/models.py with all Pydantic models
+- [x] Create db/models.py with all Pydantic models
   _FND-6: Pydantic Models_
-  - [ ] Company model
-  - [ ] Project model
-  - [ ] Milestone model
-  - [ ] Node model (generic)
-  - [ ] Edge model
-  - [ ] TimeEntry model
-  - [ ] Tag model
-  - [ ] ActivityLog model
-- [ ] Write tests for model validation
+  - [x] Company model
+  - [x] Project model
+  - [x] Milestone model
+  - [x] Node model (generic)
+  - [x] Edge model
+  - [x] TimeEntry model
+  - [x] Tag model
+  - [x] ActivityLog model
+- [x] Write tests for model validation
   _FND-6: Pydantic Models_
 
 ## Methodology System
-- [ ] Create methodologies/base.py with BaseMethodology ABC
+- [x] Create methodologies/base.py with BaseMethodology ABC
   _FND-5: Methodology System_
-  - [ ] NodeTypeDefinition dataclass
-  - [ ] EdgeTypeDefinition dataclass
-  - [ ] Abstract properties and methods
-- [ ] Create methodologies/classic_agile.py
+  - [x] NodeTypeDefinition dataclass
+  - [x] EdgeTypeDefinition dataclass
+  - [x] Abstract properties and methods
+- [x] Create methodologies/classic_agile.py
   _FND-5: Methodology System_
-  - [ ] Define story node type with statuses
-  - [ ] Define task node type with statuses
-  - [ ] Define parent edge type
-  - [ ] Define depends_on edge type
-- [ ] Create methodologies/__init__.py with registry
+  - [x] Define story node type with statuses
+  - [x] Define task node type with statuses
+  - [x] Define parent edge type
+  - [x] Define depends_on edge type
+- [x] Create methodologies/__init__.py with registry
   _FND-5: Methodology System_
-  - [ ] get_methodology(name) function
-  - [ ] list_methodologies() function
-- [ ] Write tests for methodology validation
+  - [x] get_methodology(name) function
+  - [x] list_methodologies() function
+- [x] Write tests for methodology validation
   _FND-5: Methodology System_
 
 ## Company CRUD
-- [ ] Create core/company.py
+- [x] Create core/company.py
   _FND-3: Company Management_
-  - [ ] create_company(name, description) -> Company
-  - [ ] get_company(id) -> Company
-  - [ ] list_companies() -> List[Company]
-  - [ ] update_company(id, name?, description?) -> Company
-  - [ ] delete_company(id) -> bool
-- [ ] Write tests for company operations
+  - [x] create_company(name, description) -> Company
+  - [x] get_company(id) -> Company
+  - [x] list_companies() -> List[Company]
+  - [x] update_company(id, name?, description?) -> Company
+  - [x] delete_company(id) -> bool
+- [x] Write tests for company operations
   _FND-3: Company Management_
 
 ## Project CRUD
-- [ ] Create core/project.py
+- [x] Create core/project.py
   _FND-4: Project Management with Methodology_
-  - [ ] create_project(company_id, name, methodology, description) -> Project
-  - [ ] get_project(id) -> Project
-  - [ ] list_projects(company_id?, status?) -> List[Project]
-  - [ ] update_project(id, status?, name?, description?) -> Project
-  - [ ] delete_project(id) -> bool
-- [ ] Validate methodology exists on project creation
+  - [x] create_project(company_id, name, methodology, description) -> Project
+  - [x] get_project(id) -> Project
+  - [x] list_projects(company_id?, status?) -> List[Project]
+  - [x] update_project(id, status?, name?, description?) -> Project
+  - [x] delete_project(id) -> bool
+- [x] Validate methodology exists on project creation
   _FND-4: Project Management with Methodology_
-- [ ] Write tests for project operations
+- [x] Write tests for project operations
   _FND-4: Project Management with Methodology_
 
 ## Integration Test
-- [ ] Write end-to-end test: create company → create project → verify methodology
+- [x] Write end-to-end test: create company → create project → verify methodology
   _FND-4: Project Management with Methodology_
