@@ -7,11 +7,7 @@ from uuid import uuid4
 from agentpm.db.connection import execute, fetchone, fetchall, commit
 from agentpm.db.models import Project
 from agentpm.methodologies import methodology_exists
-
-
-class ValidationError(Exception):
-    """Raised when validation fails."""
-    pass
+from agentpm.exceptions import ValidationError
 
 
 def create_project(
