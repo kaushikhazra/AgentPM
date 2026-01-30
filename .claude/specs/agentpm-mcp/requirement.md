@@ -8,7 +8,7 @@ Implement an MCP (Model Context Protocol) server that exposes AgentPM to AI assi
 
 ## User Stories
 
-### US-1: MCP Server Setup
+### MCP-1: MCP Server Setup
 As a developer, I want a properly configured MCP server so that AI assistants can connect to AgentPM.
 
 **Acceptance Criteria:**
@@ -18,7 +18,7 @@ As a developer, I want a properly configured MCP server so that AI assistants ca
 - Configurable database path via environment variable
 - Proper error handling and logging
 
-### US-2: Company Tools
+### MCP-2: Company Tools
 As an AI assistant, I want tools for company management so that I can help users organize projects.
 
 **Acceptance Criteria:**
@@ -26,7 +26,7 @@ As an AI assistant, I want tools for company management so that I can help users
 - `pm_create_company(name, description?)` - create company
 - `pm_get_company(id)` - get company with project summary
 
-### US-3: Project Tools
+### MCP-3: Project Tools
 As an AI assistant, I want tools for project management so that I can help users manage their work.
 
 **Acceptance Criteria:**
@@ -36,7 +36,7 @@ As an AI assistant, I want tools for project management so that I can help users
 - `pm_update_project(id, status?, name?, description?)` - update project
 - `pm_get_methodology_info(project_id)` - get valid types, statuses, transitions
 
-### US-4: Milestone Tools
+### MCP-4: Milestone Tools
 As an AI assistant, I want tools for milestone management.
 
 **Acceptance Criteria:**
@@ -44,7 +44,7 @@ As an AI assistant, I want tools for milestone management.
 - `pm_create_milestone(project_id, name, target_date?, description?)` - create
 - `pm_complete_milestone(id)` - mark complete
 
-### US-5: Node Tools
+### MCP-5: Node Tools
 As an AI assistant, I want tools for node (work item) management.
 
 **Acceptance Criteria:**
@@ -56,7 +56,7 @@ As an AI assistant, I want tools for node (work item) management.
 - `pm_complete_node(id)` - complete (status + stop timer)
 - `pm_block_node(id, reason)` - block with reason
 
-### US-6: Edge Tools
+### MCP-6: Edge Tools
 As an AI assistant, I want tools for managing relationships between nodes.
 
 **Acceptance Criteria:**
@@ -66,7 +66,7 @@ As an AI assistant, I want tools for managing relationships between nodes.
 - `pm_get_ancestors(node_id, edge_type?)` - traverse up
 - `pm_get_descendants(node_id, edge_type?)` - traverse down
 
-### US-7: Time Tracking Tools
+### MCP-7: Time Tracking Tools
 As an AI assistant, I want tools for time tracking so that agents can log their work.
 
 **Acceptance Criteria:**
@@ -75,7 +75,7 @@ As an AI assistant, I want tools for time tracking so that agents can log their 
 - `pm_log_time(node_id, duration_minutes, notes?)` - manual entry
 - `pm_get_active_timer()` - get current timer status
 
-### US-8: Reporting Tools
+### MCP-8: Reporting Tools
 As an AI assistant, I want reporting tools for context and insights.
 
 **Acceptance Criteria:**
@@ -85,7 +85,7 @@ As an AI assistant, I want reporting tools for context and insights.
 - `pm_get_recent_activity(limit?, entity_type?, entity_id?)` - activity feed
 - `pm_get_rollup(node_id)` - aggregated stats for node
 
-### US-9: Tag Tools
+### MCP-9: Tag Tools
 As an AI assistant, I want tools for tag management.
 
 **Acceptance Criteria:**
@@ -94,7 +94,7 @@ As an AI assistant, I want tools for tag management.
 - `pm_tag_node(node_id, tag_name)` - add tag
 - `pm_untag_node(node_id, tag_name)` - remove tag
 
-### US-10: MCP Resources
+### MCP-10: MCP Resources
 As an AI assistant, I want read-only resources for context without calling tools.
 
 **Acceptance Criteria:**
@@ -104,7 +104,7 @@ As an AI assistant, I want read-only resources for context without calling tools
 - `pm://node/{id}` - node details with edges
 - `pm://activity/recent` - recent activity feed
 
-### US-11: Actor Identification
+### MCP-11: Actor Identification
 As a system, I want AI actors to be identified so that activity logs distinguish between human and AI actions.
 
 **Acceptance Criteria:**

@@ -8,7 +8,7 @@ Implement the graph operations layer for creating, managing, and traversing node
 
 ## User Stories
 
-### US-1: Node Creation
+### GRP-1: Node Creation
 As a user, I want to create work item nodes so that I can track work in my projects.
 
 **Acceptance Criteria:**
@@ -18,7 +18,7 @@ As a user, I want to create work item nodes so that I can track work in my proje
 - Properties validated against methodology's required/optional properties
 - Activity logged on creation
 
-### US-2: Node Updates
+### GRP-2: Node Updates
 As a user, I want to update nodes so that I can track progress and changes.
 
 **Acceptance Criteria:**
@@ -28,7 +28,7 @@ As a user, I want to update nodes so that I can track progress and changes.
 - completed_at set automatically when entering terminal status
 - Activity logged on all changes
 
-### US-3: Node Queries
+### GRP-3: Node Queries
 As a user, I want to query nodes so that I can find work items.
 
 **Acceptance Criteria:**
@@ -37,7 +37,7 @@ As a user, I want to query nodes so that I can find work items.
 - Include edge count in node details
 - Support pagination for large result sets
 
-### US-4: Edge Creation
+### GRP-4: Edge Creation
 As a user, I want to create relationships between nodes so that I can model dependencies and hierarchies.
 
 **Acceptance Criteria:**
@@ -47,7 +47,7 @@ As a user, I want to create relationships between nodes so that I can model depe
 - Cycle detection for non-cyclical edge types
 - Activity logged on creation
 
-### US-5: Edge Queries
+### GRP-5: Edge Queries
 As a user, I want to query edges so that I can understand relationships.
 
 **Acceptance Criteria:**
@@ -56,7 +56,7 @@ As a user, I want to query edges so that I can understand relationships.
 - Get descendants of a node (follow edges down)
 - Get direct parents/children
 
-### US-6: Milestone Management
+### GRP-6: Milestone Management
 As a user, I want to assign nodes to milestones so that I can group work by target dates.
 
 **Acceptance Criteria:**
@@ -66,7 +66,7 @@ As a user, I want to assign nodes to milestones so that I can group work by targ
 - Complete milestone (sets completed_at)
 - List milestones with node counts and completion stats
 
-### US-7: Time Tracking
+### GRP-7: Time Tracking
 As a user, I want to track time spent on any node so that I can measure effort.
 
 **Acceptance Criteria:**
@@ -78,7 +78,7 @@ As a user, I want to track time spent on any node so that I can measure effort.
 - List time entries for a node
 - Activity logged on time entries
 
-### US-8: Tag System
+### GRP-8: Tag System
 As a user, I want to tag nodes so that I can categorize and filter work.
 
 **Acceptance Criteria:**
@@ -89,7 +89,7 @@ As a user, I want to tag nodes so that I can categorize and filter work.
 - List nodes by tag
 - Delete tag (removes from all nodes)
 
-### US-9: Activity Logging
+### GRP-9: Activity Logging
 As a developer, I want all changes automatically logged so that I have an audit trail.
 
 **Acceptance Criteria:**

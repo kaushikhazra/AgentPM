@@ -5,7 +5,7 @@ Establish the foundational infrastructure for AgentPM: database layer, Pydantic 
 
 ## User Stories
 
-### US-1: Project Setup
+### FND-1: Project Setup
 As a developer, I want a properly structured Python project so that I can build AgentPM with modern tooling.
 
 **Acceptance Criteria:**
@@ -14,7 +14,7 @@ As a developer, I want a properly structured Python project so that I can build 
 - pytest configured for testing
 - Project installable via `pip install -e .`
 
-### US-2: Database Initialization
+### FND-2: Database Initialization
 As a user, I want the database to be automatically created and initialized so that I can start using AgentPM immediately.
 
 **Acceptance Criteria:**
@@ -23,7 +23,7 @@ As a user, I want the database to be automatically created and initialized so th
 - All indexes created for performance
 - Idempotent initialization (safe to run multiple times)
 
-### US-3: Company Management
+### FND-3: Company Management
 As a user, I want to create and manage companies so that I can organize my projects under different contexts.
 
 **Acceptance Criteria:**
@@ -33,7 +33,7 @@ As a user, I want to create and manage companies so that I can organize my proje
 - Update company name/description
 - Delete company (cascades to projects)
 
-### US-4: Project Management with Methodology
+### FND-4: Project Management with Methodology
 As a user, I want to create projects with a specified methodology so that the system validates work items according to that methodology's rules.
 
 **Acceptance Criteria:**
@@ -43,7 +43,7 @@ As a user, I want to create projects with a specified methodology so that the sy
 - Update project status (active, on_hold, completed, archived)
 - Delete project (cascades to milestones, nodes, edges)
 
-### US-5: Methodology System
+### FND-5: Methodology System
 As a developer, I want a pluggable methodology system so that different PM approaches can be supported.
 
 **Acceptance Criteria:**
@@ -54,7 +54,7 @@ As a developer, I want a pluggable methodology system so that different PM appro
 - Methodology registry for lookup by name
 - Validation methods for nodes and edges
 
-### US-6: Pydantic Models
+### FND-6: Pydantic Models
 As a developer, I want Pydantic models for all entities so that data is validated and serializable.
 
 **Acceptance Criteria:**

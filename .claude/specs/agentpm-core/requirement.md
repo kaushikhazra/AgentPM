@@ -8,7 +8,7 @@ Implement high-level business logic that wraps the graph layer, providing conven
 
 ## User Stories
 
-### US-1: Work Item Convenience API
+### COR-1: Work Item Convenience API
 As a user, I want simple functions to create stories and tasks so that I don't need to know the underlying graph structure.
 
 **Acceptance Criteria:**
@@ -19,7 +19,7 @@ As a user, I want simple functions to create stories and tasks so that I don't n
 - block_work() sets blocked status with reason
 - Functions work with any node type from any methodology
 
-### US-2: Status Workflow
+### COR-2: Status Workflow
 As a user, I want shortcut functions for common status changes so that updates are quick.
 
 **Acceptance Criteria:**
@@ -29,7 +29,7 @@ As a user, I want shortcut functions for common status changes so that updates a
 - unblock_node(id) → previous status or in_progress
 - Review workflow: submit_for_review(id), approve(id), reject(id)
 
-### US-3: Rollup Calculations
+### COR-3: Rollup Calculations
 As a user, I want to see aggregated metrics for parent items so that I can understand effort at different levels.
 
 **Acceptance Criteria:**
@@ -39,7 +39,7 @@ As a user, I want to see aggregated metrics for parent items so that I can under
 - Calculate story points rollup
 - Support rollup at any level (story, milestone, project)
 
-### US-4: Dashboard
+### COR-4: Dashboard
 As a user, I want a dashboard view so that I can see my current work state at a glance.
 
 **Acceptance Criteria:**
@@ -49,7 +49,7 @@ As a user, I want a dashboard view so that I can see my current work state at a 
 - Today's time total
 - Recent activity (last 10 items)
 
-### US-5: Project Statistics
+### COR-5: Project Statistics
 As a user, I want project statistics so that I can track progress.
 
 **Acceptance Criteria:**
@@ -59,7 +59,7 @@ As a user, I want project statistics so that I can track progress.
 - Blockers count
 - Milestone progress
 
-### US-6: Search
+### COR-6: Search
 As a user, I want to search across all entities so that I can find items quickly.
 
 **Acceptance Criteria:**
@@ -69,7 +69,7 @@ As a user, I want to search across all entities so that I can find items quickly
 - Return relevance-ranked results
 - Include context (project name, status)
 
-### US-7: Bulk Operations
+### COR-7: Bulk Operations
 As a user, I want to perform bulk operations so that I can efficiently manage multiple items.
 
 **Acceptance Criteria:**

@@ -8,7 +8,7 @@ Implement a command-line interface using Typer and Rich for interacting with Age
 
 ## User Stories
 
-### US-1: CLI Framework
+### CLI-1: CLI Framework
 As a user, I want a well-structured CLI so that commands are intuitive and discoverable.
 
 **Acceptance Criteria:**
@@ -18,7 +18,7 @@ As a user, I want a well-structured CLI so that commands are intuitive and disco
 - Tab completion support (via Typer)
 - Consistent error messages
 
-### US-2: Company Commands
+### CLI-2: Company Commands
 As a user, I want CLI commands for company management.
 
 **Acceptance Criteria:**
@@ -27,7 +27,7 @@ As a user, I want CLI commands for company management.
 - `apm company show <id>` - show company details
 - `apm company delete <id>` - delete company (with confirmation)
 
-### US-3: Project Commands
+### CLI-3: Project Commands
 As a user, I want CLI commands for project management.
 
 **Acceptance Criteria:**
@@ -38,7 +38,7 @@ As a user, I want CLI commands for project management.
 - `apm project delete <id>` - delete project (with confirmation)
 - `--methodology` flag on create
 
-### US-4: Milestone Commands
+### CLI-4: Milestone Commands
 As a user, I want CLI commands for milestone management.
 
 **Acceptance Criteria:**
@@ -47,7 +47,7 @@ As a user, I want CLI commands for milestone management.
 - `apm milestone show <id>` - show milestone with progress
 - `apm milestone complete <id>` - mark complete
 
-### US-5: Node Commands
+### CLI-5: Node Commands
 As a user, I want CLI commands for working with nodes (stories, tasks, etc.).
 
 **Acceptance Criteria:**
@@ -60,7 +60,7 @@ As a user, I want CLI commands for working with nodes (stories, tasks, etc.).
 - `apm node block <id> <reason>` - block with reason
 - `apm node delete <id>` - delete node
 
-### US-6: Story/Task Shortcuts
+### CLI-6: Story/Task Shortcuts
 As a user, I want convenience commands for common node types.
 
 **Acceptance Criteria:**
@@ -71,7 +71,7 @@ As a user, I want convenience commands for common node types.
 - `apm task create <story_id> <title>` - create task under story
 - `apm task start/done/block` - workflow shortcuts
 
-### US-7: Timer Commands
+### CLI-7: Timer Commands
 As a user, I want CLI commands for time tracking.
 
 **Acceptance Criteria:**
@@ -80,7 +80,7 @@ As a user, I want CLI commands for time tracking.
 - `apm timer status` - show active timer
 - `apm time log <node_id> <minutes>` - manual entry
 
-### US-8: Dashboard Command
+### CLI-8: Dashboard Command
 As a user, I want a dashboard command for quick status overview.
 
 **Acceptance Criteria:**
@@ -91,7 +91,7 @@ As a user, I want a dashboard command for quick status overview.
 - Today's time total
 - Rich formatting with panels and colors
 
-### US-9: Stats Command
+### CLI-9: Stats Command
 As a user, I want a stats command for project analytics.
 
 **Acceptance Criteria:**
@@ -101,7 +101,7 @@ As a user, I want a stats command for project analytics.
 - Velocity metric
 - Milestone progress
 
-### US-10: Search Command
+### CLI-10: Search Command
 As a user, I want a search command to find items quickly.
 
 **Acceptance Criteria:**
@@ -110,7 +110,7 @@ As a user, I want a search command to find items quickly.
 - `--project` filter for project scope
 - Show context snippets in results
 
-### US-11: Activity Command
+### CLI-11: Activity Command
 As a user, I want to view recent activity.
 
 **Acceptance Criteria:**
@@ -119,7 +119,7 @@ As a user, I want to view recent activity.
 - `--entity` to filter by entity
 - Formatted timeline view
 
-### US-12: Tag Commands
+### CLI-12: Tag Commands
 As a user, I want CLI commands for tag management.
 
 **Acceptance Criteria:**
@@ -128,7 +128,7 @@ As a user, I want CLI commands for tag management.
 - `apm tag add <node_id> <tag>` - add tag to node
 - `apm tag remove <node_id> <tag>` - remove tag
 
-### US-13: JSON Output
+### CLI-13: JSON Output
 As a user, I want JSON output for scripting.
 
 **Acceptance Criteria:**

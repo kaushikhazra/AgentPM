@@ -8,7 +8,7 @@ Polish the system for production use, add comprehensive error handling, improve 
 
 ## User Stories
 
-### US-1: Spec-Driven Methodology
+### POL-1: Spec-Driven Methodology
 As a user following Kiro-style spec-driven development, I want a methodology that models the spec → design → implementation → validation flow.
 
 **Acceptance Criteria:**
@@ -18,7 +18,7 @@ As a user following Kiro-style spec-driven development, I want a methodology tha
 - Proper state machine with approval transitions
 - Works with both CLI and MCP
 
-### US-2: Error Messages
+### POL-2: Error Messages
 As a user, I want clear, helpful error messages so that I can understand and fix issues quickly.
 
 **Acceptance Criteria:**
@@ -27,7 +27,7 @@ As a user, I want clear, helpful error messages so that I can understand and fix
 - Suggestions for common mistakes
 - No stack traces in user-facing output (unless --verbose)
 
-### US-3: CLI Help Text
+### POL-3: CLI Help Text
 As a user, I want comprehensive help text so that I can learn the CLI.
 
 **Acceptance Criteria:**
@@ -36,7 +36,7 @@ As a user, I want comprehensive help text so that I can learn the CLI.
 - Global help shows command overview
 - `apm --help` is informative for new users
 
-### US-4: README Documentation
+### POL-4: README Documentation
 As a user, I want clear documentation so that I can set up and use AgentPM.
 
 **Acceptance Criteria:**
@@ -47,7 +47,7 @@ As a user, I want clear documentation so that I can set up and use AgentPM.
 - MCP setup for Claude Code
 - Example workflows
 
-### US-5: Database Backup
+### POL-5: Database Backup
 As a user, I want to back up my database so that I don't lose data.
 
 **Acceptance Criteria:**
@@ -56,7 +56,7 @@ As a user, I want to back up my database so that I don't lose data.
 - Backup is a simple file copy (SQLite is single file)
 - List existing backups
 
-### US-6: Data Export
+### POL-6: Data Export
 As a user, I want to export my data so that I can use it elsewhere.
 
 **Acceptance Criteria:**
@@ -65,7 +65,7 @@ As a user, I want to export my data so that I can use it elsewhere.
 - Export includes all related data (nodes, edges, time entries)
 - Human-readable format
 
-### US-7: Performance Testing
+### POL-7: Performance Testing
 As a developer, I want performance tests so that I know the system handles realistic loads.
 
 **Acceptance Criteria:**
@@ -75,7 +75,7 @@ As a developer, I want performance tests so that I know the system handles reali
 - Dashboard query < 100ms
 - Search query < 200ms
 
-### US-8: Methodology Extensibility
+### POL-8: Methodology Extensibility
 As a developer, I want clear patterns for adding new methodologies.
 
 **Acceptance Criteria:**
@@ -84,7 +84,7 @@ As a developer, I want clear patterns for adding new methodologies.
 - Test helpers for methodology validation
 - Registration process documented
 
-### US-9: BMAD Methodology (Optional)
+### POL-9: BMAD Methodology (Optional)
 As a user following agent-centric development, I want a BMAD methodology.
 
 **Acceptance Criteria:**
@@ -93,7 +93,7 @@ As a user following agent-centric development, I want a BMAD methodology.
 - Agents are trackable entities with time logging
 - Supports parallel agent work patterns
 
-### US-10: PIV Loop Methodology (Optional)
+### POL-10: PIV Loop Methodology (Optional)
 As a user following iterative cycles, I want a PIV Loop methodology.
 
 **Acceptance Criteria:**
