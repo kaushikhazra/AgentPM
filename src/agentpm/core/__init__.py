@@ -48,6 +48,45 @@ from agentpm.core.activity import (
     list_activity,
     get_entity_activity,
 )
+from agentpm.core.work_items import (
+    create_story,
+    create_task,
+    get_story_with_tasks,
+)
+from agentpm.core.workflow import (
+    start_node,
+    complete_node,
+    block_node,
+    unblock_node,
+    submit_for_review,
+    approve,
+    reject,
+)
+from agentpm.core.rollup import (
+    RollupStats,
+    get_node_rollup,
+    get_milestone_rollup,
+    get_project_rollup,
+)
+from agentpm.core.reporting import (
+    Dashboard,
+    get_dashboard,
+    ProjectStats,
+    MilestoneProgress,
+    get_project_stats,
+    SearchResult,
+    search,
+    list_time_entries_since,
+)
+from agentpm.core.bulk import (
+    BulkResult,
+    bulk_move_to_milestone,
+    bulk_update_status,
+    bulk_reassign,
+    bulk_tag,
+    bulk_delete,
+    bulk_update_priority,
+)
 
 __all__ = [
     # Exceptions (re-exported for convenience)
@@ -92,4 +131,38 @@ __all__ = [
     "log_activity",
     "list_activity",
     "get_entity_activity",
+    # Work Items
+    "create_story",
+    "create_task",
+    "get_story_with_tasks",
+    # Workflow
+    "start_node",
+    "complete_node",
+    "block_node",
+    "unblock_node",
+    "submit_for_review",
+    "approve",
+    "reject",
+    # Rollup
+    "RollupStats",
+    "get_node_rollup",
+    "get_milestone_rollup",
+    "get_project_rollup",
+    # Reporting
+    "Dashboard",
+    "get_dashboard",
+    "ProjectStats",
+    "MilestoneProgress",
+    "get_project_stats",
+    "SearchResult",
+    "search",
+    "list_time_entries_since",
+    # Bulk Operations
+    "BulkResult",
+    "bulk_move_to_milestone",
+    "bulk_update_status",
+    "bulk_reassign",
+    "bulk_tag",
+    "bulk_delete",
+    "bulk_update_priority",
 ]
