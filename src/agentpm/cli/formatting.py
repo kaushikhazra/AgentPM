@@ -1,6 +1,6 @@
 """Rich formatting helpers for CLI output."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from rich.console import Console
@@ -46,9 +46,10 @@ def format_date(dt: datetime | None) -> str:
     """Format datetime for display in local time."""
     if dt is None:
         return "-"
-    # Convert to local time if timezone-aware
-    if dt.tzinfo is not None:
-        dt = dt.astimezone()
+    # Treat naive datetimes as UTC, then convert to local
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone()
     return dt.strftime("%Y-%m-%d %H:%M")
 
 
@@ -56,9 +57,10 @@ def format_short_date(dt: datetime | None) -> str:
     """Format date only for display in local time."""
     if dt is None:
         return "-"
-    # Convert to local time if timezone-aware
-    if dt.tzinfo is not None:
-        dt = dt.astimezone()
+    # Treat naive datetimes as UTC, then convert to local
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    dt = dt.astimezone()
     return dt.strftime("%Y-%m-%d")
 
 
