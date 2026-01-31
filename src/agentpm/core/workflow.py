@@ -42,13 +42,14 @@ def start_node(node_id: str, actor: str | None = None) -> Node:
 
 def complete_node(node_id: str, actor: str | None = None) -> Node:
     """
-    Complete a node:
+    Complete a node (supports prefix matching):
     1. Stop any active timer
     2. Transition to terminal status (done)
     """
     from agentpm.graph import update_node
 
     node, methodology = _get_node_methodology(node_id)
+    node_id = node.id  # Use full ID
     done_status = methodology.get_done_status(node.node_type)
 
     # Stop timer if running on this node
@@ -101,10 +102,11 @@ def unblock_node(node_id: str, actor: str | None = None) -> Node:
 
 
 def submit_for_review(node_id: str, actor: str | None = None) -> Node:
-    """Submit a node for review (transition to in_review status)."""
+    """Submit a node for review (transition to in_review status). Supports prefix matching."""
     from agentpm.graph import update_node
 
     node, methodology = _get_node_methodology(node_id)
+    node_id = node.id  # Use full ID
 
     # Check if in_review is a valid status
     node_type_def = methodology.get_node_type(node.node_type)
