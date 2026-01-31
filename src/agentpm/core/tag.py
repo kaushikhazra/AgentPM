@@ -61,12 +61,13 @@ def delete_tag(tag_id: str) -> bool:
 
 
 def tag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:
-    """Add a tag to a node."""
+    """Add a tag to a node (supports prefix matching)."""
     from agentpm.graph.nodes import get_node
 
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("node", node_id)
+    node_id = node.id  # Use full ID
 
     # Get or create tag
     tag = get_tag_by_name(tag_name)
@@ -99,12 +100,13 @@ def tag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:
 
 
 def untag_node(node_id: str, tag_name: str, actor: str | None = None) -> bool:
-    """Remove a tag from a node. Returns True if tag was removed."""
+    """Remove a tag from a node (supports prefix matching). Returns True if tag was removed."""
     from agentpm.graph.nodes import get_node
 
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("node", node_id)
+    node_id = node.id  # Use full ID
 
     tag = get_tag_by_name(tag_name)
     if tag is None:
@@ -137,7 +139,14 @@ def untag_node(node_id: str, tag_name: str, actor: str | None = None) -> bool:
 
 
 def get_node_tags(node_id: str) -> list[Tag]:
-    """Get all tags for a node."""
+    """Get all tags for a node (supports prefix matching)."""
+    from agentpm.graph.nodes import get_node
+
+    node = get_node(node_id)
+    if node is None:
+        return []
+    node_id = node.id  # Use full ID
+
     rows = fetchall(
         """
         SELECT t.* FROM tags t
