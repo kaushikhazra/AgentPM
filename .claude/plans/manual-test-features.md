@@ -324,31 +324,31 @@ apm export json --project <project_id> -o project_export.json
 ## Feature Test Checklist
 
 ### Company & Project
-- [ ] Create/list/show company
-- [ ] Create project with both methodologies
-- [ ] Update project status
+- [x] Create/list/show company
+- [x] Create project with both methodologies
+- [x] Update project status
 
 ### Work Items
-- [ ] Create story and tasks (classic_agile)
-- [ ] Task start/done/block workflow
-- [ ] Spec-driven full workflow (spec → design → impl → validation)
-- [ ] Status transitions work correctly
+- [x] Create story and tasks (classic_agile)
+- [x] Task start/done/block workflow
+- [x] Spec-driven full workflow (spec → design → impl → validation)
+- [x] Status transitions work correctly
 
 ### Time Tracking
-- [ ] Timer start/stop
-- [ ] Manual time logging
-- [ ] Timer status shows correctly
+- [x] Timer start/stop
+- [x] Manual time logging
+- [x] Timer status shows correctly
 
 ### Tags
-- [ ] Create tags
-- [ ] Add/remove tags from nodes
+- [x] Create tags
+- [x] Add/remove tags from nodes
 
 ### Reporting
-- [ ] Search finds items
-- [ ] Dashboard displays correctly
-- [ ] Stats show project metrics
-- [ ] Activity log works
+- [x] Search finds items
+- [x] Dashboard displays correctly
+- [x] Stats show project metrics
+- [x] Activity log works
 
 ### Backup & Export
-- [ ] Backup creates file
-- [ ] Export generates valid JSON
+- [x] Backup creates file
+- [x] Export generates valid JSON

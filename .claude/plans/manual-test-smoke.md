@@ -64,6 +64,6 @@ timeout 3 python -m agentpm.mcp --transport streamable-http --port 8765
 **Expected**: Server starts on port 8765 (may show Uvicorn startup message)
 
 ## Smoke Test Checklist
-- [ ] All 9 checks pass without errors
-- [ ] No stack traces in output
-- [ ] Database file created at expected location
+- [x] All 9 checks pass without errors
+- [x] No stack traces in output
+- [x] Database file created at expected location
