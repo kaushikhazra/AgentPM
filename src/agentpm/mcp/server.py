@@ -498,9 +498,14 @@ def pm_update_node(
 @mcp.tool()
 def pm_start_node(node_id: str) -> dict:
     """
-    Start working on a node.
+    Start working on a node (workflow action).
 
-    Sets status to in_progress and starts a timer.
+    This is a workflow action that:
+    1. Changes the node's status to in_progress
+    2. Automatically starts a timer
+
+    Use this when beginning work on a task. For timer-only operations,
+    use pm_start_timer instead.
 
     Args:
         node_id: Node ID
@@ -680,9 +685,12 @@ def pm_get_descendants(node_id: str, edge_type: str | None = None) -> list[dict]
 @mcp.tool()
 def pm_start_timer(node_id: str, notes: str | None = None) -> dict:
     """
-    Start a timer on a node.
+    Start a timer on a node (timer-only, no status change).
 
+    This is a pure time-tracking operation that does NOT change the node's status.
     If another timer is running, it will be automatically stopped.
+
+    Use pm_start_node instead if you want to both change status AND start timing.
 
     Args:
         node_id: Node to track time on
