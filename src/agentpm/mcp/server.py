@@ -340,6 +340,14 @@ def pm_list_nodes(
         List of node objects
     """
     from agentpm.graph import list_nodes
+    from agentpm.core import get_project
+
+    # Resolve short project_id to full ID
+    if project_id:
+        project = get_project(project_id)
+        if project:
+            project_id = project.id
+
     nodes = list_nodes(
         project_id=project_id,
         node_type=node_type,
@@ -392,10 +400,11 @@ def pm_create_node(
     )
 
     # Create parent edge if parent_id provided
+    # Edge direction: child (source) → parent (target)
     if parent_id:
         create_edge(
-            source_id=parent_id,
-            target_id=node.id,
+            source_id=node.id,
+            target_id=parent_id,
             edge_type="parent",
             actor=get_actor()
         )
@@ -562,7 +571,23 @@ def pm_list_edges(
     Returns:
         List of edge objects
     """
-    from agentpm.graph import list_edges
+    from agentpm.graph import list_edges, get_node
+    from agentpm.core import get_project
+
+    # Resolve short IDs to full IDs
+    if project_id:
+        project = get_project(project_id)
+        if project:
+            project_id = project.id
+    if source_id:
+        node = get_node(source_id)
+        if node:
+            source_id = node.id
+    if target_id:
+        node = get_node(target_id)
+        if node:
+            target_id = node.id
+
     edges = list_edges(
         project_id=project_id,
         source_id=source_id,

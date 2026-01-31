@@ -27,14 +27,16 @@ def create_edge(
     actor: str | None = None,
 ) -> Edge:
     """Create a new edge between nodes."""
-    # Get source and target nodes
+    # Get source and target nodes (supports prefix matching)
     source = get_node(source_id)
     if source is None:
         raise NotFoundError("node", source_id)
+    source_id = source.id  # Use full ID
 
     target = get_node(target_id)
     if target is None:
         raise NotFoundError("node", target_id)
+    target_id = target.id  # Use full ID
 
     # Verify same project
     if source.project_id != target.project_id:
