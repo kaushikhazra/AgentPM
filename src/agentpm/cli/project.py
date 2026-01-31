@@ -4,7 +4,7 @@ from typing import Optional
 
 import typer
 
-from agentpm.cli.formatting import console, create_projects_table, format_duration, short_id
+from agentpm.cli.formatting import console, create_projects_table, format_duration, format_date, short_id
 from agentpm.cli.main import handle_errors, state
 
 app = typer.Typer(help="Project management")
@@ -91,7 +91,7 @@ def show_project(
         console.print(f"  Status: {project.status}")
         console.print(f"  Methodology: {project.methodology}")
         console.print(f"  Description: {project.description or '-'}")
-        console.print(f"  Created: {project.created_at}")
+        console.print(f"  Created: {format_date(project.created_at)}")
         console.print()
         console.print(f"[bold]Stats:[/bold]")
         console.print(f"  Nodes: {sum(stats.total_nodes.values())}")

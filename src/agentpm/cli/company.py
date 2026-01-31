@@ -4,7 +4,7 @@ from typing import Optional
 
 import typer
 
-from agentpm.cli.formatting import console, create_companies_table, short_id
+from agentpm.cli.formatting import console, create_companies_table, short_id, format_date
 from agentpm.cli.main import handle_errors, state
 
 app = typer.Typer(help="Company management")
@@ -69,7 +69,7 @@ def show_company(
         console.print(f"[bold]{company.name}[/bold]")
         console.print(f"  ID: {company.id}")
         console.print(f"  Description: {company.description or '-'}")
-        console.print(f"  Created: {company.created_at}")
+        console.print(f"  Created: {format_date(company.created_at)}")
         console.print(f"  Projects: {len(projects)}")
         for project in projects:
             console.print(f"    - {project.name} ({project.status})")
