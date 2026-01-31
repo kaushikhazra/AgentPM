@@ -123,6 +123,7 @@ def show_node(
     if node is None:
         console.print(f"[red]Node not found:[/red] {node_id}")
         raise typer.Exit(1)
+    node_id = node.id  # Use full ID
 
     parents = get_parents(node_id)
     children = get_children(node_id)
