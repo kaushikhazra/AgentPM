@@ -86,6 +86,13 @@ class SpecDrivenMethodology(BaseMethodology):
     @property
     def edge_types(self) -> dict[str, EdgeTypeDefinition]:
         return {
+            "parent": EdgeTypeDefinition(
+                name="parent",
+                source_types=["design", "implementation", "validation"],
+                target_types=["spec", "design", "implementation"],
+                max_per_source=1,  # Each node has one parent
+                allows_cycles=False,
+            ),
             "gates": EdgeTypeDefinition(
                 name="gates",
                 source_types=["design", "implementation", "validation"],
