@@ -106,7 +106,8 @@ def show_story(
 
         console.print()
         console.print(f"[bold]Progress:[/bold]")
-        console.print(f"  Tasks: {rollup.completed_nodes - 1}/{rollup.total_nodes - 1}")  # Exclude story itself
+        completed_tasks = sum(1 for t in tasks if t.status == "done")
+        console.print(f"  Tasks: {completed_tasks}/{len(tasks)}")
         console.print(f"  Completion: {rollup.completion_percentage:.1f}%")
         console.print(f"  Time: {format_duration(rollup.total_time_minutes)}")
 
