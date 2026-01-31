@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 import typer
 
-from agentpm.cli.formatting import console, format_duration, short_id
+from agentpm.cli.formatting import console, format_duration, format_date, short_id
 from agentpm.cli.main import handle_errors, state
 
 app = typer.Typer(help="Time tracking")
@@ -89,7 +89,7 @@ def timer_status():
     else:
         console.print(f"[bold]Active Timer[/bold]")
         console.print(f"  Node: {node.title if node else 'Unknown'}")
-        console.print(f"  Started: {active.started_at}")
+        console.print(f"  Started: {format_date(active.started_at)}")
         console.print(f"  Elapsed: [yellow]{format_duration(elapsed)}[/yellow]")
         if active.notes:
             console.print(f"  Notes: {active.notes}")
