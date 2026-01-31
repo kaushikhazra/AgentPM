@@ -99,7 +99,7 @@ def create_task(
 
 def get_story_with_tasks(story_id: str) -> dict:
     """
-    Get a story with all its tasks.
+    Get a story with all its tasks (supports prefix matching).
 
     Returns:
         dict with 'story' and 'tasks' keys
@@ -109,6 +109,7 @@ def get_story_with_tasks(story_id: str) -> dict:
     story = get_node(story_id)
     if story is None:
         raise NotFoundError("Node", story_id)
+    story_id = story.id  # Use full ID
 
     tasks = get_children(story_id, edge_type="parent")
 

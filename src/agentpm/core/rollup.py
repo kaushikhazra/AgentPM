@@ -77,6 +77,8 @@ def get_node_rollup(node_id: str) -> RollupStats:
     """
     Calculate aggregated stats for a node and all descendants.
 
+    Supports prefix matching for node_id.
+
     1. Get all descendants via graph traversal
     2. Sum time entries across all
     3. Sum estimates
@@ -88,6 +90,7 @@ def get_node_rollup(node_id: str) -> RollupStats:
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("Node", node_id)
+    node_id = node.id  # Use full ID
 
     descendants = get_descendants(node_id, edge_type="parent")
     all_nodes = [node] + descendants
@@ -96,24 +99,26 @@ def get_node_rollup(node_id: str) -> RollupStats:
 
 
 def get_milestone_rollup(milestone_id: str) -> RollupStats:
-    """Rollup for all nodes in a milestone."""
+    """Rollup for all nodes in a milestone (supports prefix matching)."""
     from agentpm.graph import list_nodes
 
     milestone = get_milestone(milestone_id)
     if milestone is None:
         raise NotFoundError("Milestone", milestone_id)
+    milestone_id = milestone.id  # Use full ID
 
     nodes = list_nodes(milestone_id=milestone_id)
     return _calculate_rollup(nodes)
 
 
 def get_project_rollup(project_id: str) -> RollupStats:
-    """Rollup for entire project."""
+    """Rollup for entire project (supports prefix matching)."""
     from agentpm.graph import list_nodes
 
     project = get_project(project_id)
     if project is None:
         raise NotFoundError("Project", project_id)
+    project_id = project.id  # Use full ID
 
     nodes = list_nodes(project_id=project_id)
     return _calculate_rollup(nodes)
