@@ -113,10 +113,11 @@ def update_milestone(
     target_date: date | None = None,
     actor: str | None = None,
 ) -> Milestone:
-    """Update a milestone."""
+    """Update a milestone (supports prefix matching)."""
     milestone = get_milestone(milestone_id)
     if milestone is None:
         raise NotFoundError("milestone", milestone_id)
+    milestone_id = milestone.id  # Use full ID
 
     now = _now()
     updates = []
@@ -151,10 +152,11 @@ def update_milestone(
 
 
 def complete_milestone(milestone_id: str, actor: str | None = None) -> Milestone:
-    """Mark a milestone as completed."""
+    """Mark a milestone as completed (supports prefix matching)."""
     milestone = get_milestone(milestone_id)
     if milestone is None:
         raise NotFoundError("milestone", milestone_id)
+    milestone_id = milestone.id  # Use full ID
 
     if milestone.status == "completed":
         return milestone
@@ -181,10 +183,11 @@ def complete_milestone(milestone_id: str, actor: str | None = None) -> Milestone
 
 
 def delete_milestone(milestone_id: str, actor: str | None = None) -> bool:
-    """Delete a milestone."""
+    """Delete a milestone (supports prefix matching)."""
     milestone = get_milestone(milestone_id)
     if milestone is None:
         return False
+    milestone_id = milestone.id  # Use full ID
 
     log_activity(
         entity_type="milestone",
