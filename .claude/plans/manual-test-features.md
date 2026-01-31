@@ -25,11 +25,7 @@ apm company create "Acme Corp" -d "Test company"
 ```bash
 apm company list
 ```
-**Expected**: Table showing Acme Corp
-<!--
-K: The date is not showing in local date.
-It is showing in UTC
--->
+**Expected**: Table showing Acme Corp (dates in local time)
 
 ### 1.3 Show Company
 ```bash
@@ -41,11 +37,8 @@ apm company show <company_id>
 ```bash
 apm --json company list
 ```
-**Expected**: Valid JSON array
-<!--
-K: JSON is showing fine, but all dates are in UTC, 
-not in local time.
--->
+**Expected**: Valid JSON array (note: JSON dates are in UTC for interoperability)
+
 ---
 
 ## 2. Project Management
@@ -88,12 +81,8 @@ apm project update <project_id> --status on_hold
 ```bash
 apm milestone create <project_id> "Sprint 1" --target 2025-03-01
 ```
-**Expected**: Milestone created with target date
-<!--
-K: The system took same milestone name with same target date without
-flagging any error. This can be confusing. We should not allow user
-to create a milestone that is already exist.
--->
+**Expected**: Milestone created with target date (duplicate names are now rejected)
+
 ### 3.2 List Milestones
 ```bash
 apm milestone list <project_id>

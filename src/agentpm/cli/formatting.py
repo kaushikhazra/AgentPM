@@ -43,16 +43,22 @@ def format_duration(minutes: int | None) -> str:
 
 
 def format_date(dt: datetime | None) -> str:
-    """Format datetime for display."""
+    """Format datetime for display in local time."""
     if dt is None:
         return "-"
+    # Convert to local time if timezone-aware
+    if dt.tzinfo is not None:
+        dt = dt.astimezone()
     return dt.strftime("%Y-%m-%d %H:%M")
 
 
 def format_short_date(dt: datetime | None) -> str:
-    """Format date only for display."""
+    """Format date only for display in local time."""
     if dt is None:
         return "-"
+    # Convert to local time if timezone-aware
+    if dt.tzinfo is not None:
+        dt = dt.astimezone()
     return dt.strftime("%Y-%m-%d")
 
 
