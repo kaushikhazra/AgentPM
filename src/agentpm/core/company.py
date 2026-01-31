@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from agentpm.db.connection import execute, fetchone, fetchall, commit
 from agentpm.db.models import Company
+from agentpm.exceptions import ValidationError
 
 
 def create_company(
@@ -14,6 +15,11 @@ def create_company(
     actor: str | None = None,
 ) -> Company:
     """Create a new company."""
+    # Check for duplicate company name
+    existing = fetchone("SELECT id FROM companies WHERE name = ?", (name,))
+    if existing:
+        raise ValidationError(f"Company '{name}' already exists")
+
     company_id = uuid4().hex
     now = datetime.utcnow()
 
