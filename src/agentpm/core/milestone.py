@@ -29,6 +29,14 @@ def create_milestone(
         raise NotFoundError("project", project_id)
     project_id = project.id  # Use full ID
 
+    # Check for duplicate milestone name in the same project
+    existing = fetchone(
+        "SELECT id FROM milestones WHERE project_id = ? AND name = ?",
+        (project_id, name),
+    )
+    if existing:
+        raise ValidationError(f"Milestone '{name}' already exists in this project")
+
     milestone_id = uuid4().hex
     now = _now()
 
