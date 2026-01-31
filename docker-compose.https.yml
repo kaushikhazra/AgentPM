@@ -1,0 +1,80 @@
+# =============================================================================
+# AgentPM Docker Compose - HTTPS Configuration
+# Uses Caddy for automatic TLS with Let's Encrypt or self-signed certs
+# =============================================================================
+#
+# Usage:
+#   Local (self-signed):  docker-compose -f docker-compose.https.yml up -d
+#   Production:           DOMAIN=mcp.example.com EMAIL=you@example.com docker-compose -f docker-compose.https.yml up -d
+#
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # AgentPM MCP Server (internal only)
+  # ---------------------------------------------------------------------------
+  agentpm:
+    build: .
+    image: agentpm:latest
+    container_name: agentpm
+
+    # Internal only - Caddy handles external traffic
+    expose:
+      - "8020"
+
+    # Volume mount for persistent database storage
+    volumes:
+      - ./data:/data
+
+    # Environment configuration
+    environment:
+      - AGENTPM_DB=/data/agentpm.db
+      - AGENTPM_ACTOR=mcp
+      - AGENTPM_MCP_HOST=0.0.0.0
+      - AGENTPM_MCP_PORT=8020
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Caddy Reverse Proxy with Auto TLS
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    container_name: agentpm-caddy
+
+    # External ports
+    ports:
+      - "80:80"
+      - "443:443"
+
+    # Mount Caddyfile and certificate storage
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+    # Domain configuration
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+
+    # Wait for AgentPM to be healthy
+    depends_on:
+      agentpm:
+        condition: service_healthy
+
+    # Restart policy
+    restart: unless-stopped
+
+# Named volumes for Caddy certificate storage
+volumes:
+  caddy_data:
+  caddy_config:
