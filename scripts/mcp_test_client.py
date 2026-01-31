@@ -3,28 +3,51 @@
 Generic MCP Test Client
 
 A command-line tool for testing MCP (Model Context Protocol) servers.
-Can be used with any MCP server that supports stdio transport.
+Supports both stdio and streamable-http transports.
 
 Usage:
-    # List all tools
-    python mcp_test_client.py "python -m agentpm.mcp" --list-tools
+    # Stdio transport - List all tools
+    python mcp_test_client.py stdio "python -m agentpm.mcp" --list-tools
+
+    # HTTP transport - List all tools
+    python mcp_test_client.py http "http://localhost:8000" --list-tools
 
     # Call a tool
-    python mcp_test_client.py "python -m agentpm.mcp" --call tool_name '{"param": "value"}'
+    python mcp_test_client.py stdio "python -m agentpm.mcp" --call tool_name '{"param": "value"}'
 
     # Interactive mode
-    python mcp_test_client.py "python -m agentpm.mcp" --interactive
+    python mcp_test_client.py http "http://localhost:8000" --interactive
 """
 
 import argparse
 import json
 import subprocess
 import sys
+from abc import ABC, abstractmethod
 from typing import Any
 
 
-class MCPTestClient:
-    """Simple MCP client for testing servers via stdio."""
+class MCPTransport(ABC):
+    """Abstract base class for MCP transports."""
+
+    @abstractmethod
+    def start(self) -> None:
+        """Start/connect to the transport."""
+        pass
+
+    @abstractmethod
+    def stop(self) -> None:
+        """Stop/disconnect the transport."""
+        pass
+
+    @abstractmethod
+    def send_request(self, method: str, params: dict | None = None) -> dict:
+        """Send a JSON-RPC request and get response."""
+        pass
+
+
+class StdioTransport(MCPTransport):
+    """MCP transport over stdio (subprocess)."""
 
     def __init__(self, command: str, env: dict[str, str] | None = None):
         self.command = command
@@ -71,7 +94,7 @@ class MCPTestClient:
                 self.process.kill()
             self.process = None
 
-    def _send_request(self, method: str, params: dict | None = None) -> dict:
+    def send_request(self, method: str, params: dict | None = None) -> dict:
         """Send a JSON-RPC request and get response."""
         if not self.process:
             raise RuntimeError("MCP server not started")
@@ -106,9 +129,129 @@ class MCPTestClient:
                     pass
             raise RuntimeError(f"Communication error: {e}. Stderr: {stderr}")
 
+
+class HttpTransport(MCPTransport):
+    """MCP transport over streamable HTTP."""
+
+    def __init__(self, base_url: str, headers: dict[str, str] | None = None):
+        self.base_url = base_url.rstrip("/")
+        self.headers = headers or {}
+        self.request_id = 0
+        self.session_id: str | None = None
+        self._session = None
+        self._use_httpx = True
+
+    def start(self) -> None:
+        """Initialize HTTP session."""
+        try:
+            import httpx
+            self._session = httpx.Client(timeout=30.0)
+            self._use_httpx = True
+        except ImportError:
+            # Fallback to requests if httpx not available
+            try:
+                import requests
+                self._session = requests.Session()
+                self._use_httpx = False
+            except ImportError:
+                raise RuntimeError("Either 'httpx' or 'requests' package is required for HTTP transport. Install with: pip install httpx")
+
+    def stop(self) -> None:
+        """Close HTTP session."""
+        if self._session:
+            self._session.close()
+            self._session = None
+
+    def send_request(self, method: str, params: dict | None = None) -> dict:
+        """Send a JSON-RPC request over HTTP."""
+        if not self._session:
+            raise RuntimeError("HTTP session not started")
+
+        self.request_id += 1
+        request = {
+            "jsonrpc": "2.0",
+            "id": self.request_id,
+            "method": method,
+        }
+        if params:
+            request["params"] = params
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            **self.headers,
+        }
+
+        # Add session ID if we have one
+        if self.session_id:
+            headers["Mcp-Session-Id"] = self.session_id
+
+        try:
+            # MCP streamable-http endpoint
+            endpoint = f"{self.base_url}/mcp"
+
+            if self._use_httpx:
+                response = self._session.post(endpoint, json=request, headers=headers)
+                response.raise_for_status()
+                response_headers = response.headers
+                response_text = response.text
+            else:
+                response = self._session.post(endpoint, json=request, headers=headers, timeout=30)
+                response.raise_for_status()
+                response_headers = response.headers
+                response_text = response.text
+
+            # Capture session ID from response headers
+            if "Mcp-Session-Id" in response_headers:
+                self.session_id = response_headers["Mcp-Session-Id"]
+
+            # Handle SSE response
+            content_type = response_headers.get("Content-Type", "")
+            if "text/event-stream" in content_type:
+                return self._parse_sse_response(response_text)
+
+            return json.loads(response_text)
+
+        except Exception as e:
+            raise RuntimeError(f"HTTP request failed: {e}")
+
+    def _parse_sse_response(self, text: str) -> dict:
+        """Parse Server-Sent Events response to extract JSON-RPC result."""
+        result = None
+        for line in text.split("\n"):
+            line = line.strip()
+            if line.startswith("data:"):
+                data = line[5:].strip()
+                if data:
+                    try:
+                        parsed = json.loads(data)
+                        # Keep the last complete response (with result or error)
+                        if "result" in parsed or "error" in parsed:
+                            result = parsed
+                    except json.JSONDecodeError:
+                        continue
+        if result:
+            return result
+        raise RuntimeError(f"No valid JSON-RPC response in SSE stream: {text[:200]}")
+
+
+class MCPTestClient:
+    """MCP client for testing servers via any transport."""
+
+    def __init__(self, transport: MCPTransport):
+        self.transport = transport
+
+    def start(self) -> None:
+        """Start the transport."""
+        self.transport.start()
+
+    def stop(self) -> None:
+        """Stop the transport."""
+        self.transport.stop()
+
     def initialize(self) -> dict:
         """Initialize the MCP connection."""
-        return self._send_request("initialize", {
+        return self.transport.send_request("initialize", {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
             "clientInfo": {
@@ -119,7 +262,7 @@ class MCPTestClient:
 
     def list_tools(self) -> list[dict]:
         """List available tools."""
-        response = self._send_request("tools/list")
+        response = self.transport.send_request("tools/list")
         if "result" in response and "tools" in response["result"]:
             return response["result"]["tools"]
         elif "error" in response:
@@ -128,7 +271,7 @@ class MCPTestClient:
 
     def call_tool(self, name: str, arguments: dict | None = None) -> Any:
         """Call a tool with the given arguments."""
-        response = self._send_request("tools/call", {
+        response = self.transport.send_request("tools/call", {
             "name": name,
             "arguments": arguments or {}
         })
@@ -140,7 +283,7 @@ class MCPTestClient:
 
     def list_resources(self) -> list[dict]:
         """List available resources."""
-        response = self._send_request("resources/list")
+        response = self.transport.send_request("resources/list")
         if "result" in response and "resources" in response["result"]:
             return response["result"]["resources"]
         elif "error" in response:
@@ -149,7 +292,7 @@ class MCPTestClient:
 
     def read_resource(self, uri: str) -> Any:
         """Read a resource by URI."""
-        response = self._send_request("resources/read", {"uri": uri})
+        response = self.transport.send_request("resources/read", {"uri": uri})
         if "result" in response:
             return response["result"]
         elif "error" in response:
@@ -167,7 +310,9 @@ def print_tools(tools: list[dict]) -> None:
         name = tool.get("name", "unknown")
         desc = tool.get("description", "No description")
         print(f"\n[{name}]")
-        print(f"  {desc}")
+        # Print first line of description
+        first_line = desc.split("\n")[0] if desc else "No description"
+        print(f"  {first_line}")
 
         schema = tool.get("inputSchema", {})
         props = schema.get("properties", {})
@@ -182,6 +327,16 @@ def print_tools(tools: list[dict]) -> None:
                 print(f"    {req_marker} {prop_name}: {prop_type}")
                 if prop_desc:
                     print(f"        {prop_desc}")
+
+
+def print_tools_compact(tools: list[dict]) -> None:
+    """Print tools in compact format (names only)."""
+    print(f"\nAvailable Tools ({len(tools)}):")
+    for tool in tools:
+        name = tool.get("name", "unknown")
+        desc = tool.get("description", "No description")
+        first_line = desc.split("\n")[0][:60] if desc else "No description"
+        print(f"  - {name}: {first_line}")
 
 
 def print_resources(resources: list[dict]) -> None:
@@ -262,60 +417,101 @@ def interactive_mode(client: MCPTestClient) -> None:
             print(f"Error: {e}")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="MCP Test Client - Test MCP servers via stdio",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # List tools from AgentPM MCP server
-  python mcp_test_client.py "python -m agentpm.mcp" --list-tools
-
-  # Call a tool
-  python mcp_test_client.py "python -m agentpm.mcp" --call list_projects
-
-  # Call with arguments
-  python mcp_test_client.py "python -m agentpm.mcp" --call create_company '{"name": "Test"}'
-
-  # Interactive mode
-  python mcp_test_client.py "python -m agentpm.mcp" -i
-
-  # With environment variables
-  python mcp_test_client.py "python -m agentpm.mcp" --env AGENTPM_DB=test.db --list-tools
-        """
-    )
-
+def create_stdio_parser(subparsers):
+    """Create the stdio subcommand parser."""
+    parser = subparsers.add_parser("stdio", help="Connect via stdio (subprocess)")
     parser.add_argument("command", help="Command to start the MCP server")
+    parser.add_argument("--env", "-e", action="append", metavar="KEY=VALUE", help="Environment variables")
+    return parser
+
+
+def create_http_parser(subparsers):
+    """Create the http subcommand parser."""
+    parser = subparsers.add_parser("http", help="Connect via streamable HTTP")
+    parser.add_argument("url", help="Base URL of the MCP server (e.g., http://localhost:8000)")
+    parser.add_argument("--header", "-H", action="append", metavar="KEY:VALUE", help="HTTP headers")
+    return parser
+
+
+def add_common_args(parser):
+    """Add common arguments to a parser."""
     parser.add_argument("--list-tools", "-l", action="store_true", help="List available tools")
     parser.add_argument("--list-resources", "-r", action="store_true", help="List available resources")
     parser.add_argument("--call", "-c", nargs="+", metavar=("TOOL", "ARGS"), help="Call a tool with optional JSON arguments")
     parser.add_argument("--read", metavar="URI", help="Read a resource by URI")
     parser.add_argument("--interactive", "-i", action="store_true", help="Interactive mode")
-    parser.add_argument("--env", "-e", action="append", metavar="KEY=VALUE", help="Environment variables")
     parser.add_argument("--raw", action="store_true", help="Output raw JSON")
+    parser.add_argument("--compact", action="store_true", help="Compact output (tool names only)")
+    parser.add_argument("--quiet", "-q", action="store_true", help="Minimal output")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="MCP Test Client - Test MCP servers via stdio or HTTP",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Stdio transport
+  python mcp_test_client.py stdio "python -m agentpm.mcp" --list-tools
+  python mcp_test_client.py stdio "python -m agentpm.mcp" --call pm_list_companies
+  python mcp_test_client.py stdio "python -m agentpm.mcp" -i
+
+  # HTTP transport (streamable-http)
+  python mcp_test_client.py http "http://localhost:8000" --list-tools
+  python mcp_test_client.py http "http://localhost:8000" --call pm_get_dashboard
+  python mcp_test_client.py http "http://localhost:8000" -H "Authorization:Bearer token" -l
+
+  # With environment variables (stdio only)
+  python mcp_test_client.py stdio "python -m agentpm.mcp" --env AGENTPM_DB=test.db -l
+        """
+    )
+
+    subparsers = parser.add_subparsers(dest="transport", required=True)
+
+    # Create transport-specific parsers
+    stdio_parser = create_stdio_parser(subparsers)
+    http_parser = create_http_parser(subparsers)
+
+    # Add common args to both
+    add_common_args(stdio_parser)
+    add_common_args(http_parser)
 
     args = parser.parse_args()
 
-    # Parse environment variables
-    env = {}
-    if args.env:
-        for item in args.env:
-            if "=" in item:
-                key, value = item.split("=", 1)
-                env[key] = value
+    # Create appropriate transport
+    if args.transport == "stdio":
+        env = {}
+        if args.env:
+            for item in args.env:
+                if "=" in item:
+                    key, value = item.split("=", 1)
+                    env[key] = value
+        transport = StdioTransport(args.command, env if env else None)
+        connect_info = f"stdio: {args.command}"
+    else:  # http
+        headers = {}
+        if args.header:
+            for item in args.header:
+                if ":" in item:
+                    key, value = item.split(":", 1)
+                    headers[key.strip()] = value.strip()
+        transport = HttpTransport(args.url, headers if headers else None)
+        connect_info = f"http: {args.url}"
 
-    client = MCPTestClient(args.command, env if env else None)
+    client = MCPTestClient(transport)
 
     try:
-        print(f"Starting MCP server: {args.command}")
+        if not args.quiet:
+            print(f"Connecting to MCP server ({connect_info})...")
         client.start()
 
-        print("Initializing connection...")
+        if not args.quiet:
+            print("Initializing connection...")
         init_response = client.initialize()
 
         if args.raw:
             print(json.dumps(init_response, indent=2))
-        else:
+        elif not args.quiet:
             server_info = init_response.get("result", {}).get("serverInfo", {})
             print(f"Connected to: {server_info.get('name', 'unknown')} v{server_info.get('version', '?')}")
 
@@ -323,6 +519,8 @@ Examples:
             tools = client.list_tools()
             if args.raw:
                 print(json.dumps(tools, indent=2))
+            elif args.compact:
+                print_tools_compact(tools)
             else:
                 print_tools(tools)
 
@@ -353,12 +551,12 @@ Examples:
             interactive_mode(client)
 
         else:
-            # Default: list tools
+            # Default: list tools in compact mode
             tools = client.list_tools()
             if args.raw:
                 print(json.dumps(tools, indent=2))
             else:
-                print_tools(tools)
+                print_tools_compact(tools)
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
