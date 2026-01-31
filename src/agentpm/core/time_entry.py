@@ -21,7 +21,7 @@ def start_timer(
     actor: str | None = None,
 ) -> TimeEntry:
     """
-    Start a timer on a node.
+    Start a timer on a node (supports prefix matching).
 
     If another timer is running, it will be automatically stopped.
     """
@@ -30,6 +30,7 @@ def start_timer(
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("node", node_id)
+    node_id = node.id  # Use full ID
 
     # Stop any active timer first
     active = get_active_timer()
@@ -133,12 +134,13 @@ def log_time(
     source: str = "manual",
     actor: str | None = None,
 ) -> TimeEntry:
-    """Log a manual time entry (no timer, just duration)."""
+    """Log a manual time entry (no timer, just duration). Supports prefix matching."""
     # Verify node exists
     from agentpm.graph.nodes import get_node
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("node", node_id)
+    node_id = node.id  # Use full ID
 
     entry_id = uuid4().hex
     now = _now()
@@ -185,7 +187,13 @@ def get_active_timer() -> TimeEntry | None:
 
 
 def list_time_entries(node_id: str) -> list[TimeEntry]:
-    """List all time entries for a node."""
+    """List all time entries for a node (supports prefix matching)."""
+    from agentpm.graph.nodes import get_node
+    node = get_node(node_id)
+    if node is None:
+        return []
+    node_id = node.id  # Use full ID
+
     rows = fetchall(
         "SELECT * FROM time_entries WHERE node_id = ? ORDER BY started_at DESC",
         (node_id,),
@@ -194,7 +202,13 @@ def list_time_entries(node_id: str) -> list[TimeEntry]:
 
 
 def get_time_total(node_id: str) -> int:
-    """Get total time tracked on a node in minutes."""
+    """Get total time tracked on a node in minutes (supports prefix matching)."""
+    from agentpm.graph.nodes import get_node
+    node = get_node(node_id)
+    if node is None:
+        return 0
+    node_id = node.id  # Use full ID
+
     row = fetchone(
         "SELECT COALESCE(SUM(duration_minutes), 0) as total FROM time_entries WHERE node_id = ?",
         (node_id,),
@@ -211,7 +225,13 @@ def _get_time_entry(entry_id: str) -> TimeEntry | None:
 
 
 def _get_active_timer_for_node(node_id: str) -> TimeEntry | None:
-    """Get the active timer for a specific node."""
+    """Get the active timer for a specific node (supports prefix matching)."""
+    from agentpm.graph.nodes import get_node
+    node = get_node(node_id)
+    if node is None:
+        return None
+    node_id = node.id  # Use full ID
+
     row = fetchone(
         "SELECT * FROM time_entries WHERE node_id = ? AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1",
         (node_id,),
