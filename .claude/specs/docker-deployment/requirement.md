@@ -5,7 +5,7 @@ As a developer, I want to deploy AgentPM as a containerized MCP server so that I
 
 ## User Stories
 
-### US-1: Build Docker Image
+### DOCKER-01: Build Docker Image
 **As a** developer
 **I want to** build a Docker image for AgentPM
 **So that** I can deploy it consistently across different environments
@@ -16,7 +16,7 @@ As a developer, I want to deploy AgentPM as a containerized MCP server so that I
 - [ ] Image size is optimized (no dev dependencies, multi-stage build)
 - [ ] Image can be built with `docker build -t agentpm .`
 
-### US-2: Run MCP Server in Container
+### DOCKER-02: Run MCP Server in Container
 **As a** developer
 **I want to** run the AgentPM MCP server in a container
 **So that** I can access it over HTTP from remote clients
@@ -27,7 +27,7 @@ As a developer, I want to deploy AgentPM as a containerized MCP server so that I
 - [ ] Port 8020 is exposed and accessible
 - [ ] Server responds to MCP protocol requests
 
-### US-3: Persist Database
+### DOCKER-03: Persist Database
 **As a** developer
 **I want to** persist the SQLite database outside the container
 **So that** my data survives container restarts and updates
@@ -38,7 +38,7 @@ As a developer, I want to deploy AgentPM as a containerized MCP server so that I
 - [ ] Data persists after container removal and recreation
 - [ ] Default database path configured via environment variable
 
-### US-4: Easy Deployment with Compose
+### DOCKER-04: Easy Deployment with Compose
 **As a** developer
 **I want to** deploy AgentPM with a single command
 **So that** I can quickly start the service without remembering complex docker run commands
@@ -50,7 +50,7 @@ As a developer, I want to deploy AgentPM as a containerized MCP server so that I
 - [ ] Environment variables properly set
 - [ ] Can start with `docker-compose up -d`
 
-### US-5: Health Check
+### DOCKER-05: Health Check
 **As a** developer
 **I want to** verify the container is healthy
 **So that** orchestrators can monitor and restart if needed

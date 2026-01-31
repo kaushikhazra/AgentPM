@@ -1,0 +1,23 @@
+# =============================================================================
+# AgentPM Caddy Configuration
+# Reverse proxy with automatic TLS
+# =============================================================================
+
+{$DOMAIN:localhost} {
+    # Reverse proxy to AgentPM MCP server
+    reverse_proxy agentpm:8020
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        -Server
+    }
+
+    # Logging
+    log {
+        output stdout
+        format console
+    }
+}

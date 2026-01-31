@@ -188,6 +188,62 @@ mkdir -p data
 chmod 755 data
 ```
 
+## Docker with HTTPS
+
+For secure remote access, use the HTTPS configuration with Caddy reverse proxy.
+
+### Quick Start (Local HTTPS)
+
+```bash
+# Start with self-signed certificate
+docker-compose -f docker-compose.https.yml up -d
+
+# Check status
+docker-compose -f docker-compose.https.yml ps
+```
+
+Access: `https://localhost/mcp` (accept self-signed cert warning)
+
+### Production Deployment
+
+```bash
+# Set your domain and optional email for Let's Encrypt
+export DOMAIN=mcp.example.com
+export EMAIL=admin@example.com
+
+# Start with automatic Let's Encrypt certificate
+docker-compose -f docker-compose.https.yml up -d
+```
+
+Access: `https://mcp.example.com/mcp`
+
+### HTTPS Client Configuration
+
+```json
+{
+  "mcpServers": {
+    "agentpm": {
+      "transport": "streamable-http",
+      "url": "https://mcp.example.com/mcp"
+    }
+  }
+}
+```
+
+### HTTPS Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DOMAIN` | `localhost` | Domain for TLS certificate |
+| `EMAIL` | - | Email for Let's Encrypt notifications (optional) |
+
+### How It Works
+
+- **Local**: Caddy generates a self-signed certificate for `localhost`
+- **Production**: Caddy automatically obtains Let's Encrypt certificate
+- **HTTP**: Requests to port 80 redirect to HTTPS (port 443)
+- **Security**: HSTS, X-Content-Type-Options, X-Frame-Options headers
+
 ## CLI Commands
 
 ### Company Management
