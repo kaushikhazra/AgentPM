@@ -340,6 +340,14 @@ def pm_list_nodes(
         List of node objects
     """
     from agentpm.graph import list_nodes
+    from agentpm.core import get_project
+
+    # Resolve short project_id to full ID
+    if project_id:
+        project = get_project(project_id)
+        if project:
+            project_id = project.id
+
     nodes = list_nodes(
         project_id=project_id,
         node_type=node_type,
@@ -392,10 +400,11 @@ def pm_create_node(
     )
 
     # Create parent edge if parent_id provided
+    # Edge direction: child (source) → parent (target)
     if parent_id:
         create_edge(
-            source_id=parent_id,
-            target_id=node.id,
+            source_id=node.id,
+            target_id=parent_id,
             edge_type="parent",
             actor=get_actor()
         )
@@ -489,9 +498,14 @@ def pm_update_node(
 @mcp.tool()
 def pm_start_node(node_id: str) -> dict:
     """
-    Start working on a node.
+    Start working on a node (workflow action).
 
-    Sets status to in_progress and starts a timer.
+    This is a workflow action that:
+    1. Changes the node's status to in_progress
+    2. Automatically starts a timer
+
+    Use this when beginning work on a task. For timer-only operations,
+    use pm_start_timer instead.
 
     Args:
         node_id: Node ID
@@ -562,7 +576,23 @@ def pm_list_edges(
     Returns:
         List of edge objects
     """
-    from agentpm.graph import list_edges
+    from agentpm.graph import list_edges, get_node
+    from agentpm.core import get_project
+
+    # Resolve short IDs to full IDs
+    if project_id:
+        project = get_project(project_id)
+        if project:
+            project_id = project.id
+    if source_id:
+        node = get_node(source_id)
+        if node:
+            source_id = node.id
+    if target_id:
+        node = get_node(target_id)
+        if node:
+            target_id = node.id
+
     edges = list_edges(
         project_id=project_id,
         source_id=source_id,
@@ -655,9 +685,12 @@ def pm_get_descendants(node_id: str, edge_type: str | None = None) -> list[dict]
 @mcp.tool()
 def pm_start_timer(node_id: str, notes: str | None = None) -> dict:
     """
-    Start a timer on a node.
+    Start a timer on a node (timer-only, no status change).
 
+    This is a pure time-tracking operation that does NOT change the node's status.
     If another timer is running, it will be automatically stopped.
+
+    Use pm_start_node instead if you want to both change status AND start timing.
 
     Args:
         node_id: Node to track time on
