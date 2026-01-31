@@ -107,8 +107,19 @@ def create_node(
 
 
 def get_node(node_id: str) -> Node | None:
-    """Get a node by ID."""
+    """Get a node by ID (supports prefix matching)."""
+    # Try exact match first
     row = fetchone("SELECT * FROM nodes WHERE id = ?", (node_id,))
+
+    # If not found, try prefix match
+    if row is None and len(node_id) >= 4:
+        rows = fetchall(
+            "SELECT * FROM nodes WHERE id LIKE ?",
+            (node_id + "%",),
+        )
+        if len(rows) == 1:
+            row = rows[0]
+
     if row is None:
         return None
     return _row_to_node(row)
@@ -168,10 +179,11 @@ def update_node(
     properties: dict | None = None,
     actor: str | None = None,
 ) -> Node:
-    """Update a node."""
+    """Update a node (supports prefix matching)."""
     node = get_node(node_id)
     if node is None:
         raise NotFoundError("node", node_id)
+    node_id = node.id  # Use full ID
 
     project = get_project(node.project_id)
     methodology = get_methodology(project.methodology)
@@ -265,10 +277,11 @@ def update_node(
 
 
 def delete_node(node_id: str, actor: str | None = None) -> bool:
-    """Delete a node."""
+    """Delete a node (supports prefix matching)."""
     node = get_node(node_id)
     if node is None:
         return False
+    node_id = node.id  # Use full ID
 
     log_activity(
         entity_type="node",
