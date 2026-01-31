@@ -5,8 +5,9 @@
 #
 # Usage:
 #   Local (self-signed):  docker-compose -f docker-compose.https.yml up -d
-#   Production:           DOMAIN=mcp.example.com EMAIL=you@example.com docker-compose -f docker-compose.https.yml up -d
+#   Production:           DOMAIN=mcp.example.com docker-compose -f docker-compose.https.yml up -d
 #
+# Access: https://localhost:8030/mcp
 # =============================================================================
 
 services:
@@ -51,10 +52,9 @@ services:
     image: caddy:2-alpine
     container_name: agentpm-caddy
 
-    # External ports
+    # External port (8030 for HTTPS)
     ports:
-      - "80:80"
-      - "443:443"
+      - "8030:8030"
 
     # Mount Caddyfile and certificate storage
     volumes:
