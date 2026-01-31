@@ -70,6 +70,7 @@ def show_project(
     if project is None:
         console.print(f"[red]Project not found:[/red] {project_id}")
         raise typer.Exit(1)
+    project_id = project.id  # Use full ID
 
     stats = get_project_stats(project_id)
     milestones = list_milestones(project_id)
