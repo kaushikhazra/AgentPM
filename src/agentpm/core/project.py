@@ -30,6 +30,14 @@ def create_project(
         raise ValidationError(f"Company not found: {company_id}")
     company_id = company.id  # Use full ID
 
+    # Check for duplicate project name in the same company
+    existing = fetchone(
+        "SELECT id FROM projects WHERE company_id = ? AND name = ?",
+        (company_id, name),
+    )
+    if existing:
+        raise ValidationError(f"Project '{name}' already exists in this company")
+
     project_id = uuid4().hex
     now = datetime.utcnow()
     config_json = json.dumps(config) if config else None
