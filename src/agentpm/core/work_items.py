@@ -63,13 +63,14 @@ def create_task(
     """
     Create a task under a story (or equivalent hierarchy).
 
-    Automatically creates parent edge.
+    Automatically creates parent edge. Supports prefix matching for parent_id.
     """
     from agentpm.graph import create_node, get_node, create_edge
 
     parent = get_node(parent_id)
     if parent is None:
         raise NotFoundError("Node", parent_id)
+    parent_id = parent.id  # Use full ID
 
     methodology = get_project_methodology(parent.project_id)
     node_type = methodology.get_task_type()
