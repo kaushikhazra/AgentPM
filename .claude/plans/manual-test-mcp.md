@@ -334,23 +334,34 @@ Test a complete workflow via MCP:
 ## MCP Test Checklist
 
 ### Tools
-- [ ] Company tools (list, create, get)
-- [ ] Project tools (list, create, get, update, methodology)
-- [ ] Node tools (list, create, get, update, start, complete, block)
-- [ ] Edge tools (list, create, delete, ancestors, descendants)
-- [ ] Timer tools (start, stop, log, get_active)
-- [ ] Tag tools (list, create, tag, untag)
-- [ ] Milestone tools (list, create, complete)
-- [ ] Reporting tools (dashboard, search, activity, rollup, stats)
+- [x] Company tools (list, create, get)
+- [x] Project tools (list, create, get, update, methodology)
+- [x] Node tools (list, create, get, update, start, complete, block)
+- [x] Edge tools (list, create, delete, ancestors, descendants)
+- [x] Timer tools (start, stop, log, get_active)
+- [x] Tag tools (list, create, tag, untag)
+- [x] Milestone tools (list, create, complete)
+- [x] Reporting tools (dashboard, search, activity, rollup, stats)
 
 ### Resources
-- [ ] pm://dashboard
-- [ ] pm://project/{id}
-- [ ] pm://project/{id}/methodology
-- [ ] pm://node/{id}
-- [ ] pm://activity/recent
+- [x] pm://dashboard
+- [ ] pm://project/{id} (not implemented as resource)
+- [ ] pm://project/{id}/methodology (not implemented as resource)
+- [ ] pm://node/{id} (not implemented as resource)
+- [x] pm://activity/recent
 
 ### Integration
-- [ ] Full workflow completes successfully
-- [ ] Actor shows correctly in activity log
-- [ ] Error handling returns useful messages
+- [x] Full workflow completes successfully
+- [x] Actor shows correctly in activity log (shows "mcp")
+- [x] Error handling returns useful messages
+
+## Bugs Fixed During Testing
+1. **Parent edge direction**: pm_create_node was creating edges backwards (fixed)
+2. **Short ID resolution in create_edge**: source_id/target_id not resolved to full IDs (fixed)
+3. **Short ID in pm_list_nodes**: project_id not resolved (fixed)
+4. **Short ID in pm_list_edges**: project_id/source_id/target_id not resolved (fixed)
+5. **Short ID in traversal**: get_ancestors/get_descendants didn't resolve starting node (fixed)
+
+## Affordance Improvements
+- Enhanced pm_start_node description to clarify it's a workflow action (status + timer)
+- Enhanced pm_start_timer description to clarify it's timer-only (no status change)
