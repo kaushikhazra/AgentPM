@@ -75,7 +75,13 @@ def list_milestones(
     project_id: str,
     status: str | None = None,
 ) -> list[Milestone]:
-    """List milestones for a project."""
+    """List milestones for a project (supports prefix matching)."""
+    # Resolve project ID prefix
+    project = get_project(project_id)
+    if project is None:
+        return []
+    project_id = project.id
+
     sql = "SELECT * FROM milestones WHERE project_id = ?"
     params = [project_id]
 
