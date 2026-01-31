@@ -23,10 +23,11 @@ def create_milestone(
     actor: str | None = None,
 ) -> Milestone:
     """Create a new milestone."""
-    # Validate project exists
+    # Validate project exists (supports prefix matching)
     project = get_project(project_id)
     if project is None:
         raise NotFoundError("project", project_id)
+    project_id = project.id  # Use full ID
 
     milestone_id = uuid4().hex
     now = _now()
