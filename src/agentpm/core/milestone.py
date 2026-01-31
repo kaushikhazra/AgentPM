@@ -64,8 +64,19 @@ def create_milestone(
 
 
 def get_milestone(milestone_id: str) -> Milestone | None:
-    """Get a milestone by ID."""
+    """Get a milestone by ID (supports prefix matching)."""
+    # Try exact match first
     row = fetchone("SELECT * FROM milestones WHERE id = ?", (milestone_id,))
+
+    # If not found, try prefix match
+    if row is None and len(milestone_id) >= 4:
+        rows = fetchall(
+            "SELECT * FROM milestones WHERE id LIKE ?",
+            (milestone_id + "%",),
+        )
+        if len(rows) == 1:
+            row = rows[0]
+
     if row is None:
         return None
     return _row_to_milestone(row)
