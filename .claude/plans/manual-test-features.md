@@ -6,8 +6,9 @@ Comprehensive CLI feature testing.
 ```bash
 cd C:\Projects\AgentPM
 pip install -e .
-# Use a fresh test database
-set AGENTPM_DB=test_manual.db
+# Use a fresh test database (PowerShell)
+$env:AGENTPM_DB = "test_manual.db"
+# Or for cmd.exe: set AGENTPM_DB=test_manual.db
 ```
 
 ---
@@ -174,9 +175,9 @@ apm node update <spec_id> --status approved
 
 ### 5.3 Create Design
 ```bash
-apm node create <project_id> design "Auth Design Doc"
+apm node create <spec_id> design "Auth Design Doc"
 ```
-**Expected**: Status "draft"
+**Expected**: Status "draft", Parent shown as the spec
 
 ### 5.4 Design Review Flow
 ```bash
@@ -187,9 +188,9 @@ apm node update <design_id> --status approved
 
 ### 5.5 Create Implementation
 ```bash
-apm node create <project_id> implementation "Implement Auth"
+apm node create <design_id> implementation "Implement Auth"
 ```
-**Expected**: Status "todo"
+**Expected**: Status "todo", Parent shown as the design
 
 ### 5.6 Implementation Workflow
 ```bash
@@ -201,9 +202,9 @@ apm node done <impl_id>
 
 ### 5.7 Create Validation
 ```bash
-apm node create <project_id> validation "Auth Tests"
+apm node create <impl_id> validation "Auth Tests"
 ```
-**Expected**: Status "pending"
+**Expected**: Status "pending", Parent shown as the implementation
 
 ### 5.8 Validation Pass/Fail
 ```bash
