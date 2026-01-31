@@ -101,6 +101,93 @@ For network access, run with streamable HTTP transport:
 python -m agentpm.mcp --transport streamable-http --port 8000
 ```
 
+## Docker Deployment
+
+AgentPM can be deployed as a remote MCP server using Docker.
+
+### Quick Start with Docker Compose
+
+```bash
+# Build and start the container
+docker-compose up -d
+
+# Check container health
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Stop the container
+docker-compose down
+```
+
+The MCP server will be available at `http://localhost:8020/mcp`.
+
+### Manual Docker Run
+
+```bash
+# Build the image
+docker build -t agentpm .
+
+# Run with volume mount for persistent storage
+docker run -d \
+  --name agentpm \
+  -p 8020:8020 \
+  -v $(pwd)/data:/data \
+  agentpm
+```
+
+### Connecting to Remote MCP Server
+
+Configure your MCP client to connect via HTTP:
+
+```json
+{
+  "mcpServers": {
+    "agentpm": {
+      "transport": "streamable-http",
+      "url": "http://localhost:8020/mcp"
+    }
+  }
+}
+```
+
+### Docker Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AGENTPM_DB` | `/data/agentpm.db` | Database path inside container |
+| `AGENTPM_ACTOR` | `mcp` | Actor ID for activity logs |
+| `AGENTPM_MCP_HOST` | `0.0.0.0` | Bind to all interfaces |
+| `AGENTPM_MCP_PORT` | `8020` | HTTP server port |
+
+### Data Persistence
+
+The SQLite database is stored at `/data/agentpm.db` inside the container. Mount a volume to `./data` on your host to persist data between container restarts:
+
+```yaml
+volumes:
+  - ./data:/data
+```
+
+### Troubleshooting
+
+**Container shows unhealthy:**
+```bash
+# Check container logs
+docker-compose logs agentpm
+
+# Verify MCP server is responding
+curl http://localhost:8020/mcp
+```
+
+**Permission denied on database:**
+The container runs as user `agentpm` (UID 1000). Ensure your host data directory is writable:
+```bash
+mkdir -p data
+chmod 755 data
+```
+
 ## CLI Commands
 
 ### Company Management

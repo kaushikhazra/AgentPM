@@ -1,0 +1,36 @@
+# =============================================================================
+# AgentPM Docker Compose Configuration
+# Remote MCP Server with persistent SQLite storage
+# =============================================================================
+
+services:
+  agentpm:
+    build: .
+    image: agentpm:latest
+    container_name: agentpm
+
+    # Port mapping for MCP server
+    ports:
+      - "8020:8020"
+
+    # Volume mount for persistent database storage
+    volumes:
+      - ./data:/data
+
+    # Environment configuration
+    environment:
+      - AGENTPM_DB=/data/agentpm.db
+      - AGENTPM_ACTOR=mcp
+      - AGENTPM_MCP_HOST=0.0.0.0
+      - AGENTPM_MCP_PORT=8020
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check configuration (checks if uvicorn is responding)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

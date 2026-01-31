@@ -1,0 +1,56 @@
+# =============================================================================
+# Docker Build Exclusions
+# =============================================================================
+
+# Version control
+.git/
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+.eggs/
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Development
+.venv/
+venv/
+ENV/
+.env
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Data directory (should be mounted as volume)
+data/
+
+# Documentation (not needed in image)
+*.md
+!README.md
+
+# Docker files (not needed in image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
