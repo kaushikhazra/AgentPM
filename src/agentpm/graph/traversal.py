@@ -49,8 +49,14 @@ def get_ancestors(
     Get all ancestors of a node (nodes this node points to, recursively).
 
     For a 'parent' edge type, this returns the parent, grandparent, etc.
-    Uses BFS to traverse up the graph.
+    Uses BFS to traverse up the graph. Supports short ID prefix matching.
     """
+    # Resolve short ID to full ID
+    node = get_node(node_id)
+    if node is None:
+        return []
+    node_id = node.id
+
     ancestors = []
     visited = set()
     queue = deque([(node_id, 0)])
@@ -97,8 +103,14 @@ def get_descendants(
     Get all descendants of a node (nodes that point to this node, recursively).
 
     For a 'parent' edge type, this returns all children, grandchildren, etc.
-    Uses BFS to traverse down the graph.
+    Uses BFS to traverse down the graph. Supports short ID prefix matching.
     """
+    # Resolve short ID to full ID
+    node = get_node(node_id)
+    if node is None:
+        return []
+    node_id = node.id
+
     descendants = []
     visited = set()
     queue = deque([(node_id, 0)])
