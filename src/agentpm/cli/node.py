@@ -46,7 +46,7 @@ def list_nodes(
 @app.command("create")
 @handle_errors
 def create_node(
-    project_id: str = typer.Argument(..., help="Project ID"),
+    parent_or_project: str = typer.Argument(..., help="Project ID or parent node ID"),
     node_type: str = typer.Argument(..., help="Node type (story, task, etc.)"),
     title: str = typer.Argument(..., help="Node title"),
     description: Optional[str] = typer.Option(None, "--description", "-d", help="Description"),
@@ -56,8 +56,27 @@ def create_node(
     estimate: Optional[int] = typer.Option(None, "--estimate", "-e", help="Estimated minutes"),
     points: Optional[int] = typer.Option(None, "--points", help="Story points"),
 ):
-    """Create a new node."""
-    from agentpm.graph import create_node as _create_node
+    """Create a new node.
+
+    The first argument can be either a project ID (for top-level nodes) or
+    a parent node ID (to create a child node with automatic parent edge).
+    """
+    from agentpm.graph import create_node as _create_node, get_node, create_edge
+    from agentpm.core import get_project
+
+    # Try as project first, then as node
+    project = get_project(parent_or_project)
+    parent_node = None
+
+    if project is not None:
+        project_id = project.id
+    else:
+        # Try as parent node
+        parent_node = get_node(parent_or_project)
+        if parent_node is None:
+            console.print(f"[red]Not found:[/red] '{parent_or_project}' is not a valid project or node ID")
+            raise typer.Exit(1)
+        project_id = parent_node.project_id
 
     node = _create_node(
         project_id=project_id,
@@ -72,12 +91,23 @@ def create_node(
         actor="cli",
     )
 
+    # Create parent edge if created under a node
+    if parent_node is not None:
+        create_edge(
+            source_id=node.id,
+            target_id=parent_node.id,
+            edge_type="parent",
+            actor="cli",
+        )
+
     if state.json_output:
         console.print_json(data=node.model_dump(mode="json"))
     else:
         console.print(f"[green]✓[/green] Created {node_type}: {node.title}")
         console.print(f"  ID: {node.id}")
         console.print(f"  Status: {node.status}")
+        if parent_node:
+            console.print(f"  Parent: {parent_node.title} [{short_id(parent_node.id)}]")
 
 
 @app.command("show")
