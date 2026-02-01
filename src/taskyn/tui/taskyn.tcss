@@ -251,3 +251,141 @@ Button.-warning {
 Button.-error {
     background: $error;
 }
+
+/* ============================================================
+   LOADING INDICATOR
+   ============================================================ */
+
+.loading-container {
+    width: 100%;
+    height: 100%;
+    align: center middle;
+}
+
+.loading-spinner {
+    color: $primary;
+    text-style: bold;
+}
+
+.loading-text {
+    color: $muted;
+    padding-top: 1;
+}
+
+/* ============================================================
+   ACTIVITY LOG WIDGET
+   ============================================================ */
+
+ActivityLog {
+    height: auto;
+    max-height: 10;
+    border: solid $muted;
+    background: $surface-darken-1;
+    padding: 1;
+}
+
+ActivityLog .activity-title {
+    text-style: bold;
+    color: $primary;
+    padding-bottom: 1;
+}
+
+ActivityLog .activity-item {
+    height: auto;
+    padding: 0;
+}
+
+ActivityLog .activity-empty {
+    color: $muted;
+    text-align: center;
+    padding: 1;
+}
+
+/* ============================================================
+   RESPONSIVE LAYOUT - NARROW TERMINALS (<100 cols)
+   ============================================================ */
+
+DashboardScreen.-narrow {
+    grid-size: 1 2;
+    grid-columns: 1fr;
+}
+
+DashboardScreen.-narrow #sidebar {
+    display: none;
+}
+
+DashboardScreen.-narrow #bottom-panels {
+    layout: vertical;
+}
+
+DashboardScreen.-narrow #stats-panel {
+    width: 100%;
+}
+
+DashboardScreen.-narrow #timer-panel {
+    width: 100%;
+}
+
+/* ============================================================
+   RESPONSIVE LAYOUT - COMPACT MODE (<120 cols)
+   ============================================================ */
+
+DashboardScreen.-compact #sidebar {
+    width: 20;
+}
+
+DashboardScreen.-compact .panel-title {
+    display: none;
+}
+
+/* ============================================================
+   TEXT TRUNCATION
+   ============================================================ */
+
+.truncate {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+
+.empty-state {
+    width: 100%;
+    height: 100%;
+    align: center middle;
+    color: $muted;
+}
+
+.empty-state-icon {
+    text-align: center;
+    color: $slate;
+}
+
+.empty-state-message {
+    text-align: center;
+    color: $muted;
+    padding-top: 1;
+}
+
+/* ============================================================
+   NOTIFICATIONS ENHANCEMENT
+   ============================================================ */
+
+Toast {
+    background: $surface;
+    border: solid $primary;
+}
+
+Toast.-information {
+    border: solid $primary;
+}
+
+Toast.-warning {
+    border: solid $warning;
+}
+
+Toast.-error {
+    border: solid $error;
+}

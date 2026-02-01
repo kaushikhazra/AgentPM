@@ -133,9 +133,10 @@ class TaskynTUI(App):
             project_tree = self.query_one(ProjectTree)
             project_tree.refresh_tree()
 
-            # Refresh stats
+            # Refresh stats and activity
             dashboard = self.query_one(DashboardScreen)
             dashboard.refresh_stats()
+            dashboard.refresh_activity()
 
         except Exception:
             pass  # Widgets might not exist yet
