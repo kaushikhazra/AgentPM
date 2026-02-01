@@ -102,6 +102,16 @@ class SettingsScreen(Screen):
                     yield Button("Backup Now", variant="primary", id="backup-btn")
                     yield Button("Export JSON", variant="default", id="export-btn")
 
+            # Tags Section
+            with Vertical(classes="settings-section"):
+                yield Static("Tags", classes="section-title")
+
+                yield Static(id="tags-list")
+
+                with Horizontal(classes="button-row"):
+                    yield Button("Create Tag", variant="primary", id="create-tag-btn")
+                    yield Button("Refresh", variant="default", id="refresh-tags-btn")
+
             # About Section
             with Vertical(classes="settings-section"):
                 yield Static("About", classes="section-title")
@@ -125,6 +135,9 @@ class SettingsScreen(Screen):
         else:
             self.query_one("#theme-light", RadioButton).value = True
 
+        # Load tags
+        self._refresh_tags()
+
     def on_radio_set_changed(self, event: RadioSet.Changed) -> None:
         """Handle theme change."""
         if event.radio_set.id == "theme-select":
@@ -139,6 +152,13 @@ class SettingsScreen(Screen):
             self._do_backup()
         elif event.button.id == "export-btn":
             self._do_export()
+        elif event.button.id == "create-tag-btn":
+            self._create_tag()
+        elif event.button.id == "refresh-tags-btn":
+            self._refresh_tags()
+        elif event.button.id and event.button.id.startswith("delete-tag-"):
+            tag_id = event.button.id.replace("delete-tag-", "")
+            self._delete_tag(tag_id)
 
     def _get_db_path(self) -> str:
         """Get the database path."""
@@ -229,3 +249,52 @@ class SettingsScreen(Screen):
     def action_go_dashboard(self) -> None:
         """Go back to dashboard."""
         self.app.pop_screen()
+
+    def _refresh_tags(self) -> None:
+        """Refresh the tags list."""
+        try:
+            from taskyn.db.connection import get_db
+            from taskyn.core.tag import list_tags
+
+            with get_db() as db:
+                tags = list_tags(db)
+
+            tags_display = self.query_one("#tags-list", Static)
+
+            if tags:
+                tag_lines = []
+                for tag in tags:
+                    color = tag.color or "#6B7280"
+                    tag_lines.append(f"[{color}]●[/] {tag.name}")
+                tags_display.update("\n".join(tag_lines))
+            else:
+                tags_display.update("[dim]No tags created yet[/dim]")
+
+        except Exception as e:
+            tags_display = self.query_one("#tags-list", Static)
+            tags_display.update(f"[red]Error loading tags: {e}[/red]")
+
+    def _create_tag(self) -> None:
+        """Open tag creation dialog."""
+        from taskyn.tui.dialogs.tag_form import TagFormModal
+
+        def on_dismiss(created: bool) -> None:
+            if created:
+                self._refresh_tags()
+
+        self.app.push_screen(TagFormModal(), on_dismiss)
+
+    def _delete_tag(self, tag_id: str) -> None:
+        """Delete a tag."""
+        try:
+            from taskyn.db.connection import get_db
+            from taskyn.core.tag import delete_tag
+
+            with get_db() as db:
+                delete_tag(db, tag_id)
+
+            self.app.notify("Tag deleted", title="Deleted")
+            self._refresh_tags()
+
+        except Exception as e:
+            self.app.notify(f"Error: {e}", title="Failed", severity="error")

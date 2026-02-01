@@ -33,6 +33,7 @@ class TaskDetailScreen(Screen):
         Binding("e", "edit", "Edit", show=True),
         Binding("s", "change_status", "Status", show=True),
         Binding("t", "toggle_timer", "Timer", show=True),
+        Binding("g", "manage_tags", "Tags", show=True),
         Binding("d", "delete", "Delete", show=True),
     ]
 
@@ -55,8 +56,9 @@ class TaskDetailScreen(Screen):
         try:
             from taskyn.db.connection import get_db
             from taskyn.graph.nodes import get_node
-            from taskyn.graph.edges import get_children
+            from taskyn.graph.edges import get_children, list_edges
             from taskyn.core.time_entry import get_time_entries
+            from taskyn.core.tag import get_node_tags
 
             with get_db() as db:
                 self.task = get_node(db, self.task_id)
@@ -75,12 +77,36 @@ class TaskDetailScreen(Screen):
                 # Get time entries
                 time_entries = get_time_entries(db, self.task_id)
 
-                self._render_task(subtasks, time_entries)
+                # Get tags
+                tags = get_node_tags(db, self.task_id)
+
+                # Get edges (relationships)
+                all_edges = list_edges(db, source_id=self.task_id) + list_edges(db, target_id=self.task_id)
+                parents = []
+                blockers = []
+                blocking = []
+
+                for edge in all_edges:
+                    if edge.edge_type == "parent" and edge.target_id == self.task_id:
+                        parent = get_node(db, edge.source_id)
+                        if parent:
+                            parents.append(parent)
+                    elif edge.edge_type == "blocks":
+                        if edge.source_id == self.task_id:
+                            blocked = get_node(db, edge.target_id)
+                            if blocked:
+                                blocking.append(blocked)
+                        else:
+                            blocker = get_node(db, edge.source_id)
+                            if blocker:
+                                blockers.append(blocker)
+
+                self._render_task(subtasks, time_entries, tags, parents, blockers, blocking)
 
         except Exception as e:
             self._render_error(str(e))
 
-    def _render_task(self, subtasks: list, time_entries: list) -> None:
+    def _render_task(self, subtasks: list, time_entries: list, tags: list, parents: list, blockers: list, blocking: list) -> None:
         """Render the task details."""
         content = self.query_one("#task-detail-content", VerticalScroll)
         content.remove_children()
@@ -92,16 +118,16 @@ class TaskDetailScreen(Screen):
         content.mount(
             Static(f"[bold]{task.title}[/bold]", classes="task-title")
         )
-        content.mount(Static(f"[dim]{task.node_type.upper()} • {task.id}[/dim]"))
-        content.mount(Static("─" * 60))
+        content.mount(Static(f"[dim]{task.node_type.upper()} - {task.id}[/dim]"))
+        content.mount(Static("-" * 60))
 
         # Status and Priority row
         status_text, status_class = STATUS_DISPLAY.get(
             task.status, ("? UNKNOWN", "status-backlog")
         )
-        priority = metadata.get("priority", "medium")
+        priority = task.priority or metadata.get("priority", "medium")
         priority_text, priority_class = PRIORITY_DISPLAY.get(
-            priority, ("─ MEDIUM", "priority-medium")
+            priority, ("- MEDIUM", "priority-medium")
         )
 
         content.mount(Static(""))
@@ -116,33 +142,74 @@ class TaskDetailScreen(Screen):
             Static(f"Due: {due_date}    Estimate: {estimate}")
         )
 
+        # Story-specific fields
+        if task.node_type == "story":
+            story_points = task.story_points or "Not set"
+            content.mount(Static(f"Story Points: {story_points}"))
+
+            props = task.properties or {}
+            acceptance = props.get("acceptance_criteria")
+            if acceptance:
+                content.mount(Static(""))
+                content.mount(Static("-" * 60))
+                content.mount(Static("[bold]Acceptance Criteria[/bold]"))
+                content.mount(Static(""))
+                content.mount(Static(acceptance))
+
         # Description
         content.mount(Static(""))
-        content.mount(Static("─" * 60))
+        content.mount(Static("-" * 60))
         content.mount(Static("[bold]Description[/bold]"))
         content.mount(Static(""))
 
         description = task.description or "[dim]No description[/dim]"
         content.mount(Static(description))
 
-        # Tags
-        tags = metadata.get("tags", [])
+        # Tags section (from database)
+        content.mount(Static(""))
+        content.mount(Static("-" * 60))
+        content.mount(Static("[bold]Tags[/bold]  [dim](Press 'g' to manage)[/dim]"))
+
         if tags:
+            tag_parts = []
+            for tag in tags:
+                color = tag.color or "#6B7280"
+                tag_parts.append(f"[{color}]{tag.name}[/]")
+            content.mount(Static("  " + "  ".join(tag_parts)))
+        else:
+            content.mount(Static("  [dim]No tags[/dim]"))
+
+        # Relationships section
+        if parents or blockers or blocking:
             content.mount(Static(""))
-            content.mount(Static("─" * 60))
-            content.mount(Static("[bold]Tags[/bold]"))
-            tag_str = " ".join(f"[{tag}]" for tag in tags)
-            content.mount(Static(f"[cyan]{tag_str}[/cyan]"))
+            content.mount(Static("-" * 60))
+            content.mount(Static("[bold]Relationships[/bold]"))
+
+            if parents:
+                content.mount(Static("[dim]Parent:[/dim]"))
+                for parent in parents:
+                    icon = {"project": "folder", "milestone": "target", "story": "book"}.get(parent.node_type, "circle")
+                    content.mount(Static(f"    {parent.title}"))
+
+            if blockers:
+                content.mount(Static("[red]Blocked by:[/red]"))
+                for blocker in blockers:
+                    content.mount(Static(f"  [red]x[/] {blocker.title}"))
+
+            if blocking:
+                content.mount(Static("[dim]Blocking:[/dim]"))
+                for blocked in blocking:
+                    content.mount(Static(f"    {blocked.title}"))
 
         # Subtasks
         if subtasks:
             content.mount(Static(""))
-            content.mount(Static("─" * 60))
+            content.mount(Static("-" * 60))
             content.mount(Static(f"[bold]Subtasks ({len(subtasks)})[/bold]"))
             content.mount(Static(""))
 
             for subtask in subtasks:
-                icon = "✓" if subtask.status == "done" else "○"
+                icon = "[green]v[/]" if subtask.status == "done" else "o"
                 style = "strike dim" if subtask.status == "done" else ""
                 content.mount(
                     Static(f"  {icon} [{style}]{subtask.title}[/]")
@@ -151,7 +218,7 @@ class TaskDetailScreen(Screen):
         # Time entries
         if time_entries:
             content.mount(Static(""))
-            content.mount(Static("─" * 60))
+            content.mount(Static("-" * 60))
 
             # Calculate total time
             total_seconds = sum(
@@ -218,3 +285,14 @@ class TaskDetailScreen(Screen):
         """Delete this task."""
         if self.task:
             self.app.confirm_delete_task(self.task_id, self.task.title)
+
+    def action_manage_tags(self) -> None:
+        """Open tag management dialog."""
+        if self.task:
+            from taskyn.tui.dialogs.tag_picker import TagPickerModal
+
+            def on_dismiss(selected_tags: list[str]) -> None:
+                # Refresh the task view to show updated tags
+                self.load_task()
+
+            self.app.push_screen(TagPickerModal(self.task_id), on_dismiss)

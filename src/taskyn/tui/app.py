@@ -24,13 +24,21 @@ class TaskynTUI(App):
     BINDINGS = [
         Binding("q", "quit", "Quit", show=True),
         Binding("ctrl+n", "new_task", "New Task", show=True),
+        Binding("ctrl+shift+c", "new_company", "New Company", show=False),
+        Binding("ctrl+shift+p", "new_project", "New Project", show=False),
+        Binding("ctrl+shift+m", "new_milestone", "New Milestone", show=False),
+        Binding("ctrl+shift+s", "new_story", "New Story", show=False),
         Binding("/", "command_palette", "Search", show=True),
         Binding("ctrl+p", "command_palette", "Commands", show=False),
+        Binding("ctrl+f", "view_search", "Search", show=False),
         Binding("?", "help", "Help", show=True),
         Binding("d", "toggle_dark", "Dark/Light", show=False),
         Binding("1", "view_dashboard", "Dashboard", show=True),
         Binding("2", "view_projects", "Kanban", show=True),
         Binding("3", "view_settings", "Settings", show=True),
+        Binding("4", "view_search", "Search", show=False),
+        Binding("5", "view_activity", "Activity", show=False),
+        Binding("6", "view_statistics", "Statistics", show=False),
     ]
 
     def __init__(self, dark_mode: bool = True) -> None:
@@ -71,6 +79,70 @@ class TaskynTUI(App):
                 self._refresh_dashboard()
 
         self.push_screen(NewTaskModal(), on_dismiss)
+
+    def action_new_company(self) -> None:
+        """Open new company dialog."""
+        from taskyn.tui.dialogs.company_form import CompanyFormModal
+
+        def on_dismiss(result: bool) -> None:
+            if result:
+                self._refresh_dashboard()
+
+        self.push_screen(CompanyFormModal(), on_dismiss)
+
+    def action_new_project(self) -> None:
+        """Open new project dialog."""
+        from taskyn.tui.dialogs.project_form import ProjectFormModal
+
+        def on_dismiss(result: bool) -> None:
+            if result:
+                self._refresh_dashboard()
+
+        self.push_screen(ProjectFormModal(), on_dismiss)
+
+    def action_new_milestone(self) -> None:
+        """Open new milestone dialog."""
+        from taskyn.tui.dialogs.milestone_form import MilestoneFormModal
+
+        def on_dismiss(result: bool) -> None:
+            if result:
+                self._refresh_dashboard()
+
+        self.push_screen(MilestoneFormModal(), on_dismiss)
+
+    def action_new_story(self) -> None:
+        """Open new story dialog."""
+        from taskyn.tui.dialogs.story_form import StoryFormModal
+
+        def on_dismiss(result: bool) -> None:
+            if result:
+                self._refresh_dashboard()
+
+        self.push_screen(StoryFormModal(), on_dismiss)
+
+    def action_view_search(self) -> None:
+        """Switch to search screen."""
+        from taskyn.tui.screens.search import SearchScreen
+
+        if len(self.screen_stack) > 1:
+            self.pop_screen()
+        self.push_screen(SearchScreen())
+
+    def action_view_activity(self) -> None:
+        """Switch to activity screen."""
+        from taskyn.tui.screens.activity import ActivityScreen
+
+        if len(self.screen_stack) > 1:
+            self.pop_screen()
+        self.push_screen(ActivityScreen())
+
+    def action_view_statistics(self) -> None:
+        """Switch to statistics screen."""
+        from taskyn.tui.screens.statistics import StatisticsScreen
+
+        if len(self.screen_stack) > 1:
+            self.pop_screen()
+        self.push_screen(StatisticsScreen())
 
     def action_help(self) -> None:
         """Show help screen."""
@@ -114,8 +186,20 @@ class TaskynTUI(App):
             from taskyn.tui.screens.task_detail import TaskDetailScreen
 
             self.push_screen(TaskDetailScreen(event.node_id))
+        elif event.node_type == "company":
+            from taskyn.tui.screens.company_detail import CompanyDetailScreen
+
+            self.push_screen(CompanyDetailScreen(event.node_id))
+        elif event.node_type == "project":
+            from taskyn.tui.screens.project_detail import ProjectDetailScreen
+
+            self.push_screen(ProjectDetailScreen(event.node_id))
+        elif event.node_type == "milestone":
+            from taskyn.tui.screens.milestone_detail import MilestoneDetailScreen
+
+            self.push_screen(MilestoneDetailScreen(event.node_id))
         else:
-            # Filter task table by selected project/milestone
+            # Unknown type - just notify
             self.notify(f"Selected: {event.node_name}", title=event.node_type.title())
 
     def _refresh_dashboard(self) -> None:

@@ -140,10 +140,22 @@ class CommandsProvider(Provider):
         matcher = self.matcher(query)
 
         commands = [
+            # Create commands
             ("New Task", "Create a new task", "ctrl+n", self._app.action_new_task),
+            ("New Company", "Create a new company", "ctrl+shift+c", self._app.action_new_company),
+            ("New Project", "Create a new project", "ctrl+shift+p", self._app.action_new_project),
+            ("New Milestone", "Create a new milestone", "ctrl+shift+m", self._app.action_new_milestone),
+            ("New Story", "Create a new story", "ctrl+shift+s", self._app.action_new_story),
+            # Navigation commands
+            ("Dashboard", "Go to dashboard view", "1", self._app.action_view_dashboard),
+            ("Kanban", "Go to Kanban board view", "2", self._app.action_view_projects),
+            ("Settings", "Go to settings", "3", self._app.action_view_settings),
+            ("Search", "Go to full search screen", "4", self._app.action_view_search),
+            ("Activity", "Go to activity history", "5", self._app.action_view_activity),
+            ("Statistics", "Go to project statistics", "6", self._app.action_view_statistics),
+            # Utility commands
             ("Toggle Dark Mode", "Switch between dark and light theme", "d", self._app.action_toggle_dark),
             ("Help", "Show keyboard shortcuts", "?", self._app.action_help),
-            ("Dashboard", "Go to dashboard view", "1", self._app.action_view_dashboard),
             ("Quit", "Exit Taskyn", "q", self._app.action_quit),
         ]
 

@@ -130,7 +130,8 @@ class TaskForm(Vertical):
             default_project = self.initial_data.get("project_id", self.default_project_id)
             yield Select(
                 options=self._projects,
-                value=default_project,
+                value=default_project if default_project else Select.BLANK,
+                allow_blank=True,
                 id="project-select",
                 classes="form-input",
             )
@@ -305,7 +306,7 @@ class TaskForm(Vertical):
             },
         }
 
-        if project_id:
+        if project_id and project_id != Select.BLANK:
             data["project_id"] = project_id
 
         if due_date:
