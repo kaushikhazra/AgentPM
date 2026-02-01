@@ -73,12 +73,13 @@ def main(
 
 # Import and register subcommands
 from taskyn.cli import company, project, milestone, node, story, task, timer, tag
-from taskyn.cli import backup, export
+from taskyn.cli import backup, export, tui
 from taskyn.cli import dashboard as dashboard_mod
 from taskyn.cli import stats as stats_mod
 from taskyn.cli import search as search_mod
 from taskyn.cli import activity as activity_mod
 
+app.add_typer(tui.tui_app, name="tui", help="Terminal UI")
 app.add_typer(company.app, name="company", help="Company management")
 app.add_typer(project.app, name="project", help="Project management")
 app.add_typer(milestone.app, name="milestone", help="Milestone management")
@@ -94,6 +95,17 @@ app.command(name="dashboard")(dashboard_mod.dashboard)
 app.command(name="stats")(stats_mod.stats)
 app.command(name="search")(search_mod.search_cmd)
 app.command(name="activity")(activity_mod.activity)
+
+
+@app.command(name="ui")
+def ui_shortcut(
+    dark: bool = typer.Option(True, "--dark/--light", help="Start in dark or light mode"),
+) -> None:
+    """Launch the Terminal UI (shortcut for 'tui launch')."""
+    from taskyn.tui.app import TaskynTUI
+
+    tui_app = TaskynTUI(dark_mode=dark)
+    tui_app.run()
 
 
 if __name__ == "__main__":

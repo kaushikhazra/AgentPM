@@ -1,0 +1,253 @@
+/* Taskyn TUI Stylesheet - Vibrant Modern Theme */
+
+/* ============================================================
+   COLOR VARIABLES
+   ============================================================ */
+
+/* Primary Colors */
+$primary: #8B5CF6;          /* Purple - main brand color */
+$accent: #06B6D4;           /* Cyan - focus, highlights */
+$success: #10B981;          /* Emerald - done, success */
+$warning: #F59E0B;          /* Amber - in progress, medium */
+$error: #F43F5E;            /* Rose - blocked, high priority */
+
+/* Neutral Colors */
+$slate: #94A3B8;            /* Slate - backlog, low priority */
+$muted: #64748B;            /* Muted text */
+
+/* ============================================================
+   GLOBAL STYLES
+   ============================================================ */
+
+Screen {
+    background: $surface;
+}
+
+Header {
+    background: $primary;
+    color: $text;
+}
+
+Footer {
+    background: $surface-darken-1;
+}
+
+/* Focus styles */
+*:focus {
+    border: tall $accent;
+}
+
+/* ============================================================
+   STATUS CLASSES
+   ============================================================ */
+
+.status-backlog {
+    color: $slate;
+}
+
+.status-todo {
+    color: $primary;
+}
+
+.status-ready {
+    color: $primary;
+}
+
+.status-in_progress {
+    color: $warning;
+}
+
+.status-in-progress {
+    color: $warning;
+}
+
+.status-done {
+    color: $success;
+    text-style: strike;
+}
+
+.status-blocked {
+    color: $error;
+}
+
+/* ============================================================
+   PRIORITY CLASSES
+   ============================================================ */
+
+.priority-high {
+    color: $error;
+}
+
+.priority-medium {
+    color: $warning;
+}
+
+.priority-low {
+    color: $slate;
+}
+
+/* ============================================================
+   DASHBOARD LAYOUT
+   ============================================================ */
+
+DashboardScreen {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 1fr 3fr;
+    grid-rows: 1fr auto;
+    grid-gutter: 1;
+}
+
+#sidebar {
+    row-span: 2;
+    border: solid $primary;
+    background: $surface-darken-1;
+    padding: 1;
+}
+
+#main-content {
+    border: solid $muted;
+    background: $surface-darken-1;
+}
+
+#bottom-panels {
+    layout: horizontal;
+}
+
+#stats-panel {
+    width: 1fr;
+    border: solid $muted;
+    background: $surface-darken-1;
+    padding: 1;
+}
+
+#timer-panel {
+    width: 1fr;
+    border: solid $accent;
+    background: $surface-darken-1;
+    padding: 1;
+}
+
+/* ============================================================
+   SIDEBAR / PROJECT TREE
+   ============================================================ */
+
+#project-tree {
+    width: 100%;
+    height: 100%;
+}
+
+ProjectTree > .tree--label {
+    color: $text;
+}
+
+ProjectTree > .tree--cursor {
+    background: $primary 30%;
+}
+
+ProjectTree > .tree--highlight {
+    background: $accent 20%;
+}
+
+/* ============================================================
+   TASK TABLE
+   ============================================================ */
+
+TaskTable {
+    height: 100%;
+}
+
+TaskTable > .datatable--header {
+    background: $primary 30%;
+    text-style: bold;
+}
+
+TaskTable > .datatable--cursor {
+    background: $accent 30%;
+}
+
+TaskTable > .datatable--even-row {
+    background: $surface-darken-1;
+}
+
+TaskTable > .datatable--odd-row {
+    background: $surface;
+}
+
+/* ============================================================
+   PANELS & WIDGETS
+   ============================================================ */
+
+.panel-title {
+    text-style: bold;
+    color: $primary;
+    padding-bottom: 1;
+}
+
+.timer-display {
+    text-align: center;
+    color: $accent;
+    text-style: bold;
+}
+
+.timer-task {
+    text-align: center;
+    color: $muted;
+}
+
+.progress-label {
+    color: $text;
+}
+
+/* ============================================================
+   RECORDING INDICATOR
+   ============================================================ */
+
+.recording {
+    color: $error;
+    text-style: bold;
+}
+
+/* ============================================================
+   ACTIVITY LOG
+   ============================================================ */
+
+.activity-time {
+    color: $muted;
+}
+
+.activity-success {
+    color: $success;
+}
+
+.activity-warning {
+    color: $warning;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+Button {
+    margin: 0 1;
+}
+
+Button.-primary {
+    background: $primary;
+}
+
+Button.-primary:hover {
+    background: $primary 80%;
+}
+
+Button.-success {
+    background: $success;
+}
+
+Button.-warning {
+    background: $warning;
+}
+
+Button.-error {
+    background: $error;
+}
