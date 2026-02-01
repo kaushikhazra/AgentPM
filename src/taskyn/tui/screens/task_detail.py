@@ -201,11 +201,13 @@ class TaskDetailScreen(Screen):
 
     def action_edit(self) -> None:
         """Open edit dialog."""
-        self.app.notify("Edit coming soon!", title="TODO")
+        if self.task:
+            self.app.open_edit_task(self.task_id)
 
     def action_change_status(self) -> None:
         """Open status picker."""
-        self.app.notify("Status picker coming soon!", title="TODO")
+        if self.task:
+            self.app.open_status_picker(self.task_id, self.task.status)
 
     def action_toggle_timer(self) -> None:
         """Toggle timer for this task."""
@@ -213,4 +215,5 @@ class TaskDetailScreen(Screen):
 
     def action_delete(self) -> None:
         """Delete this task."""
-        self.app.notify("Delete confirmation coming soon!", title="TODO")
+        if self.task:
+            self.app.confirm_delete_task(self.task_id, self.task.title)

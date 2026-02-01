@@ -54,7 +54,13 @@ class TaskynTUI(App):
 
     def action_new_task(self) -> None:
         """Open new task dialog."""
-        self.notify("New task dialog coming soon!", title="TODO")
+        from taskyn.tui.dialogs.new_task import NewTaskModal
+
+        def on_dismiss(result: bool) -> None:
+            if result:
+                self._refresh_dashboard()
+
+        self.push_screen(NewTaskModal(), on_dismiss)
 
     def action_search(self) -> None:
         """Open search/command palette."""
@@ -98,6 +104,101 @@ class TaskynTUI(App):
         else:
             # Filter task table by selected project/milestone
             self.notify(f"Selected: {event.node_name}", title=event.node_type.title())
+
+    def _refresh_dashboard(self) -> None:
+        """Refresh dashboard widgets after data changes."""
+        try:
+            from taskyn.tui.screens.dashboard import DashboardScreen
+            from taskyn.tui.widgets.project_tree import ProjectTree
+            from taskyn.tui.widgets.task_table import TaskTable
+
+            # Refresh task table
+            task_table = self.query_one(TaskTable)
+            task_table.refresh_tasks()
+
+            # Refresh project tree
+            project_tree = self.query_one(ProjectTree)
+            project_tree.refresh_tree()
+
+            # Refresh stats
+            dashboard = self.query_one(DashboardScreen)
+            dashboard.refresh_stats()
+
+        except Exception:
+            pass  # Widgets might not exist yet
+
+    def open_edit_task(self, task_id: str) -> None:
+        """Open edit dialog for a task."""
+        from taskyn.tui.dialogs.edit_task import EditTaskModal
+
+        def on_dismiss(result: bool) -> None:
+            if result:
+                self._refresh_dashboard()
+
+        self.push_screen(EditTaskModal(task_id), on_dismiss)
+
+    def open_status_picker(self, task_id: str, current_status: str) -> None:
+        """Open status picker for a task."""
+        from taskyn.tui.dialogs.status_picker import StatusPickerDialog
+
+        def on_dismiss(new_status: str | None) -> None:
+            if new_status:
+                self._change_task_status(task_id, new_status)
+
+        self.push_screen(StatusPickerDialog(task_id, current_status), on_dismiss)
+
+    def _change_task_status(self, task_id: str, new_status: str) -> None:
+        """Change task status."""
+        try:
+            from taskyn.db.connection import get_db
+            from taskyn.core.workflow import transition_status
+
+            with get_db() as db:
+                transition_status(db, task_id, new_status)
+
+            self.notify(f"Status changed to {new_status}", title="Updated")
+            self._refresh_dashboard()
+
+        except Exception as e:
+            self.notify(f"Error: {e}", title="Failed", severity="error")
+
+    def confirm_delete_task(self, task_id: str, task_title: str) -> None:
+        """Show delete confirmation for a task."""
+        from taskyn.tui.dialogs.confirm import ConfirmDialog
+
+        def on_dismiss(confirmed: bool) -> None:
+            if confirmed:
+                self._delete_task(task_id, task_title)
+
+        self.push_screen(
+            ConfirmDialog(
+                message=f'Delete "{task_title}"?\n\nThis action cannot be undone.',
+                title="Delete Task",
+                confirm_label="Delete",
+                cancel_label="Cancel",
+                destructive=True,
+            ),
+            on_dismiss,
+        )
+
+    def _delete_task(self, task_id: str, task_title: str) -> None:
+        """Delete a task."""
+        try:
+            from taskyn.db.connection import get_db
+            from taskyn.graph.nodes import delete_node
+
+            with get_db() as db:
+                delete_node(db, task_id)
+
+            self.notify(f"Deleted: {task_title}", title="Deleted")
+            self._refresh_dashboard()
+
+            # Pop back to dashboard if viewing deleted task
+            if len(self.screen_stack) > 1:
+                self.pop_screen()
+
+        except Exception as e:
+            self.notify(f"Error: {e}", title="Failed", severity="error")
 
 
 def main() -> None:
