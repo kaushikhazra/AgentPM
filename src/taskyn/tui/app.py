@@ -200,6 +200,52 @@ class TaskynTUI(App):
         except Exception as e:
             self.notify(f"Error: {e}", title="Failed", severity="error")
 
+    def toggle_timer(self, task_id: str, task_title: str) -> None:
+        """Toggle timer for a task."""
+        try:
+            from taskyn.tui.screens.dashboard import DashboardScreen
+            from taskyn.tui.widgets.timer_display import TimerDisplay
+
+            # Get timer display from dashboard
+            dashboard = self.query_one(DashboardScreen)
+            timer = dashboard.get_timer()
+
+            if timer is None:
+                self.notify("Timer not available", title="Error", severity="error")
+                return
+
+            # Check if this task's timer is already running
+            if timer.is_running and timer.task_id == task_id:
+                # Stop the timer
+                timer.stop_timer()
+                self.notify(f"Timer stopped for: {task_title}", title="Timer Stopped")
+            else:
+                # Start timer for this task (will stop any existing timer)
+                timer.start_timer(task_id, task_title)
+                self.notify(f"Timer started for: {task_title}", title="Timer Started")
+
+        except Exception as e:
+            self.notify(f"Error: {e}", title="Timer Error", severity="error")
+
+    def on_timer_display_timer_started(self, event) -> None:
+        """Handle timer started event."""
+        self._refresh_dashboard()
+
+    def on_timer_display_timer_stopped(self, event) -> None:
+        """Handle timer stopped event."""
+        # Format elapsed time
+        seconds = event.elapsed_seconds
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+
+        if hours > 0:
+            time_str = f"{hours}h {minutes}m"
+        else:
+            time_str = f"{minutes}m"
+
+        self.notify(f"Logged {time_str}", title="Time Saved")
+        self._refresh_dashboard()
+
 
 def main() -> None:
     """Run the TUI."""

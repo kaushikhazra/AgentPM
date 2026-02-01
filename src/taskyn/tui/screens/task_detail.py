@@ -211,7 +211,8 @@ class TaskDetailScreen(Screen):
 
     def action_toggle_timer(self) -> None:
         """Toggle timer for this task."""
-        self.app.notify("Timer toggle coming soon!", title="TODO")
+        if self.task:
+            self.app.toggle_timer(self.task_id, self.task.title)
 
     def action_delete(self) -> None:
         """Delete this task."""
