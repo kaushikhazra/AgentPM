@@ -39,8 +39,8 @@ class ActivityLog(Vertical):
     }
     """
 
-    def __init__(self, max_items: int = 10) -> None:
-        super().__init__()
+    def __init__(self, max_items: int = 10, id: str | None = None) -> None:
+        super().__init__(id=id)
         self._max_items = max_items
         self._activities: list[dict] = []
 
