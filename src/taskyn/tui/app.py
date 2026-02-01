@@ -4,6 +4,12 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, Header
 
+from taskyn.tui.commands.providers import (
+    CommandsProvider,
+    ProjectSearchProvider,
+    TaskSearchProvider,
+)
+
 
 class TaskynTUI(App):
     """Taskyn Terminal User Interface."""
@@ -12,10 +18,14 @@ class TaskynTUI(App):
     SUB_TITLE = "AI-First Project Management"
     CSS_PATH = "taskyn.tcss"
 
+    # Register command palette providers
+    COMMANDS = App.COMMANDS | {TaskSearchProvider, ProjectSearchProvider, CommandsProvider}
+
     BINDINGS = [
         Binding("q", "quit", "Quit", show=True),
         Binding("ctrl+n", "new_task", "New Task", show=True),
-        Binding("/", "search", "Search", show=True),
+        Binding("/", "command_palette", "Search", show=True),
+        Binding("ctrl+p", "command_palette", "Commands", show=False),
         Binding("?", "help", "Help", show=True),
         Binding("d", "toggle_dark", "Dark/Light", show=False),
         Binding("1", "view_dashboard", "Dashboard", show=False),
@@ -62,20 +72,11 @@ class TaskynTUI(App):
 
         self.push_screen(NewTaskModal(), on_dismiss)
 
-    def action_search(self) -> None:
-        """Open search/command palette."""
-        self.notify("Search coming soon!", title="TODO")
-
     def action_help(self) -> None:
-        """Show help."""
-        self.notify(
-            "Keyboard shortcuts:\n"
-            "q - Quit\n"
-            "Ctrl+N - New Task\n"
-            "/ - Search\n"
-            "d - Toggle Dark Mode",
-            title="Help",
-        )
+        """Show help screen."""
+        from taskyn.tui.screens.help import HelpScreen
+
+        self.push_screen(HelpScreen())
 
     def action_view_dashboard(self) -> None:
         """Switch to dashboard view."""
