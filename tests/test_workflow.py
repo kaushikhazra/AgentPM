@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_story,
@@ -16,8 +16,8 @@ from agentpm.core import (
     reject,
     get_active_timer,
 )
-from agentpm.graph import get_node
-from agentpm.exceptions import NotFoundError, ValidationError
+from taskyn.graph import get_node
+from taskyn.exceptions import NotFoundError, ValidationError
 
 
 @pytest.fixture
@@ -184,7 +184,7 @@ def test_full_workflow(task):
 
 def test_story_workflow(project):
     """Test workflow on a story (different statuses)."""
-    from agentpm.graph import update_node as graph_update_node
+    from taskyn.graph import update_node as graph_update_node
 
     story = create_story(project.id, title="Test Story")
 

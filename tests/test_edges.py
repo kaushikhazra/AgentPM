@@ -2,8 +2,8 @@
 
 import pytest
 
-from agentpm.core import create_company, create_project
-from agentpm.graph import (
+from taskyn.core import create_company, create_project
+from taskyn.graph import (
     create_node,
     create_edge,
     get_edge,
@@ -14,7 +14,7 @@ from agentpm.graph import (
     get_ancestors,
     get_descendants,
 )
-from agentpm.exceptions import NotFoundError, ValidationError, CycleDetectedError, CardinalityError
+from taskyn.exceptions import NotFoundError, ValidationError, CycleDetectedError, CardinalityError
 
 
 @pytest.fixture
@@ -55,12 +55,12 @@ def test_create_edge_invalid_target(project):
 
 def test_create_edge_invalid_type(project):
     """Test creating an edge with invalid source/target types."""
-    story1 = create_node(project.id, node_type="story", title="Story 1")
-    story2 = create_node(project.id, node_type="story", title="Story 2")
+    epic = create_node(project.id, node_type="epic", title="Epic 1")
+    story = create_node(project.id, node_type="story", title="Story 1")
 
-    # parent edge requires task -> story, not story -> story
+    # parent edge: epic cannot be a source (only task/story can have parents)
     with pytest.raises(ValidationError):
-        create_edge(story1.id, story2.id, edge_type="parent")
+        create_edge(epic.id, story.id, edge_type="parent")
 
 
 def test_create_edge_cardinality_max_one(project):

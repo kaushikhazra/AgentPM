@@ -3,7 +3,7 @@
 import pytest
 import time
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     start_timer,
@@ -13,8 +13,8 @@ from agentpm.core import (
     list_time_entries,
     get_time_total,
 )
-from agentpm.graph import create_node
-from agentpm.exceptions import NotFoundError
+from taskyn.graph import create_node
+from taskyn.exceptions import NotFoundError
 
 
 @pytest.fixture

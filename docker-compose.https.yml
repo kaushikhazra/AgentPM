@@ -1,5 +1,5 @@
 # =============================================================================
-# AgentPM Docker Compose - HTTPS Configuration
+# Taskyn Docker Compose - HTTPS Configuration
 # Uses Caddy for automatic TLS with Let's Encrypt or self-signed certs
 # =============================================================================
 #
@@ -12,12 +12,12 @@
 
 services:
   # ---------------------------------------------------------------------------
-  # AgentPM MCP Server (internal only)
+  # Taskyn MCP Server (internal only)
   # ---------------------------------------------------------------------------
-  agentpm:
+  taskyn:
     build: .
-    image: agentpm:latest
-    container_name: agentpm
+    image: taskyn:latest
+    container_name: taskyn
 
     # Internal only - Caddy handles external traffic
     expose:
@@ -29,10 +29,10 @@ services:
 
     # Environment configuration
     environment:
-      - AGENTPM_DB=/data/agentpm.db
-      - AGENTPM_ACTOR=mcp
-      - AGENTPM_MCP_HOST=0.0.0.0
-      - AGENTPM_MCP_PORT=8020
+      - TASKYN_DB=/data/taskyn.db
+      - TASKYN_ACTOR=mcp
+      - TASKYN_MCP_HOST=0.0.0.0
+      - TASKYN_MCP_PORT=8020
 
     # Restart policy
     restart: unless-stopped
@@ -50,7 +50,7 @@ services:
   # ---------------------------------------------------------------------------
   caddy:
     image: caddy:2-alpine
-    container_name: agentpm-caddy
+    container_name: taskyn-caddy
 
     # External port (8030 for HTTPS)
     ports:
@@ -66,9 +66,9 @@ services:
     environment:
       - DOMAIN=${DOMAIN:-localhost}
 
-    # Wait for AgentPM to be healthy
+    # Wait for Taskyn to be healthy
     depends_on:
-      agentpm:
+      taskyn:
         condition: service_healthy
 
     # Restart policy

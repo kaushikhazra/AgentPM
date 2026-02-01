@@ -1,13 +1,13 @@
 # =============================================================================
-# AgentPM Docker Compose Configuration
+# Taskyn Docker Compose Configuration
 # Remote MCP Server with persistent SQLite storage
 # =============================================================================
 
 services:
-  agentpm:
+  taskyn:
     build: .
-    image: agentpm:latest
-    container_name: agentpm
+    image: taskyn:latest
+    container_name: taskyn
 
     # Port mapping for MCP server
     ports:
@@ -19,10 +19,10 @@ services:
 
     # Environment configuration
     environment:
-      - AGENTPM_DB=/data/agentpm.db
-      - AGENTPM_ACTOR=mcp
-      - AGENTPM_MCP_HOST=0.0.0.0
-      - AGENTPM_MCP_PORT=8020
+      - TASKYN_DB=/data/taskyn.db
+      - TASKYN_ACTOR=mcp
+      - TASKYN_MCP_HOST=0.0.0.0
+      - TASKYN_MCP_PORT=8020
 
     # Restart policy
     restart: unless-stopped

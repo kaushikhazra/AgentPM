@@ -2,15 +2,15 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_story,
     create_task,
     get_story_with_tasks,
 )
-from agentpm.graph import get_node, get_parents
-from agentpm.exceptions import NotFoundError
+from taskyn.graph import get_node, get_parents
+from taskyn.exceptions import NotFoundError
 
 
 @pytest.fixture
@@ -112,7 +112,7 @@ def test_get_story_with_tasks_not_found(temp_db):
 
 def test_create_story_with_milestone(project):
     """Test creating a story assigned to a milestone."""
-    from agentpm.core import create_milestone
+    from taskyn.core import create_milestone
 
     milestone = create_milestone(project.id, name="Sprint 1")
 

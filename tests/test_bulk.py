@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_story,
@@ -18,8 +18,8 @@ from agentpm.core import (
     bulk_delete,
     bulk_update_priority,
 )
-from agentpm.graph import get_node
-from agentpm.exceptions import ValidationError
+from taskyn.graph import get_node
+from taskyn.exceptions import ValidationError
 
 
 @pytest.fixture
@@ -238,7 +238,7 @@ def test_bulk_update_priority_invalid(tasks):
 
 def test_bulk_operations_actor_tracking(project, tasks):
     """Test that bulk operations track the actor correctly."""
-    from agentpm.core import list_activity
+    from taskyn.core import list_activity
 
     node_ids = [t.id for t in tasks]
 

@@ -2,9 +2,9 @@
 
 import pytest
 
-from agentpm.methodologies import get_methodology, list_methodologies
-from agentpm.core import create_company, create_project
-from agentpm.graph import create_node, create_edge, update_node
+from taskyn.methodologies import get_methodology, list_methodologies
+from taskyn.core import create_company, create_project
+from taskyn.graph import create_node, create_edge, update_node
 
 
 def test_spec_driven_methodology_registered():

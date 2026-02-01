@@ -4,12 +4,12 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-AgentPM is an AI-first personal project management system built in Python. It provides both a CLI and MCP server for managing projects, tasks, and time tracking.
+Taskyn is an AI-first personal project management system built in Python. It provides both a CLI and MCP server for managing projects, tasks, and time tracking.
 
 ## Architecture
 
 ```
-src/agentpm/
+src/taskyn/
 ├── db/                 # Database layer (SQLite)
 │   ├── connection.py   # Connection management
 │   ├── models.py       # Pydantic models
@@ -52,7 +52,7 @@ pytest
 pytest tests/test_nodes.py
 
 # Run with coverage
-pytest --cov=agentpm
+pytest --cov=taskyn
 
 # Install in dev mode
 pip install -e ".[dev]"
@@ -73,12 +73,12 @@ pip install -e ".[dev]"
 ## CLI Entry Point
 
 ```bash
-apm [command]  # Main CLI (defined in pyproject.toml as entry point)
+taskyn [command]  # Main CLI (defined in pyproject.toml as entry point)
 ```
 
 ## MCP Server
 
 ```bash
-python -m agentpm.mcp                              # stdio transport
-python -m agentpm.mcp --transport streamable-http  # HTTP transport
+python -m taskyn.mcp                              # stdio transport
+python -m taskyn.mcp --transport streamable-http  # HTTP transport
 ```

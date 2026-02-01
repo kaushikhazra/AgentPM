@@ -3,7 +3,7 @@
 import pytest
 from typer.testing import CliRunner
 
-from agentpm.cli.main import app
+from taskyn.cli.main import app
 
 runner = CliRunner()
 

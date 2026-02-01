@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     get_project,
@@ -11,7 +11,7 @@ from agentpm.core import (
     delete_project,
     ValidationError,
 )
-from agentpm.methodologies import get_methodology
+from taskyn.methodologies import get_methodology
 
 
 @pytest.fixture

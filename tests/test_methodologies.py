@@ -2,12 +2,12 @@
 
 import pytest
 
-from agentpm.methodologies import (
+from taskyn.methodologies import (
     get_methodology,
     list_methodologies,
     methodology_exists,
 )
-from agentpm.methodologies.classic_agile import ClassicAgileMethodology
+from taskyn.methodologies.classic_agile import ClassicAgileMethodology
 
 
 def test_classic_agile_registered():
@@ -61,8 +61,8 @@ def test_classic_agile_edge_types():
     assert "depends_on" in methodology.edge_types
 
     parent = methodology.edge_types["parent"]
-    assert parent.source_types == ["task"]
-    assert parent.target_types == ["story"]
+    assert parent.source_types == ["task", "story"]
+    assert parent.target_types == ["story", "epic"]
     assert parent.max_per_source == 1
 
 

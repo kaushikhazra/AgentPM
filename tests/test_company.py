@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     get_company,
     list_companies,

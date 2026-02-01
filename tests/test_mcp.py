@@ -3,7 +3,7 @@
 import pytest
 from fastmcp import Client
 
-from agentpm.mcp.server import mcp
+from taskyn.mcp.server import mcp
 
 
 @pytest.fixture

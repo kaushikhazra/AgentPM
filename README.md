@@ -1,4 +1,4 @@
-# AgentPM
+# Taskyn
 
 AI-first personal project management system designed for both human and AI interaction.
 
@@ -32,7 +32,7 @@ AI-first personal project management system designed for both human and AI inter
 ### From PyPI
 
 ```bash
-pip install agentpm
+pip install taskyn
 ```
 
 ### From Source (Development)
@@ -47,39 +47,39 @@ pip install -e ".[dev]"
 
 ```bash
 # Check CLI is available
-apm --help
+taskyn --help
 
 # Check version
-apm --version
+taskyn --version
 ```
 
 ## Quick Start
 
 ```bash
 # Create a company
-apm company create "ACME Corp"
+taskyn company create "ACME Corp"
 
 # Create a project (default: classic_agile methodology)
-apm project create <company_id> "Website Redesign"
+taskyn project create <company_id> "Website Redesign"
 
 # Create a story
-apm story create <project_id> "User Authentication"
+taskyn story create <project_id> "User Authentication"
 
 # Create tasks under the story
-apm task create <story_id> "Design login form"
-apm task create <story_id> "Implement backend"
+taskyn task create <story_id> "Design login form"
+taskyn task create <story_id> "Implement backend"
 
 # Start working on a task (starts timer)
-apm task start <task_id>
+taskyn task start <task_id>
 
 # Complete the task (stops timer)
-apm task done <task_id>
+taskyn task done <task_id>
 
 # View dashboard
-apm dashboard
+taskyn dashboard
 
 # Search across all entities
-apm search "login"
+taskyn search "login"
 ```
 
 ## CLI Reference
@@ -87,82 +87,82 @@ apm search "login"
 ### Company Management
 
 ```bash
-apm company list                    # List all companies
-apm company create "Name"           # Create company
-apm company show <id>               # Show company details
-apm company delete <id>             # Delete company
+taskyn company list                    # List all companies
+taskyn company create "Name"           # Create company
+taskyn company show <id>               # Show company details
+taskyn company delete <id>             # Delete company
 ```
 
 ### Project Management
 
 ```bash
-apm project list                    # List all projects
-apm project create <company_id> "Name" [-m methodology]
-apm project show <id>               # Show project with stats
-apm project update <id> [options]   # Update project
+taskyn project list                    # List all projects
+taskyn project create <company_id> "Name" [-m methodology]
+taskyn project show <id>               # Show project with stats
+taskyn project update <id> [options]   # Update project
 ```
 
 ### Story/Task Shortcuts
 
 ```bash
-apm story create <project_id> "Title"
-apm story list [--project <id>]
-apm story show <id>
+taskyn story create <project_id> "Title"
+taskyn story list [--project <id>]
+taskyn story show <id>
 
-apm task create <parent_id> "Title"
-apm task start <id>                 # Start work (sets status + timer)
-apm task done <id>                  # Complete (stops timer)
-apm task block <id> --reason "..."  # Block with reason
+taskyn task create <parent_id> "Title"
+taskyn task start <id>                 # Start work (sets status + timer)
+taskyn task done <id>                  # Complete (stops timer)
+taskyn task block <id> --reason "..."  # Block with reason
 ```
 
 ### Time Tracking
 
 ```bash
-apm timer start <node_id>           # Start timer
-apm timer stop                      # Stop active timer
-apm timer status                    # Show active timer
-apm timer log <node_id> <minutes>   # Log time manually
+taskyn timer start <node_id>           # Start timer
+taskyn timer stop                      # Stop active timer
+taskyn timer status                    # Show active timer
+taskyn timer log <node_id> <minutes>   # Log time manually
 ```
 
 ### Tags
 
 ```bash
-apm tag list                        # List all tags
-apm tag create "bug" --color red    # Create tag
-apm tag add <node_id> "bug"         # Tag a node
-apm tag remove <node_id> "bug"      # Remove tag
+taskyn tag list                        # List all tags
+taskyn tag create "bug" --color red    # Create tag
+taskyn tag add <node_id> "bug"         # Tag a node
+taskyn tag remove <node_id> "bug"      # Remove tag
 ```
 
 ### Backup & Export
 
 ```bash
-apm backup create                   # Create database backup
-apm backup list                     # List backups
-apm backup restore <file>           # Restore from backup
+taskyn backup create                   # Create database backup
+taskyn backup list                     # List backups
+taskyn backup restore <file>           # Restore from backup
 
-apm export json                     # Export all data as JSON
-apm export json --project <id>      # Export single project
+taskyn export json                     # Export all data as JSON
+taskyn export json --project <id>      # Export single project
 ```
 
 ### Other Commands
 
 ```bash
-apm dashboard                       # Current work summary
-apm stats <project_id>              # Project statistics
-apm search "query"                  # Search all entities
-apm activity                        # Recent activity log
+taskyn dashboard                       # Current work summary
+taskyn stats <project_id>              # Project statistics
+taskyn search "query"                  # Search all entities
+taskyn activity                        # Recent activity log
 ```
 
 ## MCP Server Setup
 
-AgentPM provides an MCP (Model Context Protocol) server that allows AI assistants to manage projects directly.
+Taskyn provides an MCP (Model Context Protocol) server that allows AI assistants to manage projects directly.
 
 ### Transport Options
 
 | Transport | Use Case | Command |
 |-----------|----------|---------|
-| **stdio** | Local AI clients (Claude Desktop, Claude Code) | `python -m agentpm.mcp` |
-| **streamable-http** | Remote access, Docker, multiple clients | `python -m agentpm.mcp --transport streamable-http` |
+| **stdio** | Local AI clients (Claude Desktop, Claude Code) | `python -m taskyn.mcp` |
+| **streamable-http** | Remote access, Docker, multiple clients | `python -m taskyn.mcp --transport streamable-http` |
 
 ### Claude Desktop (Local - Recommended)
 
@@ -175,12 +175,12 @@ Add to your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
-    "agentpm": {
+    "taskyn": {
       "command": "python",
-      "args": ["-m", "agentpm.mcp"],
+      "args": ["-m", "taskyn.mcp"],
       "env": {
-        "AGENTPM_DB": "~/.agentpm/agentpm.db",
-        "AGENTPM_ACTOR": "claude"
+        "TASKYN_DB": "~/.taskyn/taskyn.db",
+        "TASKYN_ACTOR": "claude"
       }
     }
   }
@@ -196,12 +196,12 @@ Add to `~/.claude/settings.json` or use `claude mcp add`:
 ```json
 {
   "mcpServers": {
-    "agentpm": {
+    "taskyn": {
       "command": "python",
-      "args": ["-m", "agentpm.mcp"],
+      "args": ["-m", "taskyn.mcp"],
       "env": {
-        "AGENTPM_DB": "~/.agentpm/agentpm.db",
-        "AGENTPM_ACTOR": "claude_code"
+        "TASKYN_DB": "~/.taskyn/taskyn.db",
+        "TASKYN_ACTOR": "claude_code"
       }
     }
   }
@@ -214,10 +214,10 @@ Run the MCP server with HTTP transport:
 
 ```bash
 # Start server on port 8000
-python -m agentpm.mcp --transport streamable-http --port 8000
+python -m taskyn.mcp --transport streamable-http --port 8000
 
 # Or with custom host binding
-python -m agentpm.mcp --transport streamable-http --host 0.0.0.0 --port 8000
+python -m taskyn.mcp --transport streamable-http --host 0.0.0.0 --port 8000
 ```
 
 ### Connecting to Remote MCP Server
@@ -227,7 +227,7 @@ For clients that natively support streamable-http:
 ```json
 {
   "mcpServers": {
-    "agentpm": {
+    "taskyn": {
       "transport": "streamable-http",
       "url": "http://localhost:8020/mcp"
     }
@@ -249,7 +249,7 @@ Configure Claude Desktop to use mcp-proxy:
 ```json
 {
   "mcpServers": {
-    "agentpm": {
+    "taskyn": {
       "command": "mcp-proxy",
       "args": ["http://localhost:8020/mcp"]
     }
@@ -272,7 +272,7 @@ Configure Claude Desktop to use mcp-proxy:
 
 ## Docker Deployment
 
-Deploy AgentPM as a remote MCP server using Docker.
+Deploy Taskyn as a remote MCP server using Docker.
 
 ### Quick Start (HTTP)
 
@@ -328,15 +328,15 @@ docker run -d \
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AGENTPM_DB` | `/data/agentpm.db` | Database path inside container |
-| `AGENTPM_ACTOR` | `mcp` | Actor ID for activity logs |
-| `AGENTPM_MCP_HOST` | `0.0.0.0` | Bind address |
-| `AGENTPM_MCP_PORT` | `8020` | HTTP server port |
+| `TASKYN_DB` | `/data/taskyn.db` | Database path inside container |
+| `TASKYN_ACTOR` | `mcp` | Actor ID for activity logs |
+| `TASKYN_MCP_HOST` | `0.0.0.0` | Bind address |
+| `TASKYN_MCP_PORT` | `8020` | HTTP server port |
 | `DOMAIN` | `localhost` | Domain for HTTPS (Caddy) |
 
 ### Data Persistence
 
-The SQLite database is stored at `/data/agentpm.db` inside the container. Mount a volume to persist data:
+The SQLite database is stored at `/data/taskyn.db` inside the container. Mount a volume to persist data:
 
 ```yaml
 volumes:
@@ -367,17 +367,17 @@ Gated workflow:
 
 Use with:
 ```bash
-apm project create <company_id> "Project" -m spec_driven
+taskyn project create <company_id> "Project" -m spec_driven
 ```
 
 ## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `AGENTPM_DB` | Database file path | `~/.agentpm/agentpm.db` |
-| `AGENTPM_ACTOR` | Actor ID for activity logs | `mcp` |
-| `AGENTPM_MCP_PORT` | HTTP server port | `8000` |
-| `AGENTPM_MCP_HOST` | HTTP server host | `127.0.0.1` |
+| `TASKYN_DB` | Database file path | `~/.taskyn/taskyn.db` |
+| `TASKYN_ACTOR` | Actor ID for activity logs | `mcp` |
+| `TASKYN_MCP_PORT` | HTTP server port | `8000` |
+| `TASKYN_MCP_HOST` | HTTP server host | `127.0.0.1` |
 
 ## Troubleshooting
 
@@ -393,7 +393,7 @@ apm project create <company_id> "Project" -m spec_driven
 
 2. For stdio transport, verify Python is in PATH:
    ```bash
-   python -m agentpm.mcp --help
+   python -m taskyn.mcp --help
    ```
 
 3. Fully quit Claude Desktop (check system tray) and restart.
@@ -413,8 +413,8 @@ Or use stdio transport instead (recommended for local use).
 
 Ensure the database directory exists and is writable:
 ```bash
-mkdir -p ~/.agentpm
-chmod 755 ~/.agentpm
+mkdir -p ~/.taskyn
+chmod 755 ~/.taskyn
 ```
 
 For Docker, the container runs as user `agentpm` (UID 1000):

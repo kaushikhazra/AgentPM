@@ -7,13 +7,13 @@ Supports both stdio and streamable-http transports.
 
 Usage:
     # Stdio transport - List all tools
-    python mcp_test_client.py stdio "python -m agentpm.mcp" --list-tools
+    python mcp_test_client.py stdio "python -m taskyn.mcp" --list-tools
 
     # HTTP transport - List all tools
     python mcp_test_client.py http "http://localhost:8000" --list-tools
 
     # Call a tool
-    python mcp_test_client.py stdio "python -m agentpm.mcp" --call tool_name '{"param": "value"}'
+    python mcp_test_client.py stdio "python -m taskyn.mcp" --call tool_name '{"param": "value"}'
 
     # Interactive mode
     python mcp_test_client.py http "http://localhost:8000" --interactive
@@ -452,9 +452,9 @@ def main():
         epilog="""
 Examples:
   # Stdio transport
-  python mcp_test_client.py stdio "python -m agentpm.mcp" --list-tools
-  python mcp_test_client.py stdio "python -m agentpm.mcp" --call pm_list_companies
-  python mcp_test_client.py stdio "python -m agentpm.mcp" -i
+  python mcp_test_client.py stdio "python -m taskyn.mcp" --list-tools
+  python mcp_test_client.py stdio "python -m taskyn.mcp" --call pm_list_companies
+  python mcp_test_client.py stdio "python -m taskyn.mcp" -i
 
   # HTTP transport (streamable-http)
   python mcp_test_client.py http "http://localhost:8000" --list-tools
@@ -462,7 +462,7 @@ Examples:
   python mcp_test_client.py http "http://localhost:8000" -H "Authorization:Bearer token" -l
 
   # With environment variables (stdio only)
-  python mcp_test_client.py stdio "python -m agentpm.mcp" --env AGENTPM_DB=test.db -l
+  python mcp_test_client.py stdio "python -m taskyn.mcp" --env TASKYN_DB=test.db -l
         """
     )
 

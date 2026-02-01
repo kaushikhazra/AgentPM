@@ -1,5 +1,5 @@
 # =============================================================================
-# AgentPM Docker Image
+# Taskyn Docker Image
 # Multi-stage build for minimal runtime image
 # =============================================================================
 
@@ -35,27 +35,27 @@ RUN pip install --no-cache-dir --upgrade pip && \
 FROM python:3.11-slim
 
 # Create non-root user for security
-RUN groupadd --gid 1000 agentpm && \
-    useradd --uid 1000 --gid 1000 --create-home agentpm
+RUN groupadd --gid 1000 taskyn && \
+    useradd --uid 1000 --gid 1000 --create-home taskyn
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Create data directory for SQLite database
-RUN mkdir -p /data && chown agentpm:agentpm /data
+RUN mkdir -p /data && chown taskyn:agentpm /data
 
 # Set working directory
 WORKDIR /app
 
 # Environment variables with defaults
-ENV AGENTPM_DB="/data/agentpm.db" \
-    AGENTPM_ACTOR="mcp" \
-    AGENTPM_MCP_HOST="0.0.0.0" \
-    AGENTPM_MCP_PORT="8020"
+ENV TASKYN_DB="/data/taskyn.db" \
+    TASKYN_ACTOR="mcp" \
+    TASKYN_MCP_HOST="0.0.0.0" \
+    TASKYN_MCP_PORT="8020"
 
 # Switch to non-root user
-USER agentpm
+USER taskyn
 
 # Expose MCP server port
 EXPOSE 8020
@@ -65,5 +65,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()" || exit 1
 
 # Run MCP server with streamable-http transport
-ENTRYPOINT ["python", "-m", "agentpm.mcp"]
+ENTRYPOINT ["python", "-m", "taskyn.mcp"]
 CMD ["--transport", "streamable-http"]

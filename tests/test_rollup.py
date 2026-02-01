@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_story,
@@ -16,8 +16,8 @@ from agentpm.core import (
     get_project_rollup,
     RollupStats,
 )
-from agentpm.graph import update_node
-from agentpm.exceptions import NotFoundError
+from taskyn.graph import update_node
+from taskyn.exceptions import NotFoundError
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime, timedelta
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_story,
@@ -20,7 +20,7 @@ from agentpm.core import (
     ProjectStats,
     SearchResult,
 )
-from agentpm.graph import get_node
+from taskyn.graph import get_node
 
 
 @pytest.fixture
@@ -207,11 +207,11 @@ def test_search_projects(temp_db):
     company = create_company("Test Company")
     project = create_project(
         company.id,
-        "AgentPM Development",
+        "Taskyn Development",
         description="Building the PM tool",
     )
 
-    results = search("AgentPM", entity_types=["project"])
+    results = search("Taskyn", entity_types=["project"])
 
     assert len(results) >= 1
     assert all(r.entity_type == "project" for r in results)

@@ -1,1 +1,1 @@
-"""Tests for AgentPM."""
+"""Tests for Taskyn."""

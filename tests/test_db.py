@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.db.connection import get_connection, init_database, fetchall
+from taskyn.db.connection import get_connection, init_database, fetchall
 
 
 def test_database_initialization(temp_db):

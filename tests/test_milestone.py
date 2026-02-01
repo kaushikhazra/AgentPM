@@ -3,7 +3,7 @@
 import pytest
 from datetime import date
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_milestone,
@@ -13,8 +13,8 @@ from agentpm.core import (
     complete_milestone,
     delete_milestone,
 )
-from agentpm.graph import create_node, update_node
-from agentpm.exceptions import NotFoundError
+from taskyn.graph import create_node, update_node
+from taskyn.exceptions import NotFoundError
 
 
 @pytest.fixture

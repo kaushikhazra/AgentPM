@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     create_tag,
@@ -15,8 +15,8 @@ from agentpm.core import (
     get_node_tags,
     list_nodes_by_tag,
 )
-from agentpm.graph import create_node
-from agentpm.exceptions import NotFoundError, ValidationError
+from taskyn.graph import create_node
+from taskyn.exceptions import NotFoundError, ValidationError
 
 
 @pytest.fixture

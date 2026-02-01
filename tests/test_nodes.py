@@ -2,9 +2,9 @@
 
 import pytest
 
-from agentpm.core import create_company, create_project
-from agentpm.graph import create_node, get_node, list_nodes, update_node, delete_node
-from agentpm.exceptions import NotFoundError, ValidationError, InvalidTransitionError
+from taskyn.core import create_company, create_project
+from taskyn.graph import create_node, get_node, list_nodes, update_node, delete_node
+from taskyn.exceptions import NotFoundError, ValidationError, InvalidTransitionError
 
 
 @pytest.fixture

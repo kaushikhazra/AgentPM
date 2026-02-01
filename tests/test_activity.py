@@ -2,7 +2,7 @@
 
 import pytest
 
-from agentpm.core import (
+from taskyn.core import (
     create_company,
     create_project,
     log_activity,
@@ -12,7 +12,7 @@ from agentpm.core import (
     stop_timer,
     tag_node,
 )
-from agentpm.graph import create_node, update_node, create_edge
+from taskyn.graph import create_node, update_node, create_edge
 
 
 @pytest.fixture

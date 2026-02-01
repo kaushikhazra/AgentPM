@@ -1,11 +1,11 @@
 # =============================================================================
-# AgentPM Caddy Configuration
+# Taskyn Caddy Configuration
 # Reverse proxy with automatic TLS
 # =============================================================================
 
 {$DOMAIN:localhost}:8030 {
-    # Reverse proxy to AgentPM MCP server
-    reverse_proxy agentpm:8020
+    # Reverse proxy to Taskyn MCP server
+    reverse_proxy taskyn:8020
 
     # Security headers
     header {
