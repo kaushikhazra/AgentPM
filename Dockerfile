@@ -43,7 +43,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Create data directory for SQLite database
-RUN mkdir -p /data && chown taskyn:agentpm /data
+RUN mkdir -p /data && chown taskyn:taskyn /data
 
 # Set working directory
 WORKDIR /app

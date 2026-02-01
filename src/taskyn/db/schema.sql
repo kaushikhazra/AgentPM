@@ -1,4 +1,4 @@
--- AgentPM Database Schema
+-- Taskyn Database Schema
 -- Graph-based methodology-agnostic project management
 
 -- ============================================================

@@ -38,8 +38,8 @@ pip install taskyn
 ### From Source (Development)
 
 ```bash
-git clone https://github.com/yourusername/agentpm.git
-cd agentpm
+git clone https://github.com/yourusername/taskyn.git
+cd taskyn
 pip install -e ".[dev]"
 ```
 
@@ -278,8 +278,8 @@ Deploy Taskyn as a remote MCP server using Docker.
 
 ```bash
 # Clone and navigate to project
-git clone https://github.com/yourusername/agentpm.git
-cd agentpm
+git clone https://github.com/yourusername/taskyn.git
+cd taskyn
 
 # Build and start
 docker-compose up -d
@@ -314,14 +314,14 @@ The HTTPS server will be available at `https://localhost:8030/mcp` (local) or `h
 
 ```bash
 # Build the image
-docker build -t agentpm .
+docker build -t taskyn .
 
 # Run with volume mount for persistent storage
 docker run -d \
-  --name agentpm \
+  --name taskyn \
   -p 8020:8020 \
   -v $(pwd)/data:/data \
-  agentpm
+  taskyn
 ```
 
 ### Docker Environment Variables
@@ -417,7 +417,7 @@ mkdir -p ~/.taskyn
 chmod 755 ~/.taskyn
 ```
 
-For Docker, the container runs as user `agentpm` (UID 1000):
+For Docker, the container runs as user `taskyn` (UID 1000):
 ```bash
 mkdir -p data
 chmod 755 data
@@ -429,7 +429,7 @@ chmod 755 data
 
 Check container logs:
 ```bash
-docker-compose logs agentpm
+docker-compose logs taskyn
 ```
 
 Verify the MCP server is responding:
@@ -455,7 +455,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run with coverage
-pytest --cov=agentpm
+pytest --cov=taskyn
 
 # Run specific test file
 pytest tests/test_nodes.py -v
