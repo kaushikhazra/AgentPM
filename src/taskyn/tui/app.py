@@ -28,9 +28,9 @@ class TaskynTUI(App):
         Binding("ctrl+p", "command_palette", "Commands", show=False),
         Binding("?", "help", "Help", show=True),
         Binding("d", "toggle_dark", "Dark/Light", show=False),
-        Binding("1", "view_dashboard", "Dashboard", show=False),
-        Binding("2", "view_projects", "Projects", show=False),
-        Binding("3", "view_settings", "Settings", show=False),
+        Binding("1", "view_dashboard", "Dashboard", show=True),
+        Binding("2", "view_projects", "Kanban", show=True),
+        Binding("3", "view_settings", "Settings", show=True),
     ]
 
     def __init__(self, dark_mode: bool = True) -> None:
@@ -80,15 +80,27 @@ class TaskynTUI(App):
 
     def action_view_dashboard(self) -> None:
         """Switch to dashboard view."""
-        pass  # Already on dashboard
+        # Pop all screens to get back to dashboard
+        while len(self.screen_stack) > 1:
+            self.pop_screen()
 
     def action_view_projects(self) -> None:
-        """Switch to projects view."""
-        self.notify("Projects view coming soon!", title="TODO")
+        """Switch to Kanban board view."""
+        from taskyn.tui.screens.kanban import KanbanScreen
+
+        # If already on a screen, pop first
+        if len(self.screen_stack) > 1:
+            self.pop_screen()
+        self.push_screen(KanbanScreen())
 
     def action_view_settings(self) -> None:
         """Switch to settings view."""
-        self.notify("Settings coming soon!", title="TODO")
+        from taskyn.tui.screens.settings import SettingsScreen
+
+        # If already on a screen, pop first
+        if len(self.screen_stack) > 1:
+            self.pop_screen()
+        self.push_screen(SettingsScreen())
 
     def on_task_table_task_selected(self, event) -> None:
         """Handle task selection from table."""
