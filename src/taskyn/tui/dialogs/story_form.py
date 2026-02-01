@@ -8,7 +8,6 @@ from textual.validation import Length
 from textual.widgets import Button, Input, Label, Select, Static, TextArea
 
 
-# Priority options
 PRIORITY_OPTIONS = [
     ("High", "high"),
     ("Medium", "medium"),
@@ -18,74 +17,6 @@ PRIORITY_OPTIONS = [
 
 class StoryFormModal(ModalScreen[bool]):
     """Modal dialog for creating or editing a story."""
-
-    DEFAULT_CSS = """
-    StoryFormModal {
-        align: center middle;
-    }
-
-    #story-form-dialog {
-        width: 75;
-        height: auto;
-        max-height: 90%;
-        border: thick $primary;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #story-form-title {
-        text-align: center;
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    .form-row {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    .form-label {
-        width: 16;
-        padding-top: 1;
-    }
-
-    .form-input {
-        width: 1fr;
-    }
-
-    Input {
-        width: 100%;
-    }
-
-    Select {
-        width: 100%;
-    }
-
-    TextArea {
-        height: 4;
-        width: 100%;
-    }
-
-    .textarea-tall {
-        height: 6;
-    }
-
-    .button-row {
-        margin-top: 1;
-        height: auto;
-        align: center middle;
-    }
-
-    .button-row Button {
-        margin: 0 1;
-    }
-
-    .error-text {
-        color: $error;
-        height: auto;
-    }
-    """
 
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
@@ -113,7 +44,6 @@ class StoryFormModal(ModalScreen[bool]):
         self._milestones: list[tuple[str, str]] = []
 
     def compose(self) -> ComposeResult:
-        # Load options and existing data
         self._load_projects()
         self._load_milestones()
 
@@ -134,89 +64,74 @@ class StoryFormModal(ModalScreen[bool]):
                 priority = self._story.priority or "medium"
                 project_id = self._story.project_id
                 milestone_id = self._story.milestone_id
-                # Get acceptance criteria from properties
                 props = self._story.properties or {}
                 acceptance_criteria = props.get("acceptance_criteria", "")
 
         dialog_title = "Edit Story" if self.story_id else "Create New Story"
 
-        with Vertical(id="story-form-dialog"):
-            yield Static(dialog_title, id="story-form-title")
+        with Vertical(classes="modal-dialog-wide"):
+            yield Static(dialog_title, classes="dialog-title")
 
-            # Title field
             with Horizontal(classes="form-row"):
                 yield Label("Title:", classes="form-label")
-                yield Input(
-                    value=title_val,
-                    placeholder="Story title",
-                    id="title-input",
-                    validators=[Length(minimum=1, maximum=200)],
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Input(
+                        value=title_val,
+                        placeholder="Story title",
+                        id="title-input",
+                        validators=[Length(minimum=1, maximum=200)],
+                    )
 
-            # Project field
             with Horizontal(classes="form-row"):
                 yield Label("Project:", classes="form-label")
-                yield Select(
-                    options=self._projects,
-                    value=project_id if project_id else Select.BLANK,
-                    allow_blank=True,
-                    id="project-select",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Select(
+                        options=self._projects,
+                        value=project_id if project_id else Select.BLANK,
+                        allow_blank=True,
+                        id="project-select",
+                    )
 
-            # Milestone field
             with Horizontal(classes="form-row"):
                 yield Label("Milestone:", classes="form-label")
-                yield Select(
-                    options=self._milestones,
-                    value=milestone_id if milestone_id else Select.BLANK,
-                    allow_blank=True,
-                    id="milestone-select",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Select(
+                        options=self._milestones,
+                        value=milestone_id if milestone_id else Select.BLANK,
+                        allow_blank=True,
+                        id="milestone-select",
+                    )
 
-            # Priority and Story Points row
             with Horizontal(classes="form-row"):
                 yield Label("Priority:", classes="form-label")
-                yield Select(
-                    options=PRIORITY_OPTIONS,
-                    value=priority,
-                    id="priority-select",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Select(
+                        options=PRIORITY_OPTIONS,
+                        value=priority,
+                        id="priority-select",
+                    )
 
             with Horizontal(classes="form-row"):
                 yield Label("Story Points:", classes="form-label")
-                yield Input(
-                    value=story_points,
-                    placeholder="1, 2, 3, 5, 8, 13...",
-                    id="points-input",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Input(
+                        value=story_points,
+                        placeholder="1, 2, 3, 5, 8, 13...",
+                        id="points-input",
+                    )
 
-            # Description field
             with Horizontal(classes="form-row"):
                 yield Label("Description:", classes="form-label")
-                yield TextArea(
-                    text=description,
-                    id="description-input",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield TextArea(text=description, id="description-input")
 
-            # Acceptance Criteria field
             with Horizontal(classes="form-row"):
                 yield Label("Acceptance\nCriteria:", classes="form-label")
-                yield TextArea(
-                    text=acceptance_criteria,
-                    id="acceptance-input",
-                    classes="form-input textarea-tall",
-                )
+                with Vertical(classes="form-input"):
+                    yield TextArea(text=acceptance_criteria, id="acceptance-input")
 
-            # Error display
             yield Static("", id="form-error", classes="error-text")
 
-            # Buttons
             with Horizontal(classes="button-row"):
                 button_text = "Update" if self.story_id else "Create"
                 yield Button(button_text, variant="primary", id="submit-btn")
@@ -225,7 +140,6 @@ class StoryFormModal(ModalScreen[bool]):
     def _load_projects(self) -> None:
         """Load project options from database."""
         self._projects = [("(No Project)", "")]
-
         try:
             from taskyn.db.connection import get_db
             from taskyn.core.project import list_projects
@@ -234,24 +148,20 @@ class StoryFormModal(ModalScreen[bool]):
                 projects = list_projects(db)
                 for project in sorted(projects, key=lambda p: p.name):
                     self._projects.append((project.name, project.id))
-
         except Exception:
             pass
 
     def _load_milestones(self) -> None:
         """Load milestone options from database."""
         self._milestones = [("(No Milestone)", "")]
-
         try:
             from taskyn.db.connection import get_db
             from taskyn.core.milestone import list_milestones
 
             with get_db() as db:
-                # Get milestones for all projects (could filter by selected project)
                 milestones = list_milestones(db)
                 for ms in sorted(milestones, key=lambda m: m.name):
                     self._milestones.append((ms.name, ms.id))
-
         except Exception:
             pass
 
@@ -306,7 +216,6 @@ class StoryFormModal(ModalScreen[bool]):
             self.query_one("#project-select", Select).focus()
             return
 
-        # Parse story points
         story_points = None
         if points_str:
             try:
@@ -318,7 +227,6 @@ class StoryFormModal(ModalScreen[bool]):
                 self.query_one("#points-input", Input).focus()
                 return
 
-        # Handle blank milestone
         if milestone_id == Select.BLANK:
             milestone_id = None
 
@@ -331,7 +239,6 @@ class StoryFormModal(ModalScreen[bool]):
 
             with get_db() as db:
                 if self.story_id:
-                    # Update existing story
                     properties = {"acceptance_criteria": acceptance} if acceptance else None
                     update_node(
                         db,
@@ -345,7 +252,6 @@ class StoryFormModal(ModalScreen[bool]):
                     )
                     self.app.notify(f"Updated: {title}", title="Story Updated")
                 else:
-                    # Create new story
                     create_story(
                         db,
                         project_id=project_id,

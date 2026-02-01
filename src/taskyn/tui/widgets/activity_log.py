@@ -10,35 +10,6 @@ from textual.widgets import Static
 class ActivityLog(Vertical):
     """Widget displaying recent activity."""
 
-    DEFAULT_CSS = """
-    ActivityLog {
-        height: auto;
-        max-height: 12;
-        padding: 1;
-    }
-
-    ActivityLog .activity-title {
-        text-style: bold;
-        color: #8B5CF6;
-        padding-bottom: 1;
-    }
-
-    ActivityLog #activity-list {
-        height: auto;
-        max-height: 8;
-    }
-
-    ActivityLog .activity-item {
-        height: auto;
-    }
-
-    ActivityLog .activity-empty {
-        color: #64748B;
-        text-align: center;
-        padding: 1;
-    }
-    """
-
     def __init__(self, max_items: int = 10, id: str | None = None) -> None:
         super().__init__(id=id)
         self._max_items = max_items

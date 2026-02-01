@@ -13,70 +13,6 @@ from textual.widgets import Button, Input, Label, Select, Static, TextArea
 class MilestoneFormModal(ModalScreen[bool]):
     """Modal dialog for creating or editing a milestone."""
 
-    DEFAULT_CSS = """
-    MilestoneFormModal {
-        align: center middle;
-    }
-
-    #milestone-form-dialog {
-        width: 70;
-        height: auto;
-        max-height: 85%;
-        border: thick $primary;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #milestone-form-title {
-        text-align: center;
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    .form-row {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    .form-label {
-        width: 14;
-        padding-top: 1;
-    }
-
-    .form-input {
-        width: 1fr;
-    }
-
-    Input {
-        width: 100%;
-    }
-
-    Select {
-        width: 100%;
-    }
-
-    TextArea {
-        height: 4;
-        width: 100%;
-    }
-
-    .button-row {
-        margin-top: 1;
-        height: auto;
-        align: center middle;
-    }
-
-    .button-row Button {
-        margin: 0 1;
-    }
-
-    .error-text {
-        color: $error;
-        height: auto;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
@@ -99,7 +35,6 @@ class MilestoneFormModal(ModalScreen[bool]):
         self._projects: list[tuple[str, str]] = []
 
     def compose(self) -> ComposeResult:
-        # Load projects and existing data
         self._load_projects()
 
         name = ""
@@ -118,55 +53,46 @@ class MilestoneFormModal(ModalScreen[bool]):
 
         title = "Edit Milestone" if self.milestone_id else "Create New Milestone"
 
-        with Vertical(id="milestone-form-dialog"):
-            yield Static(title, id="milestone-form-title")
+        with Vertical(classes="modal-dialog-wide"):
+            yield Static(title, classes="dialog-title")
 
-            # Name field
             with Horizontal(classes="form-row"):
                 yield Label("Name:", classes="form-label")
-                yield Input(
-                    value=name,
-                    placeholder="Milestone name",
-                    id="name-input",
-                    validators=[Length(minimum=1, maximum=100)],
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Input(
+                        value=name,
+                        placeholder="Milestone name",
+                        id="name-input",
+                        validators=[Length(minimum=1, maximum=100)],
+                    )
 
-            # Project field
             with Horizontal(classes="form-row"):
                 yield Label("Project:", classes="form-label")
-                yield Select(
-                    options=self._projects,
-                    value=project_id if project_id else Select.BLANK,
-                    allow_blank=True,
-                    id="project-select",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Select(
+                        options=self._projects,
+                        value=project_id if project_id else Select.BLANK,
+                        allow_blank=True,
+                        id="project-select",
+                    )
 
-            # Target date field
             with Horizontal(classes="form-row"):
                 yield Label("Target Date:", classes="form-label")
-                yield Input(
-                    value=target_date,
-                    placeholder="YYYY-MM-DD",
-                    id="target-date-input",
-                    validators=[Regex(r"^$|^\d{4}-\d{2}-\d{2}$")],
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Input(
+                        value=target_date,
+                        placeholder="YYYY-MM-DD",
+                        id="target-date-input",
+                        validators=[Regex(r"^$|^\d{4}-\d{2}-\d{2}$")],
+                    )
 
-            # Description field
             with Horizontal(classes="form-row"):
                 yield Label("Description:", classes="form-label")
-                yield TextArea(
-                    text=description,
-                    id="description-input",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield TextArea(text=description, id="description-input")
 
-            # Error display
             yield Static("", id="form-error", classes="error-text")
 
-            # Buttons
             with Horizontal(classes="button-row"):
                 button_text = "Update" if self.milestone_id else "Create"
                 yield Button(button_text, variant="primary", id="submit-btn")
@@ -175,7 +101,6 @@ class MilestoneFormModal(ModalScreen[bool]):
     def _load_projects(self) -> None:
         """Load project options from database."""
         self._projects = [("(No Project)", "")]
-
         try:
             from taskyn.db.connection import get_db
             from taskyn.core.project import list_projects
@@ -184,7 +109,6 @@ class MilestoneFormModal(ModalScreen[bool]):
                 projects = list_projects(db)
                 for project in projects:
                     self._projects.append((project.name, project.id))
-
         except Exception:
             pass
 
@@ -236,7 +160,6 @@ class MilestoneFormModal(ModalScreen[bool]):
             self.query_one("#project-select", Select).focus()
             return
 
-        # Parse target date
         target_date: date | None = None
         if target_date_str:
             try:
@@ -254,7 +177,6 @@ class MilestoneFormModal(ModalScreen[bool]):
 
             with get_db() as db:
                 if self.milestone_id:
-                    # Update existing
                     update_milestone(
                         db,
                         self.milestone_id,
@@ -264,7 +186,6 @@ class MilestoneFormModal(ModalScreen[bool]):
                     )
                     self.app.notify(f"Updated: {name}", title="Milestone Updated")
                 else:
-                    # Create new
                     create_milestone(
                         db,
                         project_id=project_id,

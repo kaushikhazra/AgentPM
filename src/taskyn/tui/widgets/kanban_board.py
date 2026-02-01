@@ -21,40 +21,6 @@ KANBAN_COLUMNS = [
 class KanbanColumn(Vertical):
     """A single column in the Kanban board."""
 
-    DEFAULT_CSS = """
-    KanbanColumn {
-        width: 1fr;
-        height: 100%;
-        margin: 0 1;
-        border: solid $surface-lighten-1;
-        background: $surface-darken-1;
-    }
-
-    KanbanColumn .column-header {
-        height: 3;
-        padding: 1;
-        text-align: center;
-        text-style: bold;
-        border-bottom: solid $surface-lighten-1;
-    }
-
-    KanbanColumn .column-count {
-        text-align: center;
-        color: $text-muted;
-        padding-bottom: 1;
-    }
-
-    KanbanColumn .column-content {
-        padding: 1;
-    }
-
-    KanbanColumn .empty-message {
-        text-align: center;
-        color: $text-muted;
-        padding: 2;
-    }
-    """
-
     status: reactive[str] = reactive("")
     count: reactive[int] = reactive(0)
 
@@ -94,14 +60,6 @@ class KanbanColumn(Vertical):
 
 class KanbanBoard(Horizontal):
     """Kanban board with status columns."""
-
-    DEFAULT_CSS = """
-    KanbanBoard {
-        width: 100%;
-        height: 100%;
-        padding: 1;
-    }
-    """
 
     BINDINGS = [
         Binding("left", "move_left", "Move Left", show=False),

@@ -9,30 +9,6 @@ from textual.widgets import Static, LoadingIndicator as TextualLoadingIndicator
 class LoadingOverlay(Vertical):
     """Loading overlay with spinner and message."""
 
-    DEFAULT_CSS = """
-    LoadingOverlay {
-        width: 100%;
-        height: 100%;
-        align: center middle;
-        background: $surface 80%;
-        layer: loading;
-    }
-
-    LoadingOverlay .loading-box {
-        width: auto;
-        height: auto;
-        padding: 2 4;
-        background: $surface;
-        border: solid $primary;
-    }
-
-    LoadingOverlay .loading-message {
-        text-align: center;
-        color: $text-muted;
-        padding-top: 1;
-    }
-    """
-
     message: reactive[str] = reactive("Loading...")
 
     def __init__(self, message: str = "Loading...") -> None:
@@ -81,31 +57,6 @@ class LoadingMixin:
 
 class EmptyState(Vertical):
     """Empty state placeholder widget."""
-
-    DEFAULT_CSS = """
-    EmptyState {
-        width: 100%;
-        height: 100%;
-        align: center middle;
-    }
-
-    EmptyState .empty-icon {
-        text-align: center;
-        color: #94A3B8;
-    }
-
-    EmptyState .empty-message {
-        text-align: center;
-        color: #64748B;
-        padding-top: 1;
-    }
-
-    EmptyState .empty-hint {
-        text-align: center;
-        color: #475569;
-        padding-top: 1;
-    }
-    """
 
     def __init__(
         self,

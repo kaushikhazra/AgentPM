@@ -8,34 +8,6 @@ from textual.widgets import DataTable, Static
 class TimeEntryTable(Vertical):
     """Display time entries for a node."""
 
-    DEFAULT_CSS = """
-    TimeEntryTable {
-        height: auto;
-        max-height: 15;
-        padding: 0 1;
-    }
-
-    TimeEntryTable .section-header {
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    TimeEntryTable .total-row {
-        text-style: bold;
-        padding-top: 1;
-    }
-
-    TimeEntryTable .no-entries {
-        color: $text-muted;
-    }
-
-    TimeEntryTable DataTable {
-        height: auto;
-        max-height: 10;
-    }
-    """
-
     def __init__(self, node_id: str, show_header: bool = True) -> None:
         """Initialize the time entry table.
 

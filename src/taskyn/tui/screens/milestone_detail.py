@@ -10,53 +10,6 @@ from textual.widgets import Footer, Header, Static
 class MilestoneDetailScreen(Screen):
     """Full-screen view of milestone details."""
 
-    DEFAULT_CSS = """
-    MilestoneDetailScreen {
-        background: $surface;
-    }
-
-    #milestone-detail-content {
-        padding: 2;
-    }
-
-    .detail-title {
-        text-style: bold;
-        padding-bottom: 1;
-    }
-
-    .detail-id {
-        color: $text-muted;
-    }
-
-    .section-header {
-        text-style: bold;
-        color: $primary;
-        padding-top: 1;
-    }
-
-    .task-item {
-        padding: 0 2;
-    }
-
-    .empty-message {
-        color: $text-muted;
-        padding: 0 2;
-    }
-
-    .meta-info {
-        color: $text-muted;
-        padding-top: 1;
-    }
-
-    .progress-bar {
-        padding: 0 2;
-    }
-
-    .stat-row {
-        padding: 0 2;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "pop_screen", "Back", show=True),
         Binding("e", "edit", "Edit", show=True),

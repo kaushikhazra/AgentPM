@@ -142,10 +142,10 @@ class CommandsProvider(Provider):
         commands = [
             # Create commands
             ("New Task", "Create a new task", "ctrl+n", self._app.action_new_task),
-            ("New Company", "Create a new company", "ctrl+shift+c", self._app.action_new_company),
-            ("New Project", "Create a new project", "ctrl+shift+p", self._app.action_new_project),
-            ("New Milestone", "Create a new milestone", "ctrl+shift+m", self._app.action_new_milestone),
-            ("New Story", "Create a new story", "ctrl+shift+s", self._app.action_new_story),
+            ("New Company", "Create a new company", "c", self._app.action_new_company),
+            ("New Project", "Create a new project", "p", self._app.action_new_project),
+            ("New Milestone", "Create a new milestone", "m", self._app.action_new_milestone),
+            ("New Story", "Create a new story", "s", self._app.action_new_story),
             # Navigation commands
             ("Dashboard", "Go to dashboard view", "1", self._app.action_view_dashboard),
             ("Kanban", "Go to Kanban board view", "2", self._app.action_view_projects),
@@ -160,21 +160,30 @@ class CommandsProvider(Provider):
         ]
 
         for name, description, key, callback in commands:
-            score = matcher.match(name)
-            if score > 0:
+            # Show all commands when query is empty, otherwise filter by match
+            if not query:
                 yield Hit(
-                    score,
-                    matcher.highlight(name),
+                    1.0,
+                    name,
                     callback,
                     help=f"{description} ({key})",
                 )
-
-            # Also match against description
-            desc_score = matcher.match(description)
-            if desc_score > 0 and desc_score > score:
-                yield Hit(
-                    desc_score,
-                    matcher.highlight(name),
-                    callback,
-                    help=f"{description} ({key})",
-                )
+            else:
+                score = matcher.match(name)
+                if score > 0:
+                    yield Hit(
+                        score,
+                        matcher.highlight(name),
+                        callback,
+                        help=f"{description} ({key})",
+                    )
+                else:
+                    # Also match against description
+                    desc_score = matcher.match(description)
+                    if desc_score > 0:
+                        yield Hit(
+                            desc_score,
+                            matcher.highlight(name),
+                            callback,
+                            help=f"{description} ({key})",
+                        )

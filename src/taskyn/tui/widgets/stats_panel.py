@@ -8,45 +8,6 @@ from textual.widgets import Static
 class StatsPanel(Vertical):
     """Panel showing task statistics and progress."""
 
-    DEFAULT_CSS = """
-    StatsPanel {
-        height: auto;
-        padding: 1;
-    }
-
-    StatsPanel .stats-title {
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    StatsPanel .stats-row {
-        height: auto;
-        padding: 0 0 1 0;
-    }
-
-    StatsPanel .progress-bar-container {
-        height: 1;
-        padding: 1 0;
-    }
-
-    StatsPanel .priority-stats {
-        height: auto;
-    }
-
-    StatsPanel .high-priority {
-        color: #F43F5E;
-    }
-
-    StatsPanel .med-priority {
-        color: #F59E0B;
-    }
-
-    StatsPanel .low-priority {
-        color: #94A3B8;
-    }
-    """
-
     def compose(self) -> ComposeResult:
         yield Static("Progress", classes="stats-title")
         yield Static("Tasks: 0/0 (0%)", id="stats-progress", classes="stats-row")

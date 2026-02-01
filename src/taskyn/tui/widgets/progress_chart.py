@@ -8,31 +8,6 @@ from textual.widgets import Static
 class ProgressChart(Vertical):
     """ASCII progress bar chart widget."""
 
-    DEFAULT_CSS = """
-    ProgressChart {
-        height: auto;
-        padding: 0 1;
-    }
-
-    ProgressChart .chart-title {
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    ProgressChart .chart-row {
-        height: auto;
-    }
-
-    ProgressChart .bar-label {
-        width: 15;
-    }
-
-    ProgressChart .bar-container {
-        width: 1fr;
-    }
-    """
-
     def __init__(
         self,
         data: dict[str, int] | None = None,
@@ -130,28 +105,6 @@ class StatusChart(ProgressChart):
 
 class MilestoneProgressChart(Vertical):
     """Chart showing progress across multiple milestones."""
-
-    DEFAULT_CSS = """
-    MilestoneProgressChart {
-        height: auto;
-        padding: 0 1;
-    }
-
-    MilestoneProgressChart .chart-title {
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    MilestoneProgressChart .milestone-row {
-        height: auto;
-        padding: 0 1;
-    }
-
-    MilestoneProgressChart .overdue {
-        color: $error;
-    }
-    """
 
     def __init__(
         self,

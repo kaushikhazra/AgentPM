@@ -9,41 +9,6 @@ from textual.widgets import Button, Static
 class TagList(Horizontal):
     """Display tags for a node with add/remove functionality."""
 
-    DEFAULT_CSS = """
-    TagList {
-        height: auto;
-        padding: 0 1;
-    }
-
-    TagList .tag-chip {
-        height: auto;
-        padding: 0 1;
-        margin-right: 1;
-        border: solid $primary;
-        background: $surface-lighten-1;
-    }
-
-    TagList .tag-chip:hover {
-        background: $surface-lighten-2;
-    }
-
-    TagList .tag-remove {
-        margin-left: 1;
-        width: 3;
-        min-width: 3;
-        height: 1;
-        padding: 0;
-    }
-
-    TagList .add-tag-btn {
-        margin-left: 1;
-    }
-
-    TagList .no-tags {
-        color: $text-muted;
-    }
-    """
-
     class TagRemoved(Message):
         """Posted when a tag is removed."""
 

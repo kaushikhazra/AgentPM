@@ -12,24 +12,6 @@ from taskyn.tui.widgets.kanban_board import KanbanBoard
 class KanbanScreen(Screen):
     """Full-screen Kanban board view."""
 
-    DEFAULT_CSS = """
-    KanbanScreen {
-        background: $surface;
-    }
-
-    #kanban-header {
-        height: 3;
-        padding: 1;
-        background: $surface-darken-1;
-        border-bottom: solid $surface-lighten-1;
-    }
-
-    #kanban-title {
-        text-style: bold;
-        color: $primary;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "go_dashboard", "Dashboard", show=True),
         Binding("1", "go_dashboard", "Dashboard", show=False),

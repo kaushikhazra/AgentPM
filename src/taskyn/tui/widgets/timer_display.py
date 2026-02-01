@@ -13,52 +13,6 @@ from textual.widgets import Button, Digits, Static
 class TimerDisplay(Vertical):
     """Widget displaying active timer with controls."""
 
-    DEFAULT_CSS = """
-    TimerDisplay {
-        height: auto;
-        padding: 1;
-    }
-
-    TimerDisplay #timer-digits {
-        text-align: center;
-        width: 100%;
-        color: $accent;
-    }
-
-    TimerDisplay #timer-task-name {
-        text-align: center;
-        color: $text-muted;
-        padding: 1 0;
-    }
-
-    TimerDisplay #timer-controls {
-        align: center middle;
-        height: auto;
-        padding-top: 1;
-    }
-
-    TimerDisplay #timer-controls Button {
-        margin: 0 1;
-        min-width: 10;
-    }
-
-    TimerDisplay .recording-indicator {
-        text-align: center;
-        color: $error;
-        text-style: bold;
-    }
-
-    TimerDisplay .paused-indicator {
-        text-align: center;
-        color: $warning;
-    }
-
-    TimerDisplay .idle-indicator {
-        text-align: center;
-        color: $text-muted;
-    }
-    """
-
     # Reactive state
     elapsed_seconds: reactive[int] = reactive(0)
     is_running: reactive[bool] = reactive(False)

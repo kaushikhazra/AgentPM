@@ -8,7 +8,6 @@ from textual.validation import Length
 from textual.widgets import Button, Input, Label, Select, Static
 
 
-# Predefined color options
 COLOR_OPTIONS = [
     ("Blue", "#3B82F6"),
     ("Green", "#10B981"),
@@ -25,104 +24,35 @@ COLOR_OPTIONS = [
 class TagFormModal(ModalScreen[bool]):
     """Modal dialog for creating a tag."""
 
-    DEFAULT_CSS = """
-    TagFormModal {
-        align: center middle;
-    }
-
-    #tag-form-dialog {
-        width: 50;
-        height: auto;
-        border: thick $primary;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #tag-form-title {
-        text-align: center;
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    .form-row {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    .form-label {
-        width: 10;
-        padding-top: 1;
-    }
-
-    .form-input {
-        width: 1fr;
-    }
-
-    Input {
-        width: 100%;
-    }
-
-    Select {
-        width: 100%;
-    }
-
-    .button-row {
-        margin-top: 1;
-        height: auto;
-        align: center middle;
-    }
-
-    .button-row Button {
-        margin: 0 1;
-    }
-
-    .error-text {
-        color: $error;
-        height: auto;
-    }
-
-    .preview {
-        padding: 1;
-        text-align: center;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
 
     def compose(self) -> ComposeResult:
-        with Vertical(id="tag-form-dialog"):
-            yield Static("Create Tag", id="tag-form-title")
+        with Vertical(classes="modal-dialog-narrow"):
+            yield Static("Create Tag", classes="dialog-title")
 
-            # Name field
             with Horizontal(classes="form-row"):
                 yield Label("Name:", classes="form-label")
-                yield Input(
-                    placeholder="Tag name",
-                    id="name-input",
-                    validators=[Length(minimum=1, maximum=50)],
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Input(
+                        placeholder="Tag name",
+                        id="name-input",
+                        validators=[Length(minimum=1, maximum=50)],
+                    )
 
-            # Color field
             with Horizontal(classes="form-row"):
                 yield Label("Color:", classes="form-label")
-                yield Select(
-                    options=COLOR_OPTIONS,
-                    value="#3B82F6",
-                    id="color-select",
-                    classes="form-input",
-                )
+                with Vertical(classes="form-input"):
+                    yield Select(
+                        options=COLOR_OPTIONS,
+                        value="#3B82F6",
+                        id="color-select",
+                    )
 
-            # Preview
-            yield Static("[#3B82F6]● sample-tag[/]", id="tag-preview", classes="preview")
-
-            # Error display
+            yield Static("[#3B82F6]● sample-tag[/]", id="tag-preview", classes="dialog-message")
             yield Static("", id="form-error", classes="error-text")
 
-            # Buttons
             with Horizontal(classes="button-row"):
                 yield Button("Create", variant="primary", id="submit-btn")
                 yield Button("Cancel", variant="default", id="cancel-btn")
@@ -178,7 +108,6 @@ class TagFormModal(ModalScreen[bool]):
             from taskyn.core.tag import create_tag, get_tag_by_name
 
             with get_db() as db:
-                # Check if tag already exists
                 existing = get_tag_by_name(db, name)
                 if existing:
                     error_display.update("Tag already exists")

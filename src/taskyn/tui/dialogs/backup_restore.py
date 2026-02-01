@@ -12,76 +12,6 @@ from textual.widgets import Button, Static
 class BackupRestoreModal(ModalScreen[bool]):
     """Modal dialog for managing backups."""
 
-    DEFAULT_CSS = """
-    BackupRestoreModal {
-        align: center middle;
-    }
-
-    #backup-dialog {
-        width: 70;
-        height: auto;
-        max-height: 80%;
-        border: thick $primary;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #backup-title {
-        text-align: center;
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    #backup-list {
-        height: auto;
-        max-height: 15;
-        padding: 1;
-        border: solid $surface-lighten-1;
-    }
-
-    .backup-item {
-        height: auto;
-        padding: 1;
-        margin-bottom: 1;
-        background: $surface-lighten-1;
-    }
-
-    .backup-item:hover {
-        background: $surface-lighten-2;
-    }
-
-    .backup-name {
-        text-style: bold;
-    }
-
-    .backup-info {
-        color: $text-muted;
-    }
-
-    .no-backups {
-        color: $text-muted;
-        text-align: center;
-        padding: 2;
-    }
-
-    .button-row {
-        margin-top: 1;
-        height: auto;
-        align: center middle;
-    }
-
-    .button-row Button {
-        margin: 0 1;
-    }
-
-    .warning-text {
-        color: $warning;
-        text-align: center;
-        padding: 1;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
@@ -94,12 +24,11 @@ class BackupRestoreModal(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         self._load_backups()
 
-        with Vertical(id="backup-dialog"):
-            yield Static("Backup Manager", id="backup-title")
-
+        with Vertical(classes="modal-dialog-wide"):
+            yield Static("Backup Manager", classes="dialog-title")
             yield Static(
                 "[dim]Select a backup to restore, or create a new backup.[/dim]",
-                classes="warning-text",
+                classes="dialog-message",
             )
 
             with VerticalScroll(id="backup-list"):
@@ -117,7 +46,7 @@ class BackupRestoreModal(ModalScreen[bool]):
                                 yield Button("Restore", variant="warning", id=f"restore-{backup.name}")
                                 yield Button("Delete", variant="error", id=f"delete-{backup.name}")
                 else:
-                    yield Static("No backups found", classes="no-backups")
+                    yield Static("No backups found", classes="empty-state-message")
 
             with Horizontal(classes="button-row"):
                 yield Button("Create New Backup", variant="primary", id="create-backup-btn")
@@ -131,13 +60,11 @@ class BackupRestoreModal(ModalScreen[bool]):
             db_path = Path(get_db_path())
             backup_dir = db_path.parent
 
-            # Find all backup files
             self._backups = sorted(
                 backup_dir.glob("taskyn_backup_*.db"),
                 key=lambda p: p.stat().st_mtime,
                 reverse=True,
             )
-
         except Exception:
             self._backups = []
 
@@ -180,7 +107,6 @@ class BackupRestoreModal(ModalScreen[bool]):
                 self._refresh_list()
             else:
                 self.app.notify("No database to backup", title="Error", severity="warning")
-
         except Exception as e:
             self.app.notify(f"Backup failed: {e}", title="Error", severity="error")
 
@@ -218,19 +144,16 @@ class BackupRestoreModal(ModalScreen[bool]):
                 self.app.notify("Backup file not found", title="Error", severity="error")
                 return
 
-            # Create a backup of current database first
             if db_path.exists():
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 pre_restore_backup = backup_dir / f"taskyn_pre_restore_{timestamp}.db"
                 shutil.copy2(db_path, pre_restore_backup)
 
-            # Restore the backup
             shutil.copy2(backup_path, db_path)
 
             self.app.notify(f"Restored from: {backup_name}", title="Restored")
             self.app._refresh_dashboard()
             self.dismiss(True)
-
         except Exception as e:
             self.app.notify(f"Restore failed: {e}", title="Error", severity="error")
 
@@ -267,7 +190,6 @@ class BackupRestoreModal(ModalScreen[bool]):
                 self._refresh_list()
             else:
                 self.app.notify("Backup file not found", title="Error", severity="error")
-
         except Exception as e:
             self.app.notify(f"Delete failed: {e}", title="Error", severity="error")
 
@@ -292,7 +214,7 @@ class BackupRestoreModal(ModalScreen[bool]):
                         backup_list.mount(Button("Restore", variant="warning", id=f"restore-{backup.name}"))
                         backup_list.mount(Button("Delete", variant="error", id=f"delete-{backup.name}"))
         else:
-            backup_list.mount(Static("No backups found", classes="no-backups"))
+            backup_list.mount(Static("No backups found", classes="empty-state-message"))
 
     def action_cancel(self) -> None:
         """Cancel and close the dialog."""

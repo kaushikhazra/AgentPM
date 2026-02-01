@@ -19,42 +19,6 @@ PRIORITY_ICONS = {
 class TaskCard(Vertical, can_focus=True):
     """Compact task card for Kanban board."""
 
-    DEFAULT_CSS = """
-    TaskCard {
-        height: auto;
-        min-height: 3;
-        max-height: 5;
-        margin: 0 0 1 0;
-        padding: 0 1;
-        border: solid $surface-lighten-1;
-        background: $surface;
-    }
-
-    TaskCard:focus {
-        border: solid $accent;
-        background: $surface-lighten-1;
-    }
-
-    TaskCard:hover {
-        background: $surface-lighten-1;
-    }
-
-    TaskCard .card-title {
-        width: 100%;
-        text-style: bold;
-    }
-
-    TaskCard .card-meta {
-        width: 100%;
-        color: $text-muted;
-    }
-
-    TaskCard.done .card-title {
-        text-style: strike;
-        color: $text-muted;
-    }
-    """
-
     BINDINGS = [
         Binding("enter", "select", "Open", show=False),
         Binding("e", "edit", "Edit", show=False),

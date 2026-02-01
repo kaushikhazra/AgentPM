@@ -4,11 +4,11 @@ Comprehensive CLI feature testing.
 
 ## Setup
 ```bash
-cd C:\Projects\AgentPM
+cd C:\Projects\Taskyn
 pip install -e .
 # Use a fresh test database (PowerShell)
-$env:AGENTPM_DB = "test_manual.db"
-# Or for cmd.exe: set AGENTPM_DB=test_manual.db
+$env:TASKYN_DB = "test_manual.db"
+# Or for cmd.exe: set TASKYN_DB=test_manual.db
 ```
 
 ---
@@ -17,25 +17,25 @@ $env:AGENTPM_DB = "test_manual.db"
 
 ### 1.1 Create Company
 ```bash
-apm company create "Acme Corp" -d "Test company"
+taskyn company create "Acme Corp" -d "Test company"
 ```
 **Expected**: Company created with ID, name, description shown
 
 ### 1.2 List Companies
 ```bash
-apm company list
+taskyn company list
 ```
 **Expected**: Table showing Acme Corp (dates in local time)
 
 ### 1.3 Show Company
 ```bash
-apm company show <company_id>
+taskyn company show <company_id>
 ```
 **Expected**: Company details with project count (0)
 
 ### 1.4 JSON Output
 ```bash
-apm --json company list
+taskyn --json company list
 ```
 **Expected**: Valid JSON array (note: JSON dates are in UTC for interoperability)
 
@@ -45,31 +45,31 @@ apm --json company list
 
 ### 2.1 Create Project (Classic Agile)
 ```bash
-apm project create <company_id> "Web Redesign"
+taskyn project create <company_id> "Web Redesign"
 ```
 **Expected**: Project created with methodology "classic_agile"
 
 ### 2.2 Create Project (Spec-Driven)
 ```bash
-apm project create <company_id> "Mobile App" -m spec_driven
+taskyn project create <company_id> "Mobile App" -m spec_driven
 ```
 **Expected**: Project created with methodology "spec_driven"
 
 ### 2.3 List Projects
 ```bash
-apm project list
+taskyn project list
 ```
 **Expected**: Both projects listed
 
 ### 2.4 Show Project
 ```bash
-apm project show <project_id>
+taskyn project show <project_id>
 ```
 **Expected**: Project details with stats (0 nodes)
 
 ### 2.5 Update Project
 ```bash
-apm project update <project_id> --status on_hold
+taskyn project update <project_id> --status on_hold
 ```
 **Expected**: Status updated to on_hold
 
@@ -79,19 +79,19 @@ apm project update <project_id> --status on_hold
 
 ### 3.1 Create Milestone
 ```bash
-apm milestone create <project_id> "Sprint 1" --target 2025-03-01
+taskyn milestone create <project_id> "Sprint 1" --target 2025-03-01
 ```
 **Expected**: Milestone created with target date (duplicate names are now rejected)
 
 ### 3.2 List Milestones
 ```bash
-apm milestone list <project_id>
+taskyn milestone list <project_id>
 ```
 **Expected**: Sprint 1 shown
 
 ### 3.3 Complete Milestone
 ```bash
-apm milestone complete <milestone_id>
+taskyn milestone complete <milestone_id>
 ```
 **Expected**: Status changed to "completed"
 
@@ -103,44 +103,44 @@ Use the "Web Redesign" project (classic_agile).
 
 ### 4.1 Create Story
 ```bash
-apm story create <project_id> "User Login"
+taskyn story create <project_id> "User Login"
 ```
 **Expected**: Story created with status "backlog"
 
 ### 4.2 Create Tasks
 ```bash
-apm task create <story_id> "Design login form"
-apm task create <story_id> "Implement backend"
+taskyn task create <story_id> "Design login form"
+taskyn task create <story_id> "Implement backend"
 ```
 **Expected**: Tasks created, linked to story
 
 ### 4.3 List Stories
 ```bash
-apm story list --project <project_id>
+taskyn story list --project <project_id>
 ```
 **Expected**: "User Login" shown
 
 ### 4.4 Show Story with Tasks
 ```bash
-apm story show <story_id>
+taskyn story show <story_id>
 ```
 **Expected**: Story details + child tasks listed
 
 ### 4.5 Start Task
 ```bash
-apm task start <task_id>
+taskyn task start <task_id>
 ```
 **Expected**: Status → in_progress, timer started
 
 ### 4.6 Complete Task
 ```bash
-apm task done <task_id>
+taskyn task done <task_id>
 ```
 **Expected**: Status → done, timer stopped, duration shown
 
 ### 4.7 Block Task
 ```bash
-apm task block <task2_id> "Waiting for API docs"
+taskyn task block <task2_id> "Waiting for API docs"
 ```
 **Expected**: Status → blocked, reason shown
 
@@ -152,56 +152,56 @@ Use the "Mobile App" project (spec_driven).
 
 ### 5.1 Create Spec
 ```bash
-apm node create <project_id> spec "Authentication Spec"
+taskyn node create <project_id> spec "Authentication Spec"
 ```
 **Expected**: Status "draft"
 
 ### 5.2 Approve Spec
 ```bash
-apm node update <spec_id> --status approved
+taskyn node update <spec_id> --status approved
 ```
 **Expected**: Status → approved
 
 ### 5.3 Create Design
 ```bash
-apm node create <spec_id> design "Auth Design Doc"
+taskyn node create <spec_id> design "Auth Design Doc"
 ```
 **Expected**: Status "draft", Parent shown as the spec
 
 ### 5.4 Design Review Flow
 ```bash
-apm node update <design_id> --status in_review
-apm node update <design_id> --status approved
+taskyn node update <design_id> --status in_review
+taskyn node update <design_id> --status approved
 ```
 **Expected**: Status transitions correctly
 
 ### 5.5 Create Implementation
 ```bash
-apm node create <design_id> implementation "Implement Auth"
+taskyn node create <design_id> implementation "Implement Auth"
 ```
 **Expected**: Status "todo", Parent shown as the design
 
 ### 5.6 Implementation Workflow
 ```bash
-apm node start <impl_id>
-apm node update <impl_id> --status in_review
-apm node done <impl_id>
+taskyn node start <impl_id>
+taskyn node update <impl_id> --status in_review
+taskyn node done <impl_id>
 ```
 **Expected**: todo → in_progress → in_review → done
 
 ### 5.7 Create Validation
 ```bash
-apm node create <impl_id> validation "Auth Tests"
+taskyn node create <impl_id> validation "Auth Tests"
 ```
 **Expected**: Status "pending", Parent shown as the implementation
 
 ### 5.8 Validation Pass/Fail
 ```bash
-apm node start <validation_id>
-apm node update <validation_id> --status failed
-apm node update <validation_id> --status pending
-apm node start <validation_id>
-apm node update <validation_id> --status passed
+taskyn node start <validation_id>
+taskyn node update <validation_id> --status failed
+taskyn node update <validation_id> --status pending
+taskyn node start <validation_id>
+taskyn node update <validation_id> --status passed
 ```
 **Expected**: Can fail and retry, ends in "passed"
 
@@ -211,25 +211,25 @@ apm node update <validation_id> --status passed
 
 ### 6.1 Start Timer
 ```bash
-apm timer start <task_id>
+taskyn timer start <task_id>
 ```
 **Expected**: Timer started message
 
 ### 6.2 Check Status
 ```bash
-apm timer status
+taskyn timer status
 ```
 **Expected**: Shows active timer with node info
 
 ### 6.3 Stop Timer
 ```bash
-apm timer stop
+taskyn timer stop
 ```
 **Expected**: Timer stopped, duration shown
 
 ### 6.4 Log Manual Time
 ```bash
-apm timer log <task_id> 45 --notes "Code review"
+taskyn timer log <task_id> 45 --notes "Code review"
 ```
 **Expected**: 45 minutes logged
 
@@ -239,27 +239,27 @@ apm timer log <task_id> 45 --notes "Code review"
 
 ### 7.1 Create Tag
 ```bash
-apm tag create "bug" --color red
-apm tag create "urgent"
+taskyn tag create "bug" --color red
+taskyn tag create "urgent"
 ```
 **Expected**: Tags created
 
 ### 7.2 List Tags
 ```bash
-apm tag list
+taskyn tag list
 ```
 **Expected**: Both tags shown
 
 ### 7.3 Tag Node
 ```bash
-apm tag add <task_id> bug
-apm tag add <task_id> urgent
+taskyn tag add <task_id> bug
+taskyn tag add <task_id> urgent
 ```
 **Expected**: Tags added to node
 
 ### 7.4 Remove Tag
 ```bash
-apm tag remove <task_id> urgent
+taskyn tag remove <task_id> urgent
 ```
 **Expected**: Tag removed
 
@@ -269,25 +269,25 @@ apm tag remove <task_id> urgent
 
 ### 8.1 Search
 ```bash
-apm search "Login"
+taskyn search "Login"
 ```
 **Expected**: Finds "User Login" story and related items
 
 ### 8.2 Dashboard
 ```bash
-apm dashboard
+taskyn dashboard
 ```
 **Expected**: Shows active timer (if any), in-progress items, blockers
 
 ### 8.3 Stats
 ```bash
-apm stats <project_id>
+taskyn stats <project_id>
 ```
 **Expected**: Project statistics displayed
 
 ### 8.4 Activity
 ```bash
-apm activity --limit 10
+taskyn activity --limit 10
 ```
 **Expected**: Recent activity log
 
@@ -297,25 +297,25 @@ apm activity --limit 10
 
 ### 9.1 Create Backup
 ```bash
-apm backup create
+taskyn backup create
 ```
-**Expected**: Backup file created in ~/.agentpm/backups/
+**Expected**: Backup file created in ~/.taskyn/backups/
 
 ### 9.2 List Backups
 ```bash
-apm backup list
+taskyn backup list
 ```
 **Expected**: Backup listed with size and date
 
 ### 9.3 Export All
 ```bash
-apm export json -o full_export.json
+taskyn export json -o full_export.json
 ```
 **Expected**: JSON file with all data
 
 ### 9.4 Export Project
 ```bash
-apm export json --project <project_id> -o project_export.json
+taskyn export json --project <project_id> -o project_export.json
 ```
 **Expected**: JSON file with single project data
 

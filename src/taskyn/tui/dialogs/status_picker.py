@@ -4,11 +4,10 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Static, OptionList
+from textual.widgets import OptionList, Static
 from textual.widgets.option_list import Option
 
 
-# Status display with colors
 STATUS_STYLES = {
     "backlog": ("○ Backlog", "#94A3B8"),
     "todo": ("● Todo", "#8B5CF6"),
@@ -21,47 +20,6 @@ STATUS_STYLES = {
 
 class StatusPickerDialog(ModalScreen[str | None]):
     """Dialog for selecting a new status."""
-
-    DEFAULT_CSS = """
-    StatusPickerDialog {
-        align: center middle;
-    }
-
-    #status-picker-dialog {
-        width: 40;
-        height: auto;
-        max-height: 20;
-        border: thick $primary;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #status-picker-title {
-        text-align: center;
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    #status-picker-current {
-        text-align: center;
-        color: $text-muted;
-        padding-bottom: 1;
-    }
-
-    #status-list {
-        height: auto;
-        max-height: 10;
-    }
-
-    #status-list > .option-list--option {
-        padding: 0 2;
-    }
-
-    #status-list > .option-list--option-highlighted {
-        background: $primary 30%;
-    }
-    """
 
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
@@ -87,14 +45,13 @@ class StatusPickerDialog(ModalScreen[str | None]):
             self.current_status, (f"? {self.current_status}", "#888888")
         )
 
-        with Vertical(id="status-picker-dialog"):
-            yield Static("Change Status", id="status-picker-title")
-            yield Static(f"Current: {current_display}", id="status-picker-current")
+        with Vertical(classes="modal-dialog-narrow"):
+            yield Static("Change Status", classes="dialog-title")
+            yield Static(f"Current: {current_display}", classes="dialog-message")
 
             options = []
             for status in self._valid_statuses:
                 display, color = STATUS_STYLES.get(status, (status, "#888888"))
-                # Mark current status
                 if status == self.current_status:
                     display = f"{display} (current)"
                 options.append(Option(display, id=status))
@@ -103,7 +60,6 @@ class StatusPickerDialog(ModalScreen[str | None]):
 
     def _load_valid_statuses(self) -> None:
         """Load valid status transitions."""
-        # Default statuses
         self._valid_statuses = ["backlog", "todo", "ready", "in_progress", "done", "blocked"]
 
         try:
@@ -114,14 +70,11 @@ class StatusPickerDialog(ModalScreen[str | None]):
             with get_db() as db:
                 task = get_node(db, self.task_id)
                 if task:
-                    # Get valid transitions from workflow
                     transitions = get_valid_transitions(db, self.task_id)
                     if transitions:
-                        # Include current status plus valid transitions
                         self._valid_statuses = [self.current_status] + [
                             t for t in transitions if t != self.current_status
                         ]
-
         except Exception:
             pass
 

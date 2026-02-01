@@ -12,28 +12,6 @@ from taskyn.tui.widgets.task_form import TaskForm
 class NewTaskModal(ModalScreen[bool]):
     """Modal dialog for creating a new task."""
 
-    DEFAULT_CSS = """
-    NewTaskModal {
-        align: center middle;
-    }
-
-    #new-task-dialog {
-        width: 70;
-        height: auto;
-        max-height: 90%;
-        border: thick $primary;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #new-task-title {
-        text-align: center;
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
@@ -48,8 +26,8 @@ class NewTaskModal(ModalScreen[bool]):
         self.project_id = project_id
 
     def compose(self) -> ComposeResult:
-        with Vertical(id="new-task-dialog"):
-            yield Static("Create New Task", id="new-task-title")
+        with Vertical(classes="modal-dialog-wide"):
+            yield Static("Create New Task", classes="dialog-title")
             yield TaskForm(project_id=self.project_id)
 
     def on_mount(self) -> None:
@@ -62,6 +40,7 @@ class NewTaskModal(ModalScreen[bool]):
         try:
             from taskyn.db.connection import get_db
             from taskyn.graph.nodes import create_node
+            from taskyn.graph.edges import create_edge
 
             data = event.data
             project_id = data.pop("project_id", None)
@@ -76,18 +55,13 @@ class NewTaskModal(ModalScreen[bool]):
                     metadata=data.get("metadata"),
                 )
 
-                # Link to project if specified
                 if project_id:
-                    from taskyn.graph.edges import create_edge
+                    try:
+                        create_edge(db, project_id, node.id, "parent")
+                    except Exception:
+                        pass
 
-                    create_edge(
-                        db,
-                        from_node_id=project_id,
-                        to_node_id=node.id,
-                        edge_type="parent",
-                    )
-
-            self.app.notify(f"Created: {data['title']}", title="Task Created")
+            self.app.notify(f"Created: {node.title}", title="Task Created")
             self.dismiss(True)
 
         except Exception as e:

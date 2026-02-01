@@ -9,32 +9,6 @@ from textual.widgets import Static
 class EdgeList(Vertical):
     """Display edges (relationships) for a node."""
 
-    DEFAULT_CSS = """
-    EdgeList {
-        height: auto;
-        padding: 0 1;
-    }
-
-    EdgeList .section-header {
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    EdgeList .edge-item {
-        padding: 0 2;
-    }
-
-    EdgeList .edge-item:hover {
-        background: $surface-lighten-1;
-    }
-
-    EdgeList .no-edges {
-        color: $text-muted;
-        padding: 0 2;
-    }
-    """
-
     class EdgeClicked(Message):
         """Posted when an edge target is clicked."""
 

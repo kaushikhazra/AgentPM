@@ -1,7 +1,14 @@
 """Taskyn CLI main entry point."""
 
 import functools
+import sys
 from typing import Optional
+
+# Fix Windows console encoding for Unicode characters (only when running interactively)
+if sys.platform == "win32" and hasattr(sys.stdout, 'buffer') and sys.stdout.isatty():
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 import typer
 from rich.console import Console

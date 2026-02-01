@@ -14,88 +14,21 @@ from taskyn.tui.widgets.timer_display import TimerDisplay
 class DashboardScreen(Container):
     """Main dashboard screen with project tree, task list, and panels."""
 
-    DEFAULT_CSS = """
-    DashboardScreen {
-        layout: grid;
-        grid-size: 2 3;
-        grid-columns: 1fr 3fr;
-        grid-rows: 1fr auto auto;
-        grid-gutter: 1;
-    }
-
-    DashboardScreen #sidebar {
-        row-span: 3;
-        border: solid #8B5CF6;
-        background: $surface-darken-1;
-        padding: 1;
-    }
-
-    DashboardScreen #main-content {
-        border: solid #64748B;
-        background: $surface-darken-1;
-    }
-
-    DashboardScreen #bottom-panels {
-        layout: horizontal;
-    }
-
-    DashboardScreen #stats-panel {
-        width: 1fr;
-        border: solid #64748B;
-        background: $surface-darken-1;
-        padding: 1;
-    }
-
-    DashboardScreen #timer-panel {
-        width: 1fr;
-        border: solid #06B6D4;
-        background: $surface-darken-1;
-        padding: 1;
-    }
-
-    DashboardScreen #activity-panel {
-        column-span: 1;
-        border: solid #64748B;
-        background: $surface-darken-1;
-        padding: 1;
-        max-height: 10;
-    }
-
-    /* Narrow layout - hide sidebar */
-    DashboardScreen.-narrow {
-        grid-size: 1 3;
-        grid-columns: 1fr;
-    }
-
-    DashboardScreen.-narrow #sidebar {
-        display: none;
-    }
-
-    /* Compact layout - smaller sidebar */
-    DashboardScreen.-compact #sidebar {
-        width: 22;
-    }
-    """
-
     def compose(self) -> ComposeResult:
-        # Sidebar with project tree
         with Vertical(id="sidebar"):
             yield Static("Projects", classes="panel-title")
             yield ProjectTree()
 
-        # Main content with task table
         with Vertical(id="main-content"):
             yield Static("Tasks", classes="panel-title")
             yield TaskTable()
 
-        # Bottom panels
         with Horizontal(id="bottom-panels"):
             yield StatsPanel(id="stats-panel")
             with Vertical(id="timer-panel"):
                 yield Static("Timer", classes="panel-title")
                 yield TimerDisplay(compact=True)
 
-        # Activity log
         yield ActivityLog(id="activity-panel")
 
     def on_mount(self) -> None:
@@ -110,10 +43,8 @@ class DashboardScreen(Container):
         """Update layout based on terminal size."""
         width = self.app.size.width
 
-        # Remove existing layout classes
         self.remove_class("-narrow", "-compact")
 
-        # Apply appropriate layout class
         if width < 100:
             self.add_class("-narrow")
         elif width < 120:

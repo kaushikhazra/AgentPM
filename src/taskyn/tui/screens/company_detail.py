@@ -10,49 +10,6 @@ from textual.widgets import Footer, Header, Static
 class CompanyDetailScreen(Screen):
     """Full-screen view of company details."""
 
-    DEFAULT_CSS = """
-    CompanyDetailScreen {
-        background: $surface;
-    }
-
-    #company-detail-content {
-        padding: 2;
-    }
-
-    .detail-title {
-        text-style: bold;
-        padding-bottom: 1;
-    }
-
-    .detail-id {
-        color: $text-muted;
-    }
-
-    .section-header {
-        text-style: bold;
-        color: $primary;
-        padding-top: 1;
-    }
-
-    .project-item {
-        padding: 0 2;
-    }
-
-    .project-item:hover {
-        background: $surface-lighten-1;
-    }
-
-    .empty-message {
-        color: $text-muted;
-        padding: 0 2;
-    }
-
-    .meta-info {
-        color: $text-muted;
-        padding-top: 1;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "pop_screen", "Back", show=True),
         Binding("e", "edit", "Edit", show=True),

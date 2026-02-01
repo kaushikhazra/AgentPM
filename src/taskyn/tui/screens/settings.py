@@ -13,62 +13,6 @@ from textual.widgets import Button, Footer, Header, Label, RadioButton, RadioSet
 class SettingsScreen(Screen):
     """Settings configuration screen."""
 
-    DEFAULT_CSS = """
-    SettingsScreen {
-        background: $surface;
-    }
-
-    #settings-content {
-        padding: 2;
-    }
-
-    .settings-section {
-        margin-bottom: 2;
-        padding: 1 2;
-        border: solid $surface-lighten-1;
-        background: $surface-darken-1;
-    }
-
-    .section-title {
-        text-style: bold;
-        color: $primary;
-        padding-bottom: 1;
-    }
-
-    .setting-row {
-        height: auto;
-        margin: 1 0;
-    }
-
-    .setting-label {
-        width: 20;
-        padding-top: 1;
-    }
-
-    .setting-value {
-        width: 1fr;
-    }
-
-    .db-info {
-        color: $text-muted;
-        padding: 0 0 1 0;
-    }
-
-    .button-row {
-        margin-top: 1;
-    }
-
-    .button-row Button {
-        margin-right: 1;
-    }
-
-    .version-info {
-        text-align: center;
-        color: $text-muted;
-        padding-top: 2;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "pop_screen", "Back", show=True),
         Binding("1", "go_dashboard", "Dashboard", show=False),

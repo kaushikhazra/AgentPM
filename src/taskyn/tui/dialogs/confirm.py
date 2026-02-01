@@ -10,60 +10,6 @@ from textual.widgets import Button, Static
 class ConfirmDialog(ModalScreen[bool]):
     """Generic confirmation dialog."""
 
-    DEFAULT_CSS = """
-    ConfirmDialog {
-        align: center middle;
-    }
-
-    #confirm-dialog {
-        width: 50;
-        height: auto;
-        border: thick $error;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #confirm-dialog.warning {
-        border: thick $warning;
-    }
-
-    #confirm-dialog.info {
-        border: thick $primary;
-    }
-
-    #confirm-title {
-        text-align: center;
-        text-style: bold;
-        padding-bottom: 1;
-    }
-
-    #confirm-title.destructive {
-        color: $error;
-    }
-
-    #confirm-title.warning {
-        color: $warning;
-    }
-
-    #confirm-title.info {
-        color: $primary;
-    }
-
-    #confirm-message {
-        text-align: center;
-        padding: 1 0;
-    }
-
-    #confirm-buttons {
-        align: center middle;
-        padding-top: 1;
-    }
-
-    #confirm-buttons Button {
-        margin: 0 1;
-    }
-    """
-
     BINDINGS = [
         Binding("y", "confirm", "Yes", show=False),
         Binding("n", "cancel", "No", show=False),
@@ -95,20 +41,18 @@ class ConfirmDialog(ModalScreen[bool]):
         self.destructive = destructive
 
     def compose(self) -> ComposeResult:
-        dialog_class = ""
-        title_class = ""
+        dialog_classes = "modal-dialog-narrow"
+        title_classes = "dialog-title"
 
         if self.destructive:
-            title_class = "destructive"
-        else:
-            dialog_class = "info"
-            title_class = "info"
+            dialog_classes += " modal-dialog-destructive"
+            title_classes += " dialog-title-destructive"
 
-        with Vertical(id="confirm-dialog", classes=dialog_class):
-            yield Static(self.dialog_title, id="confirm-title", classes=title_class)
-            yield Static(self.message, id="confirm-message")
+        with Vertical(classes=dialog_classes):
+            yield Static(self.dialog_title, classes=title_classes)
+            yield Static(self.message, classes="dialog-message")
 
-            with Horizontal(id="confirm-buttons"):
+            with Horizontal(classes="button-row"):
                 variant = "error" if self.destructive else "primary"
                 yield Button(self.confirm_label, variant=variant, id="confirm-yes")
                 yield Button(self.cancel_label, variant="default", id="confirm-no")

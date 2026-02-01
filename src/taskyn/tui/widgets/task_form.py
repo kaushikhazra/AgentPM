@@ -27,55 +27,6 @@ TYPE_OPTIONS = [
 class TaskForm(Vertical):
     """Form for creating or editing a task."""
 
-    DEFAULT_CSS = """
-    TaskForm {
-        padding: 1 2;
-        height: auto;
-    }
-
-    TaskForm .form-row {
-        height: auto;
-        margin-bottom: 1;
-    }
-
-    TaskForm .form-label {
-        width: 12;
-        padding-top: 1;
-    }
-
-    TaskForm .form-input {
-        width: 1fr;
-    }
-
-    TaskForm Input {
-        width: 100%;
-    }
-
-    TaskForm Select {
-        width: 100%;
-    }
-
-    TaskForm TextArea {
-        height: 6;
-        width: 100%;
-    }
-
-    TaskForm .button-row {
-        margin-top: 1;
-        height: auto;
-        align: center middle;
-    }
-
-    TaskForm Button {
-        margin: 0 1;
-    }
-
-    TaskForm .error-text {
-        color: #F43F5E;
-        height: auto;
-    }
-    """
-
     class Submitted(Message):
         """Posted when form is submitted."""
 

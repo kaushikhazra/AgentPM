@@ -12,28 +12,6 @@ from taskyn.tui.widgets.task_form import TaskForm
 class EditTaskModal(ModalScreen[bool]):
     """Modal dialog for editing an existing task."""
 
-    DEFAULT_CSS = """
-    EditTaskModal {
-        align: center middle;
-    }
-
-    #edit-task-dialog {
-        width: 70;
-        height: auto;
-        max-height: 90%;
-        border: thick $warning;
-        background: $surface;
-        padding: 1 2;
-    }
-
-    #edit-task-title {
-        text-align: center;
-        text-style: bold;
-        color: $warning;
-        padding-bottom: 1;
-    }
-    """
-
     BINDINGS = [
         Binding("escape", "cancel", "Cancel", show=False),
     ]
@@ -49,11 +27,10 @@ class EditTaskModal(ModalScreen[bool]):
         self._initial_data: dict = {}
 
     def compose(self) -> ComposeResult:
-        # Load task data
         self._load_task_data()
 
-        with Vertical(id="edit-task-dialog"):
-            yield Static("Edit Task", id="edit-task-title")
+        with Vertical(classes="modal-dialog-wide"):
+            yield Static("Edit Task", classes="dialog-title dialog-title-warning")
             yield TaskForm(task_id=self.task_id, initial_data=self._initial_data)
 
     def _load_task_data(self) -> None:
@@ -76,7 +53,6 @@ class EditTaskModal(ModalScreen[bool]):
                         "estimate": (task.metadata or {}).get("estimate", ""),
                     }
 
-                    # Get parent project
                     parent_edges = get_parents(db, self.task_id, "parent")
                     if parent_edges:
                         self._initial_data["project_id"] = parent_edges[0].from_node_id
@@ -96,7 +72,7 @@ class EditTaskModal(ModalScreen[bool]):
             from taskyn.graph.nodes import update_node
 
             data = event.data
-            data.pop("project_id", None)  # Don't update parent here
+            data.pop("project_id", None)
             data.pop("task_id", None)
 
             with get_db() as db:
