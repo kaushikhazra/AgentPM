@@ -35,15 +35,49 @@ if db_path:
 # ============================================================
 
 @mcp.tool()
-def pm_list_companies() -> list[dict]:
+def pm_list_companies(include_stats: bool = False) -> list[dict]:
     """
     List all companies.
 
-    Returns a list of companies with their basic info.
+    Args:
+        include_stats: Include per-company aggregated stats
+
+    Returns:
+        List of companies, optionally with inline stats
     """
-    from taskyn.core import list_companies
+    from taskyn.core import list_companies, list_projects, get_project_stats
     companies = list_companies()
-    return [c.model_dump() for c in companies]
+    result = []
+
+    for c in companies:
+        data = c.model_dump()
+        if include_stats:
+            projects = list_projects(company_id=c.id)
+            total_nodes = 0
+            completed_nodes = 0
+            total_time_minutes = 0
+
+            for project in projects:
+                stats = get_project_stats(project.id)
+                total_nodes += sum(stats.total_nodes.values())
+                completed_nodes += stats.nodes_by_status.get("done", 0)
+                total_time_minutes += stats.time_total
+
+            completion_pct = (
+                round(completed_nodes / total_nodes * 100, 1)
+                if total_nodes > 0 else 0
+            )
+
+            data["stats"] = {
+                "total_projects": len(projects),
+                "total_nodes": total_nodes,
+                "completed_nodes": completed_nodes,
+                "completion_percentage": completion_pct,
+                "total_time_minutes": total_time_minutes,
+            }
+        result.append(data)
+
+    return result
 
 
 @mcp.tool()
@@ -100,6 +134,47 @@ def pm_delete_company(company_id: str) -> bool:
     return delete_company(company_id, actor=get_actor())
 
 
+@mcp.tool()
+def pm_get_company_stats(company_id: str) -> dict:
+    """
+    Get aggregated statistics for a company across all its projects.
+
+    Args:
+        company_id: Company ID
+
+    Returns:
+        Aggregated stats (project count, node counts, time, completion %)
+    """
+    from taskyn.core import get_company, list_projects, get_project_stats
+
+    company = get_company(company_id)
+    if company is None:
+        raise ValueError(f"Company not found: {company_id}")
+
+    projects = list_projects(company_id=company_id)
+
+    total_nodes = 0
+    completed_nodes = 0
+    total_time_minutes = 0
+
+    for project in projects:
+        stats = get_project_stats(project.id)
+        total_nodes += sum(stats.total_nodes.values())
+        completed_nodes += stats.nodes_by_status.get("done", 0)
+        total_time_minutes += stats.time_total
+
+    completion_pct = (completed_nodes / total_nodes * 100) if total_nodes > 0 else 0
+
+    return {
+        "company_id": company_id,
+        "total_projects": len(projects),
+        "total_nodes": total_nodes,
+        "completed_nodes": completed_nodes,
+        "completion_percentage": round(completion_pct, 1),
+        "total_time_minutes": total_time_minutes,
+    }
+
+
 # ============================================================
 # Project Tools
 # ============================================================
@@ -107,7 +182,8 @@ def pm_delete_company(company_id: str) -> bool:
 @mcp.tool()
 def pm_list_projects(
     company_id: str | None = None,
-    status: str | None = None
+    status: str | None = None,
+    include_stats: bool = False
 ) -> list[dict]:
     """
     List projects with optional filters.
@@ -115,13 +191,34 @@ def pm_list_projects(
     Args:
         company_id: Filter by company
         status: Filter by status (active, on_hold, completed, archived)
+        include_stats: Include per-project stats (node counts, completion %, time)
 
     Returns:
-        List of project objects
+        List of project objects, optionally with inline stats
     """
-    from taskyn.core import list_projects
+    from taskyn.core import list_projects, get_project_stats
     projects = list_projects(company_id=company_id, status=status)
-    return [p.model_dump() for p in projects]
+    result = []
+
+    for p in projects:
+        data = p.model_dump()
+        if include_stats:
+            stats = get_project_stats(p.id)
+            total_nodes = sum(stats.total_nodes.values())
+            completed_nodes = stats.nodes_by_status.get("done", 0)
+            data["stats"] = {
+                "total_nodes": total_nodes,
+                "completed_nodes": completed_nodes,
+                "completion_percentage": (
+                    round(completed_nodes / total_nodes * 100, 1)
+                    if total_nodes > 0 else 0
+                ),
+                "total_time_minutes": stats.time_total,
+                "nodes_by_type": stats.total_nodes,
+            }
+        result.append(data)
+
+    return result
 
 
 @mcp.tool()

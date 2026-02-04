@@ -470,3 +470,149 @@ async def test_full_workflow(client):
         # Check activity
         activity = get_result(await client.call_tool("pm_get_recent_activity", {"limit": 10}))
         assert len(activity) > 0
+
+
+@pytest.mark.asyncio
+async def test_get_company_stats_empty(client):
+    """Test company stats with no projects."""
+    async with client:
+        company = get_result(await client.call_tool("pm_create_company", {"name": "Empty Co"}))
+
+        result = get_result(await client.call_tool("pm_get_company_stats", {
+            "company_id": company["id"]
+        }))
+        assert result["company_id"] == company["id"]
+        assert result["total_projects"] == 0
+        assert result["total_nodes"] == 0
+        assert result["completed_nodes"] == 0
+        assert result["completion_percentage"] == 0
+        assert result["total_time_minutes"] == 0
+
+
+@pytest.mark.asyncio
+async def test_get_company_stats_with_data(client):
+    """Test company stats with projects and nodes."""
+    async with client:
+        company = get_result(await client.call_tool("pm_create_company", {"name": "Active Co"}))
+        project = get_result(await client.call_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Project A"
+        }))
+
+        # Create and complete a task
+        task = get_result(await client.call_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "task",
+            "title": "Done Task"
+        }))
+        await client.call_tool("pm_start_node", {"node_id": task["id"]})
+        await client.call_tool("pm_complete_node", {"node_id": task["id"]})
+
+        # Create another task (not completed)
+        await client.call_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "task",
+            "title": "Open Task"
+        })
+
+        result = get_result(await client.call_tool("pm_get_company_stats", {
+            "company_id": company["id"]
+        }))
+        assert result["total_projects"] == 1
+        assert result["total_nodes"] == 2
+        assert result["completed_nodes"] == 1
+        assert result["completion_percentage"] == 50.0
+
+
+@pytest.mark.asyncio
+async def test_get_company_stats_not_found(client):
+    """Test company stats with invalid ID."""
+    async with client:
+        with pytest.raises(Exception):
+            await client.call_tool("pm_get_company_stats", {
+                "company_id": "nonexistent"
+            })
+
+
+@pytest.mark.asyncio
+async def test_list_projects_without_stats(client):
+    """Test that list_projects defaults to no stats (backward compatible)."""
+    async with client:
+        company = get_result(await client.call_tool("pm_create_company", {"name": "Test Co"}))
+        await client.call_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Project A"
+        })
+
+        result = get_result(await client.call_tool("pm_list_projects", {}))
+        assert len(result) == 1
+        assert "stats" not in result[0]
+
+
+@pytest.mark.asyncio
+async def test_list_projects_with_stats(client):
+    """Test list_projects with include_stats=True."""
+    async with client:
+        company = get_result(await client.call_tool("pm_create_company", {"name": "Test Co"}))
+        project = get_result(await client.call_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Project A"
+        }))
+
+        # Add a node
+        await client.call_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "task",
+            "title": "Task 1"
+        })
+
+        result = get_result(await client.call_tool("pm_list_projects", {
+            "include_stats": True
+        }))
+        assert len(result) == 1
+        assert "stats" in result[0]
+        assert result[0]["stats"]["total_nodes"] == 1
+        assert result[0]["stats"]["completed_nodes"] == 0
+        assert result[0]["stats"]["completion_percentage"] == 0
+        assert "nodes_by_type" in result[0]["stats"]
+
+
+@pytest.mark.asyncio
+async def test_list_companies_without_stats(client):
+    """Test that list_companies defaults to no stats (backward compatible)."""
+    async with client:
+        await client.call_tool("pm_create_company", {"name": "Test Co"})
+
+        result = get_result(await client.call_tool("pm_list_companies", {}))
+        assert len(result) == 1
+        assert "stats" not in result[0]
+
+
+@pytest.mark.asyncio
+async def test_list_companies_with_stats(client):
+    """Test list_companies with include_stats=True."""
+    async with client:
+        company = get_result(await client.call_tool("pm_create_company", {"name": "Stats Co"}))
+        project = get_result(await client.call_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Project A"
+        }))
+
+        # Add a task and complete it
+        task = get_result(await client.call_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "task",
+            "title": "Task 1"
+        }))
+        await client.call_tool("pm_start_node", {"node_id": task["id"]})
+        await client.call_tool("pm_complete_node", {"node_id": task["id"]})
+
+        result = get_result(await client.call_tool("pm_list_companies", {
+            "include_stats": True
+        }))
+        assert len(result) == 1
+        assert "stats" in result[0]
+        assert result[0]["stats"]["total_projects"] == 1
+        assert result[0]["stats"]["total_nodes"] == 1
+        assert result[0]["stats"]["completed_nodes"] == 1
+        assert result[0]["stats"]["completion_percentage"] == 100.0
