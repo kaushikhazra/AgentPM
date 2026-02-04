@@ -23,33 +23,33 @@
 
 ## Phase 2: FastAPI Backend — Foundation
 
-- [ ] Create `src/taskyn/web/` package structure
-  - [ ] Create `backend/`, `backend/routes/`, `backend/schemas/`, `backend/auth/`
+- [x] Create `src/taskyn/web/` package structure
+  - [x] Create `backend/`, `backend/routes/`, `backend/schemas/`, `backend/auth/`
   _US-12.1_
 
-- [ ] Implement FastAPI app (`main.py`)
-  - [ ] CORS middleware for localhost:5173
-  - [ ] Router registration with `/api/v1` prefix
+- [x] Implement FastAPI app (`main.py`)
+  - [x] CORS middleware for localhost:5173
+  - [x] Router registration with `/api/v1` prefix
   _US-12.1_
 
-- [ ] Implement MCP integration (`deps.py`)
-  - [ ] `get_mcp()` dependency
-  - [ ] `call_mcp_tool()` error-to-HTTP mapper
+- [x] Implement MCP integration (`deps.py`)
+  - [x] `get_mcp()` dependency
+  - [x] `call_mcp_tool()` error-to-HTTP mapper
   _US-12.2_
 
-- [ ] Implement user authentication backend
-  - [ ] SQLite `users` table schema
-  - [ ] Password hashing with bcrypt (`auth/password.py`)
-  - [ ] JWT token creation and decoding (`auth/jwt.py`)
-  - [ ] `get_current_user()` dependency
+- [x] Implement user authentication backend
+  - [x] SQLite `users` table schema
+  - [x] Password hashing with bcrypt (`auth/password.py`)
+  - [x] JWT token creation and decoding (`auth/jwt.py`)
+  - [x] `get_current_user()` dependency
   _US-12.4_
 
-- [ ] Implement auth routes (`routes/auth.py`)
-  - [ ] POST `/auth/register`
-  - [ ] POST `/auth/login` (returns access token, sets refresh cookie)
-  - [ ] POST `/auth/logout` (clears refresh cookie)
-  - [ ] POST `/auth/refresh` (validates cookie, returns new access token)
-  - [ ] GET `/auth/me`
+- [x] Implement auth routes (`routes/auth.py`)
+  - [x] POST `/auth/register`
+  - [x] POST `/auth/login` (returns access token, sets refresh cookie)
+  - [x] POST `/auth/logout` (clears refresh cookie)
+  - [x] POST `/auth/refresh` (validates cookie, returns new access token)
+  - [x] GET `/auth/me`
   _US-12.4_
 
 ---
