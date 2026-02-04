@@ -4,6 +4,12 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 
+from taskyn.exceptions import (
+    CycleDetectedError,
+    NotFoundError,
+    TaskynError,
+    ValidationError,
+)
 from taskyn.mcp.server import mcp as mcp_server
 
 from .auth.jwt import decode_token
@@ -27,6 +33,14 @@ def call_mcp_tool(tool_name: str, args: dict):
     tool_func = _get_tool_func(tool_name)
     try:
         return tool_func(**args)
+    except NotFoundError as e:
+        raise HTTPException(404, detail=str(e))
+    except CycleDetectedError as e:
+        raise HTTPException(409, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(422, detail=str(e))
+    except TaskynError as e:
+        raise HTTPException(422, detail=str(e))
     except ValueError as e:
         msg = str(e).lower()
         if "not found" in msg:

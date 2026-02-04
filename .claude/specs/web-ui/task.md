@@ -56,54 +56,54 @@
 
 ## Phase 3: FastAPI Backend — REST Endpoints
 
-- [ ] Implement company routes (`routes/companies.py`)
-  - [ ] GET `/companies`, GET `/companies/:id`, POST, DELETE
-  - [ ] GET `/companies/:id/stats`
+- [x] Implement company routes (`routes/companies.py`)
+  - [x] GET `/companies`, GET `/companies/:id`, POST, DELETE
+  - [x] GET `/companies/:id/stats`
   _US-12.3_
 
-- [ ] Implement project routes (`routes/projects.py`)
-  - [ ] GET `/projects`, GET `/projects/:id`, POST, PATCH, DELETE
-  - [ ] GET `/projects/:id/methodology`, GET `/projects/:id/stats`
+- [x] Implement project routes (`routes/projects.py`)
+  - [x] GET `/projects`, GET `/projects/:id`, POST, PATCH, DELETE
+  - [x] GET `/projects/:id/methodology`, GET `/projects/:id/stats`
   _US-12.3_
 
-- [ ] Implement node routes (`routes/nodes.py`)
-  - [ ] GET `/nodes`, GET `/nodes/:id`, POST, PATCH
-  - [ ] POST `/nodes/:id/start`, `/nodes/:id/complete`, `/nodes/:id/block`
-  - [ ] GET `/nodes/:id/ancestors`, `/nodes/:id/descendants`, `/nodes/:id/rollup`
+- [x] Implement node routes (`routes/nodes.py`)
+  - [x] GET `/nodes`, GET `/nodes/:id`, POST, PATCH
+  - [x] POST `/nodes/:id/start`, `/nodes/:id/complete`, `/nodes/:id/block`
+  - [x] GET `/nodes/:id/ancestors`, `/nodes/:id/descendants`, `/nodes/:id/rollup`
   _US-12.3_
 
-- [ ] Implement edge routes (`routes/edges.py`)
-  - [ ] GET `/edges`, POST `/edges`, DELETE `/edges/:id`
+- [x] Implement edge routes (`routes/edges.py`)
+  - [x] GET `/edges`, POST `/edges`, DELETE `/edges/:id`
   _US-12.3_
 
-- [ ] Implement milestone routes (`routes/milestones.py`)
-  - [ ] GET `/milestones`, POST `/milestones`, POST `/milestones/:id/complete`
+- [x] Implement milestone routes (`routes/milestones.py`)
+  - [x] GET `/milestones`, POST `/milestones`, POST `/milestones/:id/complete`
   _US-12.3_
 
-- [ ] Implement tag routes (`routes/tags.py`)
-  - [ ] GET `/tags`, POST `/tags`
-  - [ ] POST `/nodes/:id/tags`, DELETE `/nodes/:id/tags/:name`
+- [x] Implement tag routes (`routes/tags.py`)
+  - [x] GET `/tags`, POST `/tags`
+  - [x] POST `/nodes/:id/tags`, DELETE `/nodes/:id/tags/:name`
   _US-12.3_
 
-- [ ] Implement timer routes (`routes/timer.py`)
-  - [ ] POST `/timer/start`, POST `/timer/stop`, GET `/timer/current`
+- [x] Implement timer routes (`routes/timer.py`)
+  - [x] POST `/timer/start`, POST `/timer/stop`, GET `/timer/current`
   _US-12.3_
 
-- [ ] Implement time entry routes (`routes/time_entries.py`)
-  - [ ] POST `/time-entries`
+- [x] Implement time entry routes (`routes/time_entries.py`)
+  - [x] POST `/time-entries`
   _US-12.3_
 
-- [ ] Implement reporting routes
-  - [ ] GET `/dashboard` (`routes/dashboard.py`)
-  - [ ] GET `/activity` (`routes/activity.py`)
-  - [ ] GET `/search` (`routes/search.py`)
+- [x] Implement reporting routes
+  - [x] GET `/dashboard` (`routes/dashboard.py`)
+  - [x] GET `/activity` (`routes/activity.py`)
+  - [x] GET `/search` (`routes/search.py`)
   _US-12.3_
 
-- [ ] Implement Pydantic schemas
-  - [ ] `schemas/common.py` — ErrorResponse
-  - [ ] `schemas/auth.py` — UserCreate, UserLogin
-  - [ ] `schemas/nodes.py` — NodeCreate, NodeUpdate
-  - [ ] `schemas/projects.py` — ProjectCreate, ProjectUpdate
+- [x] Implement Pydantic schemas
+  - [x] `schemas/common.py` — ErrorResponse
+  - [x] `schemas/auth.py` — UserCreate, UserLogin
+  - [x] `schemas/nodes.py` — NodeCreate, NodeUpdate
+  - [x] `schemas/projects.py` — ProjectCreate, ProjectUpdate
   _US-12.3_
 
 ---
