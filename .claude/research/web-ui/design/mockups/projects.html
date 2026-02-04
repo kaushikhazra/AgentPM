@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .project-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .project-card:hover {
+            border-color: var(--border-default);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .project-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .project-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+        [data-mode="light"] .project-icon {
+            color: var(--bg-primary);
+        }
+        .project-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .project-company {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .project-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .project-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .project-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .project-progress {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .project-progress-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .project-progress-fill {
+            height: 100%;
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+        .project-progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Company Filter Dropdown Badge */
+        .subtitle-with-filter {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        .filter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .filter-badge:hover {
+            border-color: var(--accent-primary);
+            background: var(--bg-hover);
+        }
+        .filter-badge-text {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .filter-badge-icon {
+            width: 14px;
+            height: 14px;
+            stroke: var(--text-tertiary);
+            fill: none;
+            stroke-width: 2;
+            transition: transform 0.15s;
+        }
+        .filter-badge.open .filter-badge-icon {
+            transform: rotate(180deg);
+        }
+        .filter-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 200px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.15s;
+        }
+        .filter-badge.open .filter-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .filter-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .filter-dropdown-item:first-child {
+            border-radius: 9px 9px 0 0;
+        }
+        .filter-dropdown-item:last-child {
+            border-radius: 0 0 9px 9px;
+        }
+        .filter-dropdown-item:hover {
+            background: var(--bg-hover);
+        }
+        .filter-dropdown-item.selected {
+            background: var(--accent-amber-bg);
+        }
+        .filter-dropdown-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--bg-primary);
+        }
+        .filter-dropdown-label {
+            font-size: 14px;
+        }
+        .filter-dropdown-count {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow: hidden;
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal {
+            transform: scale(1) translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .modal-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        .modal-close svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-tertiary);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(255, 167, 0, 0.15);
+        }
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+        textarea.form-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 6px;
+        }
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.selected {
+            border-color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link active">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search...
+                <kbd>⌘K</kbd>
+            </div>
+            <div class="user-menu">
+                <div class="user-avatar">K</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Projects</h1>
+                    <div class="subtitle-with-filter">
+                        <span>from</span>
+                        <div class="filter-badge" id="companyFilter" onclick="toggleFilterDropdown()">
+                            <span class="filter-badge-text" id="selectedCompany">all companies</span>
+                            <svg class="filter-badge-icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                            <div class="filter-dropdown">
+                                <div class="filter-dropdown-item selected" onclick="selectCompany('all', 'all companies', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--bg-tertiary); color: var(--text-secondary);">*</div>
+                                    <span class="filter-dropdown-label">All Companies</span>
+                                    <span class="filter-dropdown-count">8</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectCompany('personal', 'Personal Projects', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--gradient-primary);">P</div>
+                                    <span class="filter-dropdown-label">Personal Projects</span>
+                                    <span class="filter-dropdown-count">4</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectCompany('freelance', 'Freelance Work', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--gradient-secondary);">F</div>
+                                    <span class="filter-dropdown-label">Freelance Work</span>
+                                    <span class="filter-dropdown-count">2</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectCompany('learning', 'Learning', event)">
+                                    <div class="filter-dropdown-icon" style="background: linear-gradient(135deg, var(--accent-mint), var(--accent-sage));">L</div>
+                                    <span class="filter-dropdown-label">Learning</span>
+                                    <span class="filter-dropdown-count">2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openNewProjectModal()">
+                    <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    New Project
+                </button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Projects</div>
+                    <div class="stat-value">8</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active</div>
+                    <div class="stat-value">5</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Tasks</div>
+                    <div class="stat-value">67</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Progress</div>
+                    <div class="stat-value">54%</div>
+                </div>
+            </div>
+
+            <div class="projects-grid">
+                <a href="project.html" class="project-card">
+                    <div class="project-card-header">
+                        <div class="project-icon" style="background: var(--gradient-primary);">T</div>
+                        <div>
+                            <div class="project-name">Taskyn Development</div>
+                            <div class="project-company">Personal Projects</div>
+                        </div>
+                    </div>
+                    <p class="project-desc">AI-first personal project management system with CLI and MCP server.</p>
+                    <div class="project-stats">
+                        <span class="project-stat">3 epics</span>
+                        <span class="project-stat">12 stories</span>
+                        <span class="project-stat">47 tasks</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-bar">
+                            <div class="project-progress-fill" style="width: 68%;"></div>
+                        </div>
+                        <span class="project-progress-text">68%</span>
+                    </div>
+                </a>
+
+                <a href="project.html" class="project-card">
+                    <div class="project-card-header">
+                        <div class="project-icon" style="background: var(--gradient-secondary);">W</div>
+                        <div>
+                            <div class="project-name">Personal Website</div>
+                            <div class="project-company">Personal Projects</div>
+                        </div>
+                    </div>
+                    <p class="project-desc">Portfolio website with blog and project showcase.</p>
+                    <div class="project-stats">
+                        <span class="project-stat">2 epics</span>
+                        <span class="project-stat">6 stories</span>
+                        <span class="project-stat">18 tasks</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-bar">
+                            <div class="project-progress-fill" style="width: 45%;"></div>
+                        </div>
+                        <span class="project-progress-text">45%</span>
+                    </div>
+                </a>
+
+                <a href="project.html" class="project-card">
+                    <div class="project-card-header">
+                        <div class="project-icon" style="background: linear-gradient(135deg, var(--accent-sky), var(--accent-mint));">C</div>
+                        <div>
+                            <div class="project-name">CLI Tools</div>
+                            <div class="project-company">Personal Projects</div>
+                        </div>
+                    </div>
+                    <p class="project-desc">Collection of command line utilities and scripts.</p>
+                    <div class="project-stats">
+                        <span class="project-stat">1 epic</span>
+                        <span class="project-stat">4 stories</span>
+                        <span class="project-stat">12 tasks</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-bar">
+                            <div class="project-progress-fill" style="width: 25%;"></div>
+                        </div>
+                        <span class="project-progress-text">25%</span>
+                    </div>
+                </a>
+
+                <a href="project.html" class="project-card">
+                    <div class="project-card-header">
+                        <div class="project-icon" style="background: linear-gradient(135deg, var(--accent-peach), var(--accent-blush));">E</div>
+                        <div>
+                            <div class="project-name">E-commerce Site</div>
+                            <div class="project-company">Freelance Work</div>
+                        </div>
+                    </div>
+                    <p class="project-desc">Full-stack e-commerce platform for client.</p>
+                    <div class="project-stats">
+                        <span class="project-stat">4 epics</span>
+                        <span class="project-stat">8 stories</span>
+                        <span class="project-stat">24 tasks</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-bar">
+                            <div class="project-progress-fill" style="width: 83%;"></div>
+                        </div>
+                        <span class="project-progress-text">83%</span>
+                    </div>
+                </a>
+
+                <a href="project.html" class="project-card">
+                    <div class="project-card-header">
+                        <div class="project-icon" style="background: linear-gradient(135deg, var(--accent-mint), var(--accent-sage));">R</div>
+                        <div>
+                            <div class="project-name">Rust Course</div>
+                            <div class="project-company">Learning</div>
+                        </div>
+                    </div>
+                    <p class="project-desc">Working through "The Rust Programming Language" book.</p>
+                    <div class="project-stats">
+                        <span class="project-stat">1 epic</span>
+                        <span class="project-stat">5 stories</span>
+                        <span class="project-stat">20 tasks</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-bar">
+                            <div class="project-progress-fill" style="width: 40%;"></div>
+                        </div>
+                        <span class="project-progress-text">40%</span>
+                    </div>
+                </a>
+
+                <a href="project.html" class="project-card">
+                    <div class="project-card-header">
+                        <div class="project-icon" style="background: linear-gradient(135deg, var(--accent-butter), var(--accent-peach));">A</div>
+                        <div>
+                            <div class="project-name">AI/ML Research</div>
+                            <div class="project-company">Learning</div>
+                        </div>
+                    </div>
+                    <p class="project-desc">Exploring machine learning concepts and building prototypes.</p>
+                    <div class="project-stats">
+                        <span class="project-stat">2 epics</span>
+                        <span class="project-stat">3 stories</span>
+                        <span class="project-stat">8 tasks</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-bar">
+                            <div class="project-progress-fill" style="width: 15%;"></div>
+                        </div>
+                        <span class="project-progress-text">15%</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="shortcut-bar" data-context="projects"></footer>
+
+    <!-- New Project Modal -->
+    <div class="modal-overlay" id="newProjectModal" onclick="closeModal(event, 'newProjectModal')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">New Project</h3>
+                <button class="modal-close" onclick="closeModalById('newProjectModal')">
+                    <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" class="form-input" placeholder="e.g., Website Redesign, Mobile App">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Company</label>
+                    <select class="form-select">
+                        <option value="">Select a company...</option>
+                        <option value="personal">Personal Projects</option>
+                        <option value="freelance">Freelance Work</option>
+                        <option value="learning">Learning</option>
+                    </select>
+                    <p class="form-hint">Which company does this project belong to?</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Methodology</label>
+                    <select class="form-select">
+                        <option value="classic_agile" selected>Classic Agile</option>
+                        <option value="spec_driven">Spec Driven</option>
+                        <option value="piv">PIV</option>
+                        <option value="bmad">BMAD</option>
+                    </select>
+                    <p class="form-hint">Defines the workflow: node types, statuses, and transitions.</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-input" placeholder="What is this project about?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Icon Color</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: var(--gradient-primary);" onclick="selectColor(this)"></div>
+                        <div class="color-option" style="background: var(--gradient-secondary);" onclick="selectColor(this)"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, var(--accent-mint), var(--accent-sage));" onclick="selectColor(this)"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, var(--accent-sky), var(--accent-primary));" onclick="selectColor(this)"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, var(--accent-peach), var(--accent-blush));" onclick="selectColor(this)"></div>
+                        <div class="color-option" style="background: linear-gradient(135deg, var(--accent-butter), var(--accent-mint));" onclick="selectColor(this)"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModalById('newProjectModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="closeModalById('newProjectModal')">Create Project</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+    <script>
+        function openNewProjectModal() {
+            document.getElementById('newProjectModal').classList.add('active');
+        }
+
+        function closeModal(event, modalId) {
+            if (event.target.classList.contains('modal-overlay')) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+        }
+
+        function closeModalById(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function selectColor(element) {
+            const picker = element.parentElement;
+            picker.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function toggleFilterDropdown() {
+            document.getElementById('companyFilter').classList.toggle('open');
+        }
+
+        function selectCompany(id, name, event) {
+            event.stopPropagation();
+            document.getElementById('selectedCompany').textContent = name.toLowerCase();
+            document.querySelectorAll('.filter-dropdown-item').forEach(item => item.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            document.getElementById('companyFilter').classList.remove('open');
+            // In real app, filter projects here
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const filter = document.getElementById('companyFilter');
+            if (!filter.contains(e.target)) {
+                filter.classList.remove('open');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'p' || e.key === 'P') {
+                if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+                    const activeElement = document.activeElement;
+                    if (activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && activeElement.tagName !== 'SELECT') {
+                        e.preventDefault();
+                        openNewProjectModal();
+                    }
+                }
+            }
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                document.getElementById('companyFilter').classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>

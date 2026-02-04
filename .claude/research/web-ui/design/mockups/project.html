@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskyn Development - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link active">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search...
+                <kbd>⌘K</kbd>
+            </div>
+            <div class="user-menu">
+                <div class="user-avatar">K</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="company.html" class="breadcrumb-item">Personal Projects</a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-current">Taskyn Development</span>
+            </nav>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Taskyn Development</h1>
+                    <p class="page-subtitle">AI-first personal project management system</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Settings
+                    </button>
+                    <button class="btn btn-primary">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                        New Epic
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Epics</div>
+                    <div class="stat-value">3</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Stories</div>
+                    <div class="stat-value">12</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Tasks</div>
+                    <div class="stat-value">47</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Progress</div>
+                    <div class="stat-value">68%</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Epics</h2>
+                    <div class="section-tabs">
+                        <button class="section-tab active">All</button>
+                        <button class="section-tab">In Progress</button>
+                        <button class="section-tab">Completed</button>
+                    </div>
+                </div>
+                <div class="section-content">
+                    <div class="work-item-list">
+                        <a href="epic.html" class="work-item-card">
+                            <div class="work-item-header">
+                                <span class="work-item-title">Core Infrastructure</span>
+                                <span class="work-item-id">EPIC-001</span>
+                            </div>
+                            <div class="work-item-meta">
+                                <span>5 stories</span>
+                                <span>18 tasks</span>
+                                <div class="work-item-progress">
+                                    <div class="work-item-progress-bar">
+                                        <div class="work-item-progress-fill" style="width: 80%;"></div>
+                                    </div>
+                                    <span>80%</span>
+                                </div>
+                                <span class="status-badge done">Done</span>
+                            </div>
+                        </a>
+                        <a href="epic.html" class="work-item-card">
+                            <div class="work-item-header">
+                                <span class="work-item-title">Web UI Implementation</span>
+                                <span class="work-item-id">EPIC-002</span>
+                            </div>
+                            <div class="work-item-meta">
+                                <span>4 stories</span>
+                                <span>22 tasks</span>
+                                <div class="work-item-progress">
+                                    <div class="work-item-progress-bar">
+                                        <div class="work-item-progress-fill" style="width: 45%;"></div>
+                                    </div>
+                                    <span>45%</span>
+                                </div>
+                                <span class="status-badge progress">In Progress</span>
+                            </div>
+                        </a>
+                        <a href="epic.html" class="work-item-card">
+                            <div class="work-item-header">
+                                <span class="work-item-title">MCP Server Integration</span>
+                                <span class="work-item-id">EPIC-003</span>
+                            </div>
+                            <div class="work-item-meta">
+                                <span>3 stories</span>
+                                <span>7 tasks</span>
+                                <div class="work-item-progress">
+                                    <div class="work-item-progress-bar">
+                                        <div class="work-item-progress-fill" style="width: 0%;"></div>
+                                    </div>
+                                    <span>0%</span>
+                                </div>
+                                <span class="status-badge backlog">Backlog</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="shortcut-bar" data-context="project"></footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+</body>
+</html>

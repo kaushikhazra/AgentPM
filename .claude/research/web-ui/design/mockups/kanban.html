@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link active">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search...
+                <kbd>⌘K</kbd>
+            </div>
+            <div class="user-menu" onclick="toggleUserDropdown()">
+                <div class="user-avatar">K</div>
+                <div class="user-dropdown">
+                    <div class="user-dropdown-header">
+                        <div class="user-dropdown-name">Kaushik</div>
+                        <div class="user-dropdown-email">kaushik@example.com</div>
+                    </div>
+                    <div class="user-dropdown-menu">
+                        <a href="settings.html" class="user-dropdown-item">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            Settings
+                        </a>
+                        <a href="#" class="user-dropdown-item">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Help & Support
+                        </a>
+                        <div class="user-dropdown-divider"></div>
+                        <a href="#" class="user-dropdown-item danger">
+                            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Log out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-wrapper content-wrapper--wide">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Kanban Board</h1>
+                    <div class="subtitle-with-filter">
+                        <span>for</span>
+                        <div class="filter-badge" id="projectSelector" onclick="toggleProjectDropdown()">
+                            <div class="filter-badge-icon-box" id="selectedProjectIcon" style="background: var(--gradient-primary);">T</div>
+                            <span class="filter-badge-text" id="selectedProjectName">Taskyn Development</span>
+                            <svg class="filter-badge-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                            <!-- Project Dropdown -->
+                            <div class="filter-dropdown">
+                                <div class="filter-dropdown-item selected" onclick="selectProject('taskyn', 'T', 'Taskyn Development', 'var(--gradient-primary)', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--gradient-primary);">T</div>
+                                    <span class="filter-dropdown-label">Taskyn Development</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectProject('website', 'W', 'Personal Website', 'var(--gradient-secondary)', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--gradient-secondary);">W</div>
+                                    <span class="filter-dropdown-label">Personal Website</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectProject('ecommerce', 'E', 'E-commerce Site', 'linear-gradient(135deg, var(--accent-peach), var(--accent-blush))', event)">
+                                    <div class="filter-dropdown-icon" style="background: linear-gradient(135deg, var(--accent-peach), var(--accent-blush));">E</div>
+                                    <span class="filter-dropdown-label">E-commerce Site</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectProject('rust', 'R', 'Rust Course', 'linear-gradient(135deg, var(--accent-mint), var(--accent-sage))', event)">
+                                    <div class="filter-dropdown-icon" style="background: linear-gradient(135deg, var(--accent-mint), var(--accent-sage));">R</div>
+                                    <span class="filter-dropdown-label">Rust Course</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kanban-board">
+                <!-- Backlog Column -->
+                <div class="kanban-column">
+                    <div class="kanban-column-header">
+                        <div class="kanban-column-title">
+                            <span style="color: var(--status-backlog);">●</span>
+                            Backlog
+                        </div>
+                        <span class="kanban-column-count">4</span>
+                    </div>
+                    <div class="kanban-column-content">
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Write API documentation</div>
+                            <div class="kanban-card-meta">
+                                <span>Tomorrow</span>
+                                <span class="task-priority priority-low"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Set up CI/CD pipeline</div>
+                            <div class="kanban-card-meta">
+                                <span>Next week</span>
+                                <span class="task-priority priority-medium"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Add unit tests for core module</div>
+                            <div class="kanban-card-meta">
+                                <span>Next week</span>
+                                <span class="task-priority priority-medium"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Implement user authentication</div>
+                            <div class="kanban-card-meta">
+                                <span>No date</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ready Column -->
+                <div class="kanban-column">
+                    <div class="kanban-column-header">
+                        <div class="kanban-column-title">
+                            <span style="color: var(--status-ready);">●</span>
+                            Ready
+                        </div>
+                        <span class="kanban-column-count">2</span>
+                    </div>
+                    <div class="kanban-column-content">
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Design database schema</div>
+                            <div class="kanban-card-meta">
+                                <span>Today</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Create React components</div>
+                            <div class="kanban-card-meta">
+                                <span>Tomorrow</span>
+                                <span class="task-priority priority-medium"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- In Progress Column -->
+                <div class="kanban-column">
+                    <div class="kanban-column-header">
+                        <div class="kanban-column-title">
+                            <span style="color: var(--status-progress);">●</span>
+                            In Progress
+                        </div>
+                        <span class="kanban-column-count">3</span>
+                    </div>
+                    <div class="kanban-column-content">
+                        <div class="kanban-card" style="border-left: 3px solid var(--accent-primary);">
+                            <div class="kanban-card-title">Implement FastAPI endpoints</div>
+                            <div class="kanban-card-meta">
+                                <span>Today</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                            <div style="margin-top: 8px; font-size: 11px; color: var(--accent-primary);">
+                                ⏱ 01:45:32 tracking
+                            </div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Build web UI mockups</div>
+                            <div class="kanban-card-meta">
+                                <span>Today</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card">
+                            <div class="kanban-card-title">Research state management</div>
+                            <div class="kanban-card-meta">
+                                <span>Tomorrow</span>
+                                <span class="task-priority priority-low"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Done Column -->
+                <div class="kanban-column">
+                    <div class="kanban-column-header">
+                        <div class="kanban-column-title">
+                            <span style="color: var(--status-done);">●</span>
+                            Done
+                        </div>
+                        <span class="kanban-column-count">5</span>
+                    </div>
+                    <div class="kanban-column-content">
+                        <div class="kanban-card" style="opacity: 0.7;">
+                            <div class="kanban-card-title">Research UI templates</div>
+                            <div class="kanban-card-meta">
+                                <span>Yesterday</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card" style="opacity: 0.7;">
+                            <div class="kanban-card-title">Set up project structure</div>
+                            <div class="kanban-card-meta">
+                                <span>2 days ago</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card" style="opacity: 0.7;">
+                            <div class="kanban-card-title">Initialize Git repository</div>
+                            <div class="kanban-card-meta">
+                                <span>3 days ago</span>
+                                <span class="task-priority priority-medium"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card" style="opacity: 0.7;">
+                            <div class="kanban-card-title">Define project requirements</div>
+                            <div class="kanban-card-meta">
+                                <span>4 days ago</span>
+                                <span class="task-priority priority-high"></span>
+                            </div>
+                        </div>
+                        <div class="kanban-card" style="opacity: 0.7;">
+                            <div class="kanban-card-title">Create CLAUDE.md</div>
+                            <div class="kanban-card-meta">
+                                <span>5 days ago</span>
+                                <span class="task-priority priority-low"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="shortcut-bar" data-context="kanban"></footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+    <script>
+        // Project Dropdown
+        function toggleProjectDropdown() {
+            document.getElementById('projectSelector').classList.toggle('open');
+        }
+
+        function selectProject(id, icon, name, gradient, event) {
+            event.stopPropagation();
+            document.getElementById('selectedProjectIcon').textContent = icon;
+            document.getElementById('selectedProjectIcon').style.background = gradient;
+            document.getElementById('selectedProjectName').textContent = name;
+
+            // Update selected state
+            document.querySelectorAll('.filter-dropdown-item').forEach(item => item.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            document.getElementById('projectSelector').classList.remove('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const selector = document.getElementById('projectSelector');
+            if (!selector.contains(e.target)) {
+                selector.classList.remove('open');
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('projectSelector').classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>

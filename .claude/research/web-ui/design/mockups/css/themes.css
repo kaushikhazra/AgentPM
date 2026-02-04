@@ -1,0 +1,319 @@
+/* Taskyn Theme System
+   =====================
+   Uses two attributes:
+   - data-mode="dark" | "light"  (appearance)
+   - data-theme="amber" | "wine" | "ocean" | "forest" (accent color)
+*/
+
+/* ============================================
+   DARK MODE (default)
+   ============================================ */
+:root,
+[data-mode="dark"] {
+    /* Background Colors */
+    --bg-primary: #0F0F0F;
+    --bg-secondary: #161616;
+    --bg-tertiary: #1E1E1E;
+    --bg-elevated: #252525;
+    --bg-hover: #2A2A2A;
+
+    /* Text Colors */
+    --text-primary: #E8E8E8;
+    --text-secondary: #9A9A9A;
+    --text-tertiary: #666666;
+
+    /* Border Colors */
+    --border-subtle: #2A2A2A;
+    --border-default: #333333;
+
+    /* Shadows */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+    /* Mode-specific accent opacity */
+    --accent-bg-opacity: 0.15;
+}
+
+/* ============================================
+   LIGHT MODE
+   ============================================ */
+[data-mode="light"] {
+    /* Background Colors */
+    --bg-primary: #FAF9F7;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #F5F4F2;
+    --bg-elevated: #FFFFFF;
+    --bg-hover: #F0EFED;
+
+    /* Text Colors */
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6B6B;
+    --text-tertiary: #9A9A9A;
+
+    /* Border Colors */
+    --border-subtle: #ECEAE8;
+    --border-default: #E0DEDA;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+    /* Mode-specific accent opacity */
+    --accent-bg-opacity: 0.2;
+}
+
+/* ============================================
+   ACCENT: Amber Gold (default)
+   ============================================ */
+:root,
+[data-theme="amber"] {
+    --accent-primary: #FFA700;
+    --accent-primary-dark: #CC8600;
+    --accent-primary-light: #FFCC66;
+    --accent-secondary: #FFD966;
+
+    --accent-lavender: #FFA700;
+    --accent-mint: #A8D8A0;
+    --accent-peach: #FFCC99;
+    --accent-sky: #99CCEE;
+    --accent-butter: #FFE680;
+    --accent-blush: #FFAA99;
+    --accent-sage: #B8D4A8;
+
+    --status-backlog: #6B6B6B;
+    --status-ready: #99CCEE;
+    --status-progress: #FFA700;
+    --status-done: #A8D8A0;
+    --status-blocked: #FFAA99;
+
+    --gradient-primary: linear-gradient(135deg, #FFA700, #CC8600);
+    --gradient-secondary: linear-gradient(135deg, #FFCC66, #FFA700);
+}
+
+/* Amber - Light mode adjustments */
+[data-mode="light"][data-theme="amber"] {
+    --accent-primary: #E69500;
+    --accent-primary-dark: #B37400;
+    --accent-primary-light: #FFBB33;
+
+    --status-ready: #7AAAC4;
+    --status-progress: #E69500;
+    --status-done: #88B880;
+    --status-blocked: #DD9988;
+}
+
+/* ============================================
+   ACCENT: Wine Red
+   ============================================ */
+[data-theme="wine"] {
+    --accent-primary: #C2727A;
+    --accent-primary-dark: #8B4A52;
+    --accent-primary-light: #D4A5A5;
+    --accent-secondary: #A5B4C4;
+
+    --accent-lavender: #C2727A;
+    --accent-mint: #9DC09B;
+    --accent-peach: #D4A5A5;
+    --accent-sky: #A5B4C4;
+    --accent-butter: #E8D78A;
+    --accent-blush: #E8B4B4;
+    --accent-sage: #B4C4B0;
+
+    --status-ready: #A5B4C4;
+    --status-progress: #E8D78A;
+    --status-done: #9DC09B;
+    --status-blocked: #D4A5A5;
+
+    --gradient-primary: linear-gradient(135deg, #C2727A, #8B4A52);
+    --gradient-secondary: linear-gradient(135deg, #D4A5A5, #C2727A);
+}
+
+/* Wine - Light mode adjustments */
+[data-mode="light"][data-theme="wine"] {
+    --accent-primary: #A85A62;
+    --accent-primary-dark: #7A3D44;
+    --accent-primary-light: #C48A8A;
+
+    --status-ready: #8A9AAA;
+    --status-progress: #C4B060;
+    --status-done: #7DAA7B;
+    --status-blocked: #C48A8A;
+}
+
+/* ============================================
+   ACCENT: Deep Ocean
+   ============================================ */
+[data-theme="ocean"] {
+    --accent-primary: #5BA3A8;
+    --accent-primary-dark: #2D6A6F;
+    --accent-primary-light: #8ECFD4;
+    --accent-secondary: #7AB8A8;
+
+    --accent-lavender: #5BA3A8;
+    --accent-mint: #8ECFD4;
+    --accent-peach: #E8C4A8;
+    --accent-sky: #5BA3A8;
+    --accent-butter: #E8D78A;
+    --accent-blush: #D4A5B4;
+    --accent-sage: #7AB8A8;
+
+    --status-ready: #8ECFD4;
+    --status-progress: #E8D78A;
+    --status-done: #7AB8A8;
+    --status-blocked: #E8C4A8;
+
+    --gradient-primary: linear-gradient(135deg, #5BA3A8, #2D6A6F);
+    --gradient-secondary: linear-gradient(135deg, #8ECFD4, #5BA3A8);
+}
+
+/* Ocean - Light mode adjustments */
+[data-mode="light"][data-theme="ocean"] {
+    --accent-primary: #458A8F;
+    --accent-primary-dark: #2A5A5F;
+    --accent-primary-light: #6AAFB4;
+
+    --status-ready: #6AAFB4;
+    --status-progress: #C4B060;
+    --status-done: #5A9A8A;
+    --status-blocked: #C4A488;
+}
+
+/* ============================================
+   ACCENT: Forest Green
+   ============================================ */
+[data-theme="forest"] {
+    --accent-primary: #7A9A6D;
+    --accent-primary-dark: #4A5F41;
+    --accent-primary-light: #A8C49A;
+    --accent-secondary: #96B4A8;
+
+    --accent-lavender: #7A9A6D;
+    --accent-mint: #A8C49A;
+    --accent-peach: #D4B896;
+    --accent-sky: #96B4A8;
+    --accent-butter: #D4D496;
+    --accent-blush: #C4A8A8;
+    --accent-sage: #7A9A6D;
+
+    --status-ready: #96B4A8;
+    --status-progress: #D4D496;
+    --status-done: #A8C49A;
+    --status-blocked: #D4B896;
+
+    --gradient-primary: linear-gradient(135deg, #7A9A6D, #4A5F41);
+    --gradient-secondary: linear-gradient(135deg, #A8C49A, #7A9A6D);
+}
+
+/* Forest - Light mode adjustments */
+[data-mode="light"][data-theme="forest"] {
+    --accent-primary: #5A7A4D;
+    --accent-primary-dark: #3A4F31;
+    --accent-primary-light: #8AAA7A;
+
+    --status-ready: #7A9A8A;
+    --status-progress: #B4B476;
+    --status-done: #8AAA7A;
+    --status-blocked: #B49876;
+}
+
+/* ============================================
+   Dynamic Accent Backgrounds
+   ============================================ */
+:root {
+    --accent-lavender-bg: rgba(180, 167, 214, var(--accent-bg-opacity, 0.15));
+    --accent-mint-bg: rgba(152, 216, 170, var(--accent-bg-opacity, 0.15));
+    --accent-peach-bg: rgba(255, 202, 176, var(--accent-bg-opacity, 0.15));
+    --accent-sky-bg: rgba(165, 216, 255, var(--accent-bg-opacity, 0.15));
+    --accent-butter-bg: rgba(255, 243, 176, var(--accent-bg-opacity, 0.15));
+    --accent-blush-bg: rgba(255, 182, 193, var(--accent-bg-opacity, 0.15));
+    --accent-amber-bg: rgba(255, 167, 0, var(--accent-bg-opacity, 0.15));
+    --gradient-timer: linear-gradient(135deg,
+        rgba(var(--accent-primary), 0.1),
+        rgba(var(--accent-secondary), 0.1));
+}
+
+/* ============================================
+   Theme Switcher Component
+   ============================================ */
+.theme-switcher {
+    display: flex;
+    gap: 8px;
+}
+
+.theme-switcher button {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.theme-switcher button:hover {
+    transform: scale(1.05);
+}
+
+.theme-switcher button.active {
+    border-color: var(--text-primary);
+}
+
+.theme-switcher button[data-theme="amber"] {
+    background: linear-gradient(135deg, #FFA700, #CC8600);
+}
+
+.theme-switcher button[data-theme="wine"] {
+    background: linear-gradient(135deg, #C2727A, #8B4A52);
+}
+
+.theme-switcher button[data-theme="ocean"] {
+    background: linear-gradient(135deg, #5BA3A8, #2D6A6F);
+}
+
+.theme-switcher button[data-theme="forest"] {
+    background: linear-gradient(135deg, #7A9A6D, #4A5F41);
+}
+
+/* ============================================
+   Mode Toggle Component
+   ============================================ */
+.mode-toggle {
+    display: flex;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.mode-toggle button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.mode-toggle button:hover {
+    color: var(--text-primary);
+}
+
+.mode-toggle button.active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.mode-toggle button svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}

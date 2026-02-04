@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard & Navigation - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .task-checklist {
+            display: flex;
+            flex-direction: column;
+        }
+        .task-check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .task-check-item:last-child {
+            border-bottom: none;
+        }
+        .task-check-item:hover {
+            background: var(--bg-hover);
+            margin: 0 -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        .task-check-box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-default);
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .task-check-box:hover {
+            border-color: var(--accent-primary);
+        }
+        .task-check-item.completed .task-check-box {
+            background: var(--status-done);
+            border-color: var(--status-done);
+        }
+        .task-check-item.completed .task-check-box svg {
+            stroke: white;
+        }
+        .task-check-box svg {
+            width: 12px;
+            height: 12px;
+            stroke: transparent;
+            fill: none;
+            stroke-width: 3;
+        }
+        .task-check-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .task-check-title {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .task-check-item.completed .task-check-title {
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+        .task-check-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        .task-check-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .task-time-badge {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-variant-numeric: tabular-nums;
+        }
+        .story-description {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .story-description h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .story-description p {
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .acceptance-criteria {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        .acceptance-criteria li {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            padding-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link active">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search...
+                <kbd>⌘K</kbd>
+            </div>
+            <div class="user-menu">
+                <div class="user-avatar">K</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <!-- Breadcrumb -->
+            <nav class="breadcrumb">
+                <a href="company.html" class="breadcrumb-item">Personal Projects</a>
+                <span class="breadcrumb-separator">›</span>
+                <a href="project.html" class="breadcrumb-item">Taskyn Development</a>
+                <span class="breadcrumb-separator">›</span>
+                <a href="epic.html" class="breadcrumb-item">Web UI Implementation</a>
+                <span class="breadcrumb-separator">›</span>
+                <span class="breadcrumb-current">Dashboard & Navigation</span>
+            </nav>
+
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Dashboard & Navigation</h1>
+                    <p class="page-subtitle">STORY-008 • 6 of 8 tasks completed</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        Track Time
+                    </button>
+                    <button class="btn btn-primary">
+                        <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                        New Task
+                    </button>
+                </div>
+            </div>
+
+            <div class="story-description">
+                <h3>User Story</h3>
+                <p>As a user, I want a clean dashboard with intuitive navigation so that I can quickly access my projects, tasks, and time tracking features.</p>
+                <div class="acceptance-criteria">
+                    <h3>Acceptance Criteria</h3>
+                    <ul>
+                        <li>Dashboard shows summary stats (tasks due, in progress, completed)</li>
+                        <li>Navigation bar with links to all major sections</li>
+                        <li>User menu with settings and logout</li>
+                        <li>Responsive design for mobile and desktop</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Tasks</div>
+                    <div class="stat-value">8</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-value">6</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Time Tracked</div>
+                    <div class="stat-value">5h 30m</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Progress</div>
+                    <div class="stat-value">75%</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <h2 class="section-title">Tasks</h2>
+                    <span class="section-action">+ Add Task</span>
+                </div>
+                <div class="section-content">
+                    <div class="task-checklist">
+                        <div class="task-check-item completed">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Create top navigation component</div>
+                                <div class="task-check-meta">Completed yesterday</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="task-time-badge">1h 15m</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item completed">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Implement dashboard stats grid</div>
+                                <div class="task-check-meta">Completed yesterday</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="task-time-badge">45m</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item completed">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Add user dropdown menu</div>
+                                <div class="task-check-meta">Completed 2 days ago</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="task-time-badge">30m</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item completed">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Create sidebar navigation</div>
+                                <div class="task-check-meta">Completed 2 days ago</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="task-time-badge">1h</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item completed">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Build recent activity widget</div>
+                                <div class="task-check-meta">Completed 3 days ago</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="task-time-badge">1h 30m</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item completed">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Add timer widget</div>
+                                <div class="task-check-meta">Completed 3 days ago</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="task-time-badge">30m</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Implement search functionality</div>
+                                <div class="task-check-meta">In Progress</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="status-badge progress">In Progress</span>
+                            </div>
+                        </div>
+                        <div class="task-check-item">
+                            <div class="task-check-box">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="task-check-content">
+                                <div class="task-check-title">Add responsive breakpoints</div>
+                                <div class="task-check-meta">Ready to start</div>
+                            </div>
+                            <div class="task-check-right">
+                                <span class="status-badge ready">Ready</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="shortcut-bar" data-context="story"></footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+</body>
+</html>

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 48px;
+            max-width: 900px;
+        }
+
+        .settings-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+
+        .settings-nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .settings-nav-item.active {
+            background: var(--accent-lavender-bg);
+            color: var(--accent-primary);
+        }
+
+        .settings-nav-item svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .settings-nav-item.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .settings-section {
+            margin-bottom: 40px;
+        }
+
+        .settings-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .settings-section-desc {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 24px;
+        }
+
+        .settings-group {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item-info {
+            flex: 1;
+        }
+
+        .settings-item-label {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .settings-item-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .settings-item-control {
+            flex-shrink: 0;
+            margin-left: 24px;
+        }
+
+        /* Mode Toggle */
+        .mode-toggle {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .mode-toggle button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .mode-toggle button:hover {
+            color: var(--text-primary);
+        }
+
+        .mode-toggle button.active {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .mode-toggle button svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Theme Picker */
+        .theme-picker {
+            display: flex;
+            gap: 12px;
+        }
+
+        .theme-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .theme-option input {
+            display: none;
+        }
+
+        .theme-swatch {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .theme-option:hover .theme-swatch {
+            transform: scale(1.05);
+        }
+
+        .theme-option input:checked + .theme-swatch {
+            border-color: var(--text-primary);
+        }
+
+        .theme-option input:checked + .theme-swatch::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            border: 2px solid var(--bg-secondary);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+            background-size: 10px;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .theme-swatch-amber {
+            background: linear-gradient(135deg, #FFA700, #CC8600);
+        }
+
+        .theme-swatch-wine {
+            background: linear-gradient(135deg, #C2727A, #8B4A52);
+        }
+
+        .theme-swatch-ocean {
+            background: linear-gradient(135deg, #5BA3A8, #2D6A6F);
+        }
+
+        .theme-swatch-forest {
+            background: linear-gradient(135deg, #7A9A6D, #4A5F41);
+        }
+
+        .theme-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .theme-option input:checked ~ .theme-label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            background: var(--text-tertiary);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent-primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+            background: white;
+        }
+
+        /* Select Dropdown */
+        .settings-select {
+            padding: 8px 32px 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 13px;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+        }
+
+        .settings-select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        /* Account Avatar */
+        .account-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 20px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        [data-mode="light"] .account-avatar {
+            color: var(--bg-primary);
+        }
+
+        /* Small Button */
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search...
+                <kbd>⌘K</kbd>
+            </div>
+            <div class="user-menu" onclick="toggleUserDropdown()">
+                <div class="user-avatar">K</div>
+                <div class="user-dropdown">
+                    <div class="user-dropdown-header">
+                        <div class="user-dropdown-name">Kaushik</div>
+                        <div class="user-dropdown-email">kaushik@example.com</div>
+                    </div>
+                    <div class="user-dropdown-menu">
+                        <a href="settings.html" class="user-dropdown-item">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            Settings
+                        </a>
+                        <a href="#" class="user-dropdown-item">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Help & Support
+                        </a>
+                        <div class="user-dropdown-divider"></div>
+                        <a href="#" class="user-dropdown-item danger">
+                            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                            Log out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Customize your Taskyn experience</p>
+                </div>
+            </div>
+
+            <div class="settings-layout">
+                <!-- Settings Navigation -->
+                <nav class="settings-nav">
+                    <a href="#appearance" class="settings-nav-item active">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        Appearance
+                    </a>
+                    <a href="#notifications" class="settings-nav-item">
+                        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        Notifications
+                    </a>
+                    <a href="#account" class="settings-nav-item">
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Account
+                    </a>
+                    <a href="#data" class="settings-nav-item disabled">
+                        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                        Data & Storage
+                    </a>
+                    <a href="#integrations" class="settings-nav-item disabled">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="2"/><rect x="14" y="2" width="8" height="8" rx="2"/><rect x="2" y="14" width="8" height="8" rx="2"/><rect x="14" y="14" width="8" height="8" rx="2"/></svg>
+                        Integrations
+                    </a>
+                    <a href="#keyboard" class="settings-nav-item disabled">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M6 16h12"/></svg>
+                        Keyboard Shortcuts
+                    </a>
+                </nav>
+
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    <!-- Appearance Section -->
+                    <section id="appearance" class="settings-section">
+                        <h2 class="settings-section-title">Appearance</h2>
+                        <p class="settings-section-desc">Customize how Taskyn looks on your device</p>
+
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Mode</div>
+                                    <div class="settings-item-desc">Switch between dark and light mode</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <div class="mode-toggle">
+                                        <button data-mode="dark" class="active" onclick="setMode('dark')">
+                                            <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                                            Dark
+                                        </button>
+                                        <button data-mode="light" onclick="setMode('light')">
+                                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                                            Light
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Accent Color</div>
+                                    <div class="settings-item-desc">Choose your preferred accent color</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <div class="theme-picker">
+                                        <label class="theme-option">
+                                            <input type="radio" name="theme" value="amber" checked onchange="setTheme('amber')">
+                                            <div class="theme-swatch theme-swatch-amber"></div>
+                                            <span class="theme-label">Amber</span>
+                                        </label>
+                                        <label class="theme-option">
+                                            <input type="radio" name="theme" value="wine" onchange="setTheme('wine')">
+                                            <div class="theme-swatch theme-swatch-wine"></div>
+                                            <span class="theme-label">Wine</span>
+                                        </label>
+                                        <label class="theme-option">
+                                            <input type="radio" name="theme" value="ocean" onchange="setTheme('ocean')">
+                                            <div class="theme-swatch theme-swatch-ocean"></div>
+                                            <span class="theme-label">Ocean</span>
+                                        </label>
+                                        <label class="theme-option">
+                                            <input type="radio" name="theme" value="forest" onchange="setTheme('forest')">
+                                            <div class="theme-swatch theme-swatch-forest"></div>
+                                            <span class="theme-label">Forest</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Notifications Section (placeholder) -->
+                    <section id="notifications" class="settings-section">
+                        <h2 class="settings-section-title">Notifications</h2>
+                        <p class="settings-section-desc">Configure how you receive notifications</p>
+
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Desktop Notifications</div>
+                                    <div class="settings-item-desc">Show notifications for due tasks and updates</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Daily Summary</div>
+                                    <div class="settings-item-desc">Receive a daily email summary of your tasks</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <select class="settings-select">
+                                        <option>Never</option>
+                                        <option selected>Morning (9 AM)</option>
+                                        <option>Evening (6 PM)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Account Section -->
+                    <section id="account" class="settings-section">
+                        <h2 class="settings-section-title">Account</h2>
+                        <p class="settings-section-desc">Manage your account information and security</p>
+
+                        <div class="settings-group">
+                            <div class="settings-item">
+                                <div class="settings-item-info" style="display: flex; align-items: center; gap: 16px;">
+                                    <div class="account-avatar">K</div>
+                                    <div>
+                                        <div class="settings-item-label">Profile Photo</div>
+                                        <div class="settings-item-desc">JPG, PNG or GIF. Max 2MB</div>
+                                    </div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <button class="btn btn-secondary btn-sm">Change</button>
+                                </div>
+                            </div>
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Full Name</div>
+                                    <div class="settings-item-desc">Kaushik</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <button class="btn btn-secondary btn-sm">Edit</button>
+                                </div>
+                            </div>
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Email Address</div>
+                                    <div class="settings-item-desc">kaushik@example.com</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <button class="btn btn-secondary btn-sm">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-group" style="margin-top: 24px;">
+                            <div class="settings-item">
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Password</div>
+                                    <div class="settings-item-desc">Last changed 3 months ago</div>
+                                </div>
+                                <div class="settings-item-control">
+                                    <button class="btn btn-secondary btn-sm">Change Password</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="shortcut-bar" data-context="settings"></footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+    <script>
+        // Settings page specific: sync mode toggle buttons
+        function syncModeButtons() {
+            const currentMode = document.documentElement.getAttribute('data-mode') || 'dark';
+            document.querySelectorAll('.mode-toggle button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === currentMode);
+            });
+        }
+
+        // Override setMode for settings page to also update toggle buttons
+        const originalSetMode = setMode;
+        setMode = function(mode) {
+            originalSetMode(mode);
+            syncModeButtons();
+        };
+
+        // Initial sync
+        document.addEventListener('DOMContentLoaded', syncModeButtons);
+    </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .onboarding-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 60px 24px;
+        }
+        .onboarding-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .onboarding-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+        }
+        [data-mode="light"] .onboarding-icon {
+            color: var(--bg-primary);
+        }
+        .onboarding-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .onboarding-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .onboarding-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        .onboarding-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-subtle);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .onboarding-step:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(4px);
+        }
+        .onboarding-step.active {
+            border-color: var(--accent-primary);
+            background: var(--accent-lavender-bg);
+        }
+        .onboarding-step.completed {
+            opacity: 0.6;
+        }
+        .onboarding-step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .onboarding-step.active .onboarding-step-number {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        [data-mode="light"] .onboarding-step.active .onboarding-step-number {
+            color: var(--bg-primary);
+        }
+        .onboarding-step.completed .onboarding-step-number {
+            background: var(--status-done);
+            color: white;
+        }
+        .onboarding-step-content {
+            flex: 1;
+        }
+        .onboarding-step-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .onboarding-step-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .onboarding-step-action {
+            color: var(--accent-primary);
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+        .onboarding-step-arrow {
+            color: var(--text-tertiary);
+            margin-left: auto;
+            align-self: center;
+        }
+        .onboarding-step-arrow svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+        .onboarding-skip {
+            text-align: center;
+        }
+        .onboarding-skip a {
+            color: var(--text-tertiary);
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .onboarding-skip a:hover {
+            color: var(--text-secondary);
+            text-decoration: underline;
+        }
+        .onboarding-progress {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+        .onboarding-progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+        }
+        .onboarding-progress-dot.active {
+            background: var(--accent-primary);
+            width: 24px;
+            border-radius: 4px;
+        }
+        .onboarding-progress-dot.completed {
+            background: var(--status-done);
+        }
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link active">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="user-menu">
+                <div class="user-avatar">K</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="onboarding-container">
+            <div class="onboarding-header">
+                <div class="onboarding-icon">T</div>
+                <h1 class="onboarding-title">Welcome to Taskyn, Kaushik!</h1>
+                <p class="onboarding-subtitle">Let's get you set up in just a few steps. You can always come back and change these later.</p>
+            </div>
+
+            <div class="onboarding-progress">
+                <div class="onboarding-progress-dot active"></div>
+                <div class="onboarding-progress-dot"></div>
+                <div class="onboarding-progress-dot"></div>
+                <div class="onboarding-progress-dot"></div>
+            </div>
+
+            <div class="onboarding-steps">
+                <div class="onboarding-step active">
+                    <div class="onboarding-step-number">1</div>
+                    <div class="onboarding-step-content">
+                        <div class="onboarding-step-title">Create your first Company</div>
+                        <div class="onboarding-step-desc">Companies help you organize related projects together. Start with "Personal Projects" or your organization name.</div>
+                        <div class="onboarding-step-action">Get started</div>
+                    </div>
+                    <div class="onboarding-step-arrow">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </div>
+
+                <div class="onboarding-step">
+                    <div class="onboarding-step-number">2</div>
+                    <div class="onboarding-step-content">
+                        <div class="onboarding-step-title">Add a Project</div>
+                        <div class="onboarding-step-desc">Projects are containers for your work. Each project belongs to a company.</div>
+                    </div>
+                    <div class="onboarding-step-arrow">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </div>
+
+                <div class="onboarding-step">
+                    <div class="onboarding-step-number">3</div>
+                    <div class="onboarding-step-content">
+                        <div class="onboarding-step-title">Create an Epic</div>
+                        <div class="onboarding-step-desc">Epics are large features or goals. Break them down into smaller stories.</div>
+                    </div>
+                    <div class="onboarding-step-arrow">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </div>
+
+                <div class="onboarding-step">
+                    <div class="onboarding-step-number">4</div>
+                    <div class="onboarding-step-content">
+                        <div class="onboarding-step-title">Add Stories & Tasks</div>
+                        <div class="onboarding-step-desc">Stories describe what you want to achieve. Tasks are the actionable steps to get there.</div>
+                    </div>
+                    <div class="onboarding-step-arrow">
+                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="onboarding-skip">
+                <a href="dashboard.html">Skip for now, I'll explore on my own</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="shortcut-bar" data-context="dashboard"></footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+</body>
+</html>

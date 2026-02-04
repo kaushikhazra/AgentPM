@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-theme="amber">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner - Taskyn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        /* Accordion Hierarchy */
+        .planner-tree {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Epic Level */
+        .epic-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .epic-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .epic-header:hover {
+            background: var(--bg-hover);
+        }
+
+        .accordion-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            transition: transform 0.2s;
+        }
+
+        .accordion-toggle svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .epic-item.expanded > .epic-header .accordion-toggle {
+            transform: rotate(90deg);
+        }
+
+        .epic-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+        }
+
+        [data-mode="light"] .epic-icon {
+            color: var(--bg-primary);
+        }
+
+        .epic-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .epic-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .epic-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .epic-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar {
+            width: 80px;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            min-width: 36px;
+        }
+
+        .epic-content {
+            display: none;
+            padding: 0 20px 16px 52px;
+        }
+
+        .epic-item.expanded > .epic-content {
+            display: block;
+        }
+
+        /* Story Level */
+        .story-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-left: 2px solid var(--border-subtle);
+            margin-left: 4px;
+            padding-left: 16px;
+        }
+
+        .story-item {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .story-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .story-header:hover {
+            background: var(--bg-hover);
+        }
+
+        .story-item.expanded > .story-header .accordion-toggle {
+            transform: rotate(90deg);
+        }
+
+        .story-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-lavender-bg);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-primary);
+        }
+
+        .story-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .story-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .story-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .story-meta {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        .story-content {
+            display: none;
+            padding: 0 16px 12px 50px;
+        }
+
+        .story-item.expanded > .story-content {
+            display: block;
+        }
+
+        /* Task Level */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            border-left: 2px solid var(--border-subtle);
+            margin-left: 2px;
+            padding-left: 12px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .task-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-default);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+
+        .task-checkbox:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .task-checkbox.checked {
+            background: var(--status-done);
+            border-color: var(--status-done);
+        }
+
+        .task-checkbox svg {
+            width: 12px;
+            height: 12px;
+            stroke: white;
+            fill: none;
+            stroke-width: 3;
+        }
+
+        .task-title {
+            flex: 1;
+            font-size: 13px;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-tertiary);
+        }
+
+        .task-id {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-family: monospace;
+        }
+
+        /* Add Item Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: 16px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-20px);
+            transition: transform 0.2s;
+        }
+
+        .modal-overlay.show .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .modal-close svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .item-type-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-type-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-subtle);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .item-type-option:hover {
+            border-color: var(--accent-primary);
+            background: var(--accent-lavender-bg);
+        }
+
+        .item-type-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .item-type-icon.epic {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        [data-mode="light"] .item-type-icon.epic {
+            color: var(--bg-primary);
+        }
+
+        .item-type-icon.story {
+            background: var(--accent-lavender-bg);
+            color: var(--accent-primary);
+        }
+
+        .item-type-icon.task {
+            background: var(--accent-mint-bg);
+            color: var(--status-done);
+        }
+
+        .item-type-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .item-type-info h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .item-type-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Edit Button on Headers */
+        .edit-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-tertiary);
+            opacity: 0;
+            transition: all 0.15s;
+        }
+
+        .epic-header:hover .edit-btn,
+        .story-header:hover .edit-btn,
+        .task-item:hover .edit-btn {
+            opacity: 1;
+        }
+
+        .edit-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+
+        .edit-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* Add Item Modal - Step 2 Form */
+        .modal-step {
+            display: none;
+        }
+
+        .modal-step.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(255, 167, 0, 0.15);
+        }
+
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 6px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-tertiary);
+            border-radius: 0 0 16px 16px;
+        }
+
+        .modal-footer .btn {
+            min-width: 100px;
+        }
+
+        .selected-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .selected-type-badge .type-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .selected-type-badge .type-icon.epic {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .selected-type-badge .type-icon.story {
+            background: var(--accent-lavender-bg);
+            color: var(--accent-primary);
+        }
+
+        .selected-type-badge .type-icon.task {
+            background: var(--accent-mint-bg);
+            color: var(--status-done);
+        }
+
+        .selected-type-badge .type-icon svg {
+            width: 12px;
+            height: 12px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        [data-mode="light"] .selected-type-badge .type-icon.epic {
+            color: var(--bg-primary);
+        }
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <a href="dashboard.html" class="logo">
+            <div class="logo-icon">T</div>
+            <span class="logo-text">Taskyn</span>
+        </a>
+        <nav class="main-nav">
+            <a href="dashboard.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="company.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+                Companies
+            </a>
+            <a href="projects.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Projects
+            </a>
+            <a href="planner.html" class="nav-link active">
+                <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+                Planner
+            </a>
+            <a href="kanban.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><rect x="4" y="4" width="4" height="16" rx="1"/><rect x="10" y="4" width="4" height="10" rx="1"/><rect x="16" y="4" width="4" height="14" rx="1"/></svg>
+                Kanban
+            </a>
+            <a href="tracker.html" class="nav-link">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Tracker
+            </a>
+        </nav>
+        <div class="nav-right">
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Search...
+                <kbd>⌘K</kbd>
+            </div>
+            <div class="user-menu">
+                <div class="user-avatar">K</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Planner</h1>
+                    <div class="subtitle-with-filter">
+                        <span>for</span>
+                        <div class="filter-badge" id="projectSelector" onclick="toggleProjectDropdown()">
+                            <div class="filter-badge-icon-box" id="selectedProjectIcon" style="background: var(--gradient-primary);">T</div>
+                            <span class="filter-badge-text" id="selectedProjectName">Taskyn Development</span>
+                            <svg class="filter-badge-arrow" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                            <!-- Project Dropdown -->
+                            <div class="filter-dropdown">
+                                <div class="filter-dropdown-item selected" onclick="selectProject('taskyn', 'T', 'Taskyn Development', 'var(--gradient-primary)', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--gradient-primary);">T</div>
+                                    <span class="filter-dropdown-label">Taskyn Development</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectProject('website', 'W', 'Personal Website', 'var(--gradient-secondary)', event)">
+                                    <div class="filter-dropdown-icon" style="background: var(--gradient-secondary);">W</div>
+                                    <span class="filter-dropdown-label">Personal Website</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectProject('ecommerce', 'E', 'E-commerce Site', 'linear-gradient(135deg, var(--accent-peach), var(--accent-blush))', event)">
+                                    <div class="filter-dropdown-icon" style="background: linear-gradient(135deg, var(--accent-peach), var(--accent-blush));">E</div>
+                                    <span class="filter-dropdown-label">E-commerce Site</span>
+                                </div>
+                                <div class="filter-dropdown-item" onclick="selectProject('rust', 'R', 'Rust Course', 'linear-gradient(135deg, var(--accent-mint), var(--accent-sage))', event)">
+                                    <div class="filter-dropdown-icon" style="background: linear-gradient(135deg, var(--accent-mint), var(--accent-sage));">R</div>
+                                    <span class="filter-dropdown-label">Rust Course</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="showAddModal()">
+                    <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                    Add Item
+                </button>
+            </div>
+
+            <div class="planner-tree">
+                <!-- Epic 1: Core Infrastructure -->
+                <div class="epic-item expanded">
+                    <div class="epic-header" onclick="toggleAccordion(this.parentElement)">
+                        <div class="accordion-toggle">
+                            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                        <div class="epic-icon">E</div>
+                        <div class="epic-info">
+                            <div class="epic-title">Core Infrastructure</div>
+                            <div class="epic-meta">EPIC-001 • 3 stories • 12 tasks</div>
+                        </div>
+                        <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('epic', 'EPIC-001', 'Core Infrastructure', 'Foundation layer including database, graph layer, and CLI setup')" title="Edit Epic">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <div class="epic-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 83%;"></div>
+                            </div>
+                            <span class="progress-text">83%</span>
+                        </div>
+                        <span class="status-badge done">Done</span>
+                    </div>
+                    <div class="epic-content">
+                        <div class="story-list">
+                            <!-- Story 1.1 -->
+                            <div class="story-item expanded">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">Database Layer</div>
+                                        <div class="story-meta">STORY-001 • 4 tasks</div>
+                                    </div>
+                                    <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('story', 'STORY-001', 'Database Layer', 'Setup SQLite database with Pydantic models')" title="Edit Story">
+                                        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </button>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%;"></div>
+                                        </div>
+                                        <span class="progress-text">100%</span>
+                                    </div>
+                                    <span class="status-badge done">Done</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Create database schema</span>
+                                            <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('task', 'TSK-001', 'Create database schema', 'Define tables for nodes, edges, and metadata')" title="Edit Task">
+                                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <span class="task-id">TSK-001</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Setup SQLite connection</span>
+                                            <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('task', 'TSK-002', 'Setup SQLite connection', 'Configure connection pooling and settings')" title="Edit Task">
+                                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <span class="task-id">TSK-002</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Implement Pydantic models</span>
+                                            <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('task', 'TSK-003', 'Implement Pydantic models', 'Create data models for validation')" title="Edit Task">
+                                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <span class="task-id">TSK-003</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Add database indexes</span>
+                                            <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('task', 'TSK-004', 'Add database indexes', 'Optimize query performance with indexes')" title="Edit Task">
+                                                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                            </button>
+                                            <span class="task-id">TSK-004</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Story 1.2 -->
+                            <div class="story-item">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">Graph Layer</div>
+                                        <div class="story-meta">STORY-002 • 5 tasks</div>
+                                    </div>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%;"></div>
+                                        </div>
+                                        <span class="progress-text">100%</span>
+                                    </div>
+                                    <span class="status-badge done">Done</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Implement Node CRUD</span>
+                                            <span class="task-id">TSK-005</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Implement Edge CRUD</span>
+                                            <span class="task-id">TSK-006</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Add traversal functions</span>
+                                            <span class="task-id">TSK-007</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Story 1.3 -->
+                            <div class="story-item">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">CLI Foundation</div>
+                                        <div class="story-meta">STORY-003 • 3 tasks</div>
+                                    </div>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 66%;"></div>
+                                        </div>
+                                        <span class="progress-text">66%</span>
+                                    </div>
+                                    <span class="status-badge progress">In Progress</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Setup Typer CLI</span>
+                                            <span class="task-id">TSK-008</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Add basic commands</span>
+                                            <span class="task-id">TSK-009</span>
+                                        </div>
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Add output formatting</span>
+                                            <span class="task-id">TSK-010</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Epic 2: Web UI Implementation -->
+                <div class="epic-item expanded">
+                    <div class="epic-header" onclick="toggleAccordion(this.parentElement)">
+                        <div class="accordion-toggle">
+                            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                        <div class="epic-icon">E</div>
+                        <div class="epic-info">
+                            <div class="epic-title">Web UI Implementation</div>
+                            <div class="epic-meta">EPIC-002 • 4 stories • 22 tasks</div>
+                        </div>
+                        <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('epic', 'EPIC-002', 'Web UI Implementation', 'Build the web-based user interface for Taskyn')" title="Edit Epic">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <div class="epic-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%;"></div>
+                            </div>
+                            <span class="progress-text">45%</span>
+                        </div>
+                        <span class="status-badge progress">In Progress</span>
+                    </div>
+                    <div class="epic-content">
+                        <div class="story-list">
+                            <!-- Story 2.1 -->
+                            <div class="story-item">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">Design System & Themes</div>
+                                        <div class="story-meta">STORY-007 • 6 tasks</div>
+                                    </div>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%;"></div>
+                                        </div>
+                                        <span class="progress-text">100%</span>
+                                    </div>
+                                    <span class="status-badge done">Done</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Create CSS variables system</span>
+                                            <span class="task-id">TSK-020</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Implement dark/light modes</span>
+                                            <span class="task-id">TSK-021</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Add color themes</span>
+                                            <span class="task-id">TSK-022</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Story 2.2 -->
+                            <div class="story-item expanded">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">Planner View</div>
+                                        <div class="story-meta">STORY-008 • 5 tasks</div>
+                                    </div>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 40%;"></div>
+                                        </div>
+                                        <span class="progress-text">40%</span>
+                                    </div>
+                                    <span class="status-badge progress">In Progress</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Create accordion components</span>
+                                            <span class="task-id">TSK-030</span>
+                                        </div>
+                                        <div class="task-item completed">
+                                            <div class="task-checkbox checked">
+                                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                                            </div>
+                                            <span class="task-title">Build hierarchy tree view</span>
+                                            <span class="task-id">TSK-031</span>
+                                        </div>
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Add item modal</span>
+                                            <span class="task-id">TSK-032</span>
+                                        </div>
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Implement drag & drop</span>
+                                            <span class="task-id">TSK-033</span>
+                                        </div>
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Add inline editing</span>
+                                            <span class="task-id">TSK-034</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Story 2.3 -->
+                            <div class="story-item">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">Tracker View</div>
+                                        <div class="story-meta">STORY-009 • 4 tasks</div>
+                                    </div>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="progress-text">0%</span>
+                                    </div>
+                                    <span class="status-badge ready">Ready</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Build timer component</span>
+                                            <span class="task-id">TSK-040</span>
+                                        </div>
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Create time entry list</span>
+                                            <span class="task-id">TSK-041</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Epic 3: MCP Server -->
+                <div class="epic-item">
+                    <div class="epic-header" onclick="toggleAccordion(this.parentElement)">
+                        <div class="accordion-toggle">
+                            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                        </div>
+                        <div class="epic-icon">E</div>
+                        <div class="epic-info">
+                            <div class="epic-title">MCP Server Integration</div>
+                            <div class="epic-meta">EPIC-003 • 2 stories • 8 tasks</div>
+                        </div>
+                        <button class="edit-btn" onclick="event.stopPropagation(); showEditModal('epic', 'EPIC-003', 'MCP Server Integration', 'Implement FastMCP server for AI tool integration')" title="Edit Epic">
+                            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <div class="epic-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 0%;"></div>
+                            </div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                        <span class="status-badge backlog">Backlog</span>
+                    </div>
+                    <div class="epic-content">
+                        <div class="story-list">
+                            <div class="story-item">
+                                <div class="story-header" onclick="toggleAccordion(this.parentElement)">
+                                    <div class="accordion-toggle">
+                                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                                    </div>
+                                    <div class="story-icon">
+                                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="story-info">
+                                        <div class="story-title">FastMCP Setup</div>
+                                        <div class="story-meta">STORY-010 • 4 tasks</div>
+                                    </div>
+                                    <div class="epic-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="progress-text">0%</span>
+                                    </div>
+                                    <span class="status-badge backlog">Backlog</span>
+                                </div>
+                                <div class="story-content">
+                                    <div class="task-list">
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Setup FastMCP server</span>
+                                            <span class="task-id">TSK-050</span>
+                                        </div>
+                                        <div class="task-item">
+                                            <div class="task-checkbox"></div>
+                                            <span class="task-title">Define MCP tools</span>
+                                            <span class="task-id">TSK-051</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Item Modal -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="addModalTitle">Add Item</h3>
+                <button class="modal-close" onclick="hideAddModal()">
+                    <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Step 1: Type Selection -->
+                <div class="modal-step active" id="addStep1">
+                    <div class="item-type-grid">
+                        <div class="item-type-option" onclick="showAddForm('epic')">
+                            <div class="item-type-icon epic">E</div>
+                            <div class="item-type-info">
+                                <h4>Epic</h4>
+                                <p>Large feature or goal containing stories</p>
+                            </div>
+                        </div>
+                        <div class="item-type-option" onclick="showAddForm('story')">
+                            <div class="item-type-icon story">
+                                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </div>
+                            <div class="item-type-info">
+                                <h4>Story</h4>
+                                <p>User story describing a feature</p>
+                            </div>
+                        </div>
+                        <div class="item-type-option" onclick="showAddForm('task')">
+                            <div class="item-type-icon task">
+                                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div class="item-type-info">
+                                <h4>Task</h4>
+                                <p>Actionable work item to complete</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: Form -->
+                <div class="modal-step" id="addStep2">
+                    <div class="selected-type-badge" id="selectedTypeBadge">
+                        <div class="type-icon epic" id="selectedTypeIcon">E</div>
+                        <span id="selectedTypeLabel">Epic</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-input" id="addItemTitle" placeholder="Enter title...">
+                    </div>
+                    <div class="form-group" id="parentSelectGroup">
+                        <label class="form-label">Parent</label>
+                        <select class="form-select" id="addItemParent">
+                            <option value="">No parent (top-level)</option>
+                            <option value="epic-001">EPIC-001: Core Infrastructure</option>
+                            <option value="epic-002">EPIC-002: Web UI Implementation</option>
+                            <option value="epic-003">EPIC-003: MCP Server Integration</option>
+                        </select>
+                        <p class="form-hint">Select which item this belongs to</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="addItemDesc" placeholder="Describe the item..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="addModalFooter" style="display: none;">
+                <button class="btn btn-secondary" onclick="backToTypeSelection()">Back</button>
+                <button class="btn btn-primary" onclick="hideAddModal()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit <span id="editItemType">Epic</span></h3>
+                <button class="modal-close" onclick="hideEditModal()">
+                    <svg viewBox="0 0 24 24"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="selected-type-badge" id="editTypeBadge">
+                    <div class="type-icon epic" id="editTypeIcon">E</div>
+                    <span id="editItemId">EPIC-001</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-input" id="editItemTitle" value="">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" id="editItemDesc"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="editItemStatus">
+                        <option value="backlog">Backlog</option>
+                        <option value="ready">Ready</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="hideEditModal()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="shortcut-bar" data-context="planner"></footer>
+
+    <script src="js/theme.js"></script>
+    <script src="js/shortcuts.js"></script>
+    <script>
+        // Accordion toggle
+        function toggleAccordion(element) {
+            element.classList.toggle('expanded');
+        }
+
+        // ========== Project Dropdown ==========
+        function toggleProjectDropdown() {
+            document.getElementById('projectSelector').classList.toggle('open');
+        }
+
+        function selectProject(id, icon, name, gradient, event) {
+            event.stopPropagation();
+            document.getElementById('selectedProjectIcon').textContent = icon;
+            document.getElementById('selectedProjectIcon').style.background = gradient;
+            document.getElementById('selectedProjectName').textContent = name;
+
+            // Update selected state
+            document.querySelectorAll('.filter-dropdown-item').forEach(item => item.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+
+            document.getElementById('projectSelector').classList.remove('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const selector = document.getElementById('projectSelector');
+            if (!selector.contains(e.target)) {
+                selector.classList.remove('open');
+            }
+        });
+
+        // ========== Add Item Modal ==========
+        let selectedAddType = null;
+
+        function showAddModal() {
+            document.getElementById('addModal').classList.add('show');
+            resetAddModal();
+        }
+
+        function hideAddModal() {
+            document.getElementById('addModal').classList.remove('show');
+            resetAddModal();
+        }
+
+        function resetAddModal() {
+            document.getElementById('addStep1').classList.add('active');
+            document.getElementById('addStep2').classList.remove('active');
+            document.getElementById('addModalFooter').style.display = 'none';
+            document.getElementById('addModalTitle').textContent = 'Add Item';
+            document.getElementById('addItemTitle').value = '';
+            document.getElementById('addItemDesc').value = '';
+            selectedAddType = null;
+        }
+
+        function showAddForm(type) {
+            selectedAddType = type;
+            document.getElementById('addStep1').classList.remove('active');
+            document.getElementById('addStep2').classList.add('active');
+            document.getElementById('addModalFooter').style.display = 'flex';
+
+            // Update title
+            const typeNames = { epic: 'Epic', story: 'Story', task: 'Task' };
+            document.getElementById('addModalTitle').textContent = 'New ' + typeNames[type];
+            document.getElementById('selectedTypeLabel').textContent = typeNames[type];
+
+            // Update type badge icon
+            const iconEl = document.getElementById('selectedTypeIcon');
+            iconEl.className = 'type-icon ' + type;
+            if (type === 'epic') {
+                iconEl.innerHTML = 'E';
+            } else if (type === 'story') {
+                iconEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+            } else {
+                iconEl.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+            }
+
+            // Update parent dropdown based on type
+            const parentGroup = document.getElementById('parentSelectGroup');
+            const parentSelect = document.getElementById('addItemParent');
+
+            if (type === 'epic') {
+                parentGroup.style.display = 'none';
+            } else if (type === 'story') {
+                parentGroup.style.display = 'block';
+                parentSelect.innerHTML = `
+                    <option value="">Select an Epic...</option>
+                    <option value="epic-001">EPIC-001: Core Infrastructure</option>
+                    <option value="epic-002">EPIC-002: Web UI Implementation</option>
+                    <option value="epic-003">EPIC-003: MCP Server Integration</option>
+                `;
+            } else {
+                parentGroup.style.display = 'block';
+                parentSelect.innerHTML = `
+                    <option value="">Select a Story...</option>
+                    <option value="story-001">STORY-001: Database Layer</option>
+                    <option value="story-002">STORY-002: Graph Layer</option>
+                    <option value="story-003">STORY-003: CLI Foundation</option>
+                    <option value="story-007">STORY-007: Design System & Themes</option>
+                    <option value="story-008">STORY-008: Planner View</option>
+                `;
+            }
+        }
+
+        function backToTypeSelection() {
+            document.getElementById('addStep1').classList.add('active');
+            document.getElementById('addStep2').classList.remove('active');
+            document.getElementById('addModalFooter').style.display = 'none';
+            document.getElementById('addModalTitle').textContent = 'Add Item';
+        }
+
+        // ========== Edit Item Modal ==========
+        function showEditModal(type, id, title, description) {
+            const modal = document.getElementById('editModal');
+            modal.classList.add('show');
+
+            // Update modal content
+            const typeNames = { epic: 'Epic', story: 'Story', task: 'Task' };
+            document.getElementById('editItemType').textContent = typeNames[type];
+            document.getElementById('editItemId').textContent = id;
+            document.getElementById('editItemTitle').value = title;
+            document.getElementById('editItemDesc').value = description || '';
+
+            // Update type badge icon
+            const iconEl = document.getElementById('editTypeIcon');
+            iconEl.className = 'type-icon ' + type;
+            if (type === 'epic') {
+                iconEl.innerHTML = 'E';
+            } else if (type === 'story') {
+                iconEl.innerHTML = '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+            } else {
+                iconEl.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+            }
+        }
+
+        function hideEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        // ========== Modal Event Handlers ==========
+        // Close modals on overlay click
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) hideAddModal();
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) hideEditModal();
+        });
+
+        // Close modals on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideAddModal();
+                hideEditModal();
+                document.getElementById('projectSelector').classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>
