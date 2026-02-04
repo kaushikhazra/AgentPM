@@ -1,6 +1,8 @@
 export { ActivityFeed } from './ActivityFeed';
 export { Modal } from './Modal';
+export { SearchModal } from './SearchModal';
 export { Section } from './Section';
+export { ShortcutBar } from './ShortcutBar';
 export { TaskList } from './TaskList';
 export { TimerWidget } from './TimerWidget';
 export { Toast } from './Toast';

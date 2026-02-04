@@ -22,6 +22,10 @@ export function KanbanPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Drag-and-drop state
+  const [dragNodeId, setDragNodeId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+
   const loadProjects = useCallback(async () => {
     try {
       const list = await projectsApi.list();
@@ -90,6 +94,53 @@ export function KanbanPage() {
     navigate(`/kanban/${id}`, { replace: true });
   };
 
+  // Drag handlers
+  const handleDragStart = (nodeId: string) => {
+    setDragNodeId(nodeId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, status: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDropTarget(status);
+  };
+
+  const handleDragLeave = () => {
+    setDropTarget(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetStatus: string) => {
+    e.preventDefault();
+    setDropTarget(null);
+
+    if (!dragNodeId) return;
+
+    const node = nodes.find((n) => n.id === dragNodeId);
+    if (!node || node.status === targetStatus) {
+      setDragNodeId(null);
+      return;
+    }
+
+    // Optimistic update
+    setNodes((prev) =>
+      prev.map((n) => (n.id === dragNodeId ? { ...n, status: targetStatus } : n)),
+    );
+    setDragNodeId(null);
+
+    try {
+      await nodesApi.update(dragNodeId, { status: targetStatus });
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to move card');
+      // Revert on failure
+      await loadNodes();
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDragNodeId(null);
+    setDropTarget(null);
+  };
+
   return (
     <div className="content-wrapper--wide">
       <div className="page-header">
@@ -133,7 +184,13 @@ export function KanbanPage() {
 
       <div className="kanban-board">
         {columns.map((col) => (
-          <div key={col.status} className="kanban-column">
+          <div
+            key={col.status}
+            className={`kanban-column${dropTarget === col.status ? ' drag-over' : ''}`}
+            onDragOver={(e) => handleDragOver(e, col.status)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, col.status)}
+          >
             <div className="kanban-column-header">
               <div className="kanban-column-title">
                 <span style={{ color: col.color }}>●</span>
@@ -145,7 +202,10 @@ export function KanbanPage() {
               {col.nodes.map((node) => (
                 <div
                   key={node.id}
-                  className={`kanban-card${col.status === 'done' ? ' done-card' : ''}`}
+                  className={`kanban-card${col.status === 'done' ? ' done-card' : ''}${dragNodeId === node.id ? ' dragging' : ''}`}
+                  draggable
+                  onDragStart={() => handleDragStart(node.id)}
+                  onDragEnd={handleDragEnd}
                   onClick={() => navigate(`/nodes/${node.id}`)}
                 >
                   <div className="kanban-card-title">{node.title}</div>

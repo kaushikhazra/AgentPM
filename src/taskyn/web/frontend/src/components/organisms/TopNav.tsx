@@ -3,7 +3,11 @@ import { NavLink } from '@/components/molecules/NavLink';
 import { SearchBar } from '@/components/molecules/SearchBar';
 import { UserMenu } from '@/components/molecules/UserMenu';
 
-export function TopNav() {
+interface TopNavProps {
+  onSearchClick?: () => void;
+}
+
+export function TopNav({ onSearchClick }: TopNavProps) {
   return (
     <nav className="top-nav">
       <Link to="/dashboard" className="logo">
@@ -19,7 +23,7 @@ export function TopNav() {
       </div>
 
       <div className="nav-right">
-        <SearchBar />
+        <SearchBar onClick={onSearchClick} />
         <UserMenu />
       </div>
     </nav>

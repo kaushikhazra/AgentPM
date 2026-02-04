@@ -291,20 +291,22 @@
 
 ## Phase 10: Integration & Polish
 
-- [ ] Wire up keyboard shortcuts
-  - [ ] Global shortcuts (search)
-  - [ ] Page-specific shortcuts
-  - [ ] Shortcut bar at bottom
+- [x] Wire up keyboard shortcuts
+  - [x] Global shortcuts (Ctrl+K search, / search, B back, ? help)
+  - [x] Page-specific shortcuts (context-sensitive per route)
+  - [x] Shortcut bar at bottom (ShortcutBar organism)
+  - [x] useHotkeys hook (global keyboard event handler)
+  - [x] SearchModal organism (command-palette search overlay)
   _US-2.4_
 
-- [ ] End-to-end testing
-  - [ ] Auth flow (register, login, refresh, logout)
-  - [ ] CRUD operations (company, project, node)
-  - [ ] Timer flow (start, stop, view entries)
-  - [ ] Kanban drag-and-drop
+- [x] End-to-end testing
+  - [x] Auth flow (register, login, refresh, logout)
+  - [x] CRUD operations (company, project, node)
+  - [x] Timer flow (start, stop, view entries)
+  - [x] Kanban drag-and-drop (HTML5 native, optimistic updates)
   _All US_
 
-- [ ] Dev server configuration
-  - [ ] Vite proxy to FastAPI backend
-  - [ ] Concurrent dev start (uvicorn + vite)
+- [x] Dev server configuration
+  - [x] Vite proxy to FastAPI backend (already configured)
+  - [x] Concurrent dev start (scripts/dev_server.py — uvicorn + vite)
   _US-13.1_
