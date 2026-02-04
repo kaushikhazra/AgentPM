@@ -1,9 +1,11 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { Button, Input, Checkbox, Badge, Avatar, StatusDot, Kbd, Icon } from '@/components/atoms';
 import { StatCard, TaskItem, ActivityItem, Breadcrumb, SearchBar } from '@/components/molecules';
-import { useState } from 'react';
+import { AppShell } from '@/components/templates/AppShell';
+import { Section, TimerWidget } from '@/components/organisms';
 
 /* ============================================================
    Placeholder pages — will be replaced in Phase 7-9
@@ -52,11 +54,8 @@ function DashboardPage() {
       <div className="content-grid">
         <div>
           {/* Buttons */}
-          <div className="section mb-lg" data-testid="buttons-section">
-            <div className="section-header">
-              <h3 className="section-title">Buttons</h3>
-            </div>
-            <div className="section-content" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Section title="Buttons" className="mb-lg">
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
               <Button variant="primary">Primary</Button>
               <Button variant="secondary">Secondary</Button>
               <Button variant="ghost">Ghost</Button>
@@ -64,17 +63,14 @@ function DashboardPage() {
               <Button variant="primary" size="sm">Small</Button>
               <Button variant="primary" disabled>Disabled</Button>
             </div>
-          </div>
+          </Section>
 
           {/* Task Items */}
-          <div className="section mb-lg" data-testid="tasks-section">
-            <div className="section-header">
-              <h3 className="section-title">Today's Tasks</h3>
-            </div>
+          <Section title="Today's Tasks" className="mb-lg" noPadding>
             <TaskItem title="Implement FastAPI endpoints" meta="Taskyn Dev - Due today" priority="high" />
             <TaskItem title="Write unit tests" meta="Taskyn Dev - Due tomorrow" priority="medium" />
             <TaskItem title="Update documentation" meta="Taskyn Dev - No due date" priority="low" checked />
-          </div>
+          </Section>
 
           {/* Inputs */}
           <div className="section mb-lg" data-testid="inputs-section">
@@ -91,12 +87,12 @@ function DashboardPage() {
         </div>
 
         <div>
+          {/* Timer Widget */}
+          <TimerWidget />
+
           {/* Badges & Status */}
-          <div className="section mb-lg" data-testid="badges-section">
-            <div className="section-header">
-              <h3 className="section-title">Badges & Status</h3>
-            </div>
-            <div className="section-content" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Section title="Badges & Status" className="mb-lg">
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
               <Badge>Default</Badge>
               <StatusDot status="backlog" /> <span className="text-secondary">Backlog</span>
               <StatusDot status="ready" /> <span className="text-secondary">Ready</span>
@@ -104,39 +100,29 @@ function DashboardPage() {
               <StatusDot status="done" /> <span className="text-secondary">Done</span>
               <StatusDot status="blocked" /> <span className="text-secondary">Blocked</span>
             </div>
-            <div className="section-content" style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <Avatar name="Kaushik" />
               <Avatar name="Velasari" size="lg" />
               <Kbd>Ctrl+K</Kbd>
               <SearchBar />
             </div>
-          </div>
+          </Section>
 
           {/* Breadcrumb */}
-          <div className="section mb-lg" data-testid="breadcrumb-section">
-            <div className="section-header">
-              <h3 className="section-title">Breadcrumb</h3>
-            </div>
-            <div className="section-content">
-              <Breadcrumb items={[
-                { label: 'Companies', to: '/companies' },
-                { label: 'Taskyn Corp', to: '/companies' },
-                { label: 'Web UI Project' },
-              ]} />
-            </div>
-          </div>
+          <Section title="Breadcrumb" className="mb-lg">
+            <Breadcrumb items={[
+              { label: 'Companies', to: '/companies' },
+              { label: 'Taskyn Corp', to: '/companies' },
+              { label: 'Web UI Project' },
+            ]} />
+          </Section>
 
           {/* Activity */}
-          <div className="section mb-lg" data-testid="activity-section">
-            <div className="section-header">
-              <h3 className="section-title">Recent Activity</h3>
-            </div>
-            <div className="section-content">
-              <ActivityItem type="complete" text="Completed" highlight="Research UI templates" time="2 minutes ago" />
-              <ActivityItem type="time" text="Tracked 45m on" highlight="FastAPI endpoints" time="1 hour ago" />
-              <ActivityItem type="create" text="Created" highlight="New milestone" time="3 hours ago" />
-            </div>
-          </div>
+          <Section title="Recent Activity" className="mb-lg">
+            <ActivityItem type="complete" text="Completed" highlight="Research UI templates" time="2 minutes ago" />
+            <ActivityItem type="time" text="Tracked 45m on" highlight="FastAPI endpoints" time="1 hour ago" />
+            <ActivityItem type="create" text="Created" highlight="New milestone" time="3 hours ago" />
+          </Section>
         </div>
       </div>
     </div>
@@ -185,7 +171,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <AppShell>{children}</AppShell>;
 }
 
 /* ============================================================

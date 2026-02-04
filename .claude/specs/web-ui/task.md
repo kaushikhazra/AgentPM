@@ -175,21 +175,21 @@
 
 ## Phase 6: React Frontend — Organisms & Templates
 
-- [ ] Implement organism components
-  - [ ] TopNav (logo, nav links, search, user menu)
-  - [ ] Section (header + content slot)
-  - [ ] TaskList, ActivityFeed
-  - [ ] TimerWidget (display, controls)
-  - [ ] Modal (overlay, content, actions via portal)
-  - [ ] Toast (notification component)
+- [x] Implement organism components
+  - [x] TopNav (logo, nav links, search, user menu)
+  - [x] Section (header + content slot)
+  - [x] TaskList, ActivityFeed
+  - [x] TimerWidget (display, controls)
+  - [x] Modal (overlay, content, actions via portal)
+  - [x] Toast (notification component)
   _US-2.1, US-9.1_
 
-- [ ] Implement template components
-  - [ ] AuthLayout (centered card)
-  - [ ] AppShell (TopNav + main content area + shortcut bar)
-  - [ ] DashboardLayout (stats grid + 2-column content)
-  - [ ] DetailLayout (breadcrumb + header + content)
-  - [ ] FullWidthLayout (edge-to-edge for kanban)
+- [x] Implement template components
+  - [x] AuthLayout (centered card)
+  - [x] AppShell (TopNav + main content area + shortcut bar)
+  - [x] DashboardLayout (stats grid + 2-column content)
+  - [x] DetailLayout (breadcrumb + header + content)
+  - [x] FullWidthLayout (edge-to-edge for kanban)
   _US-2.1_
 
 ---
