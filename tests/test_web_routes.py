@@ -44,14 +44,14 @@ def auth_headers(client):
 
 def test_list_companies_empty(client, auth_headers):
     """List companies when none exist."""
-    res = client.get("/api/v1/companies/", headers=auth_headers)
+    res = client.get("/api/v1/companies", headers=auth_headers)
     assert res.status_code == 200
     assert res.json() == []
 
 
 def test_create_company(client, auth_headers):
     """Create a company."""
-    res = client.post("/api/v1/companies/", headers=auth_headers, json={
+    res = client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "Acme Corp",
         "description": "A test company",
     })
@@ -63,7 +63,7 @@ def test_create_company(client, auth_headers):
 
 def test_get_company(client, auth_headers):
     """Get a company by ID."""
-    create = client.post("/api/v1/companies/", headers=auth_headers, json={
+    create = client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "GetCo",
     })
     company_id = create.json()["id"]
@@ -81,7 +81,7 @@ def test_get_company_not_found(client, auth_headers):
 
 def test_delete_company(client, auth_headers):
     """Delete a company."""
-    create = client.post("/api/v1/companies/", headers=auth_headers, json={
+    create = client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "DeleteMe",
     })
     company_id = create.json()["id"]
@@ -96,7 +96,7 @@ def test_delete_company(client, auth_headers):
 
 def test_get_company_stats(client, auth_headers):
     """Get stats for a company."""
-    create = client.post("/api/v1/companies/", headers=auth_headers, json={
+    create = client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "StatsCo",
     })
     company_id = create.json()["id"]
@@ -110,12 +110,12 @@ def test_get_company_stats(client, auth_headers):
 
 def test_list_companies_with_stats(client, auth_headers):
     """List companies with include_stats=true."""
-    client.post("/api/v1/companies/", headers=auth_headers, json={
+    client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "StatsListCo",
     })
 
     res = client.get(
-        "/api/v1/companies/?include_stats=true", headers=auth_headers
+        "/api/v1/companies?include_stats=true", headers=auth_headers
     )
     assert res.status_code == 200
     data = res.json()
@@ -131,7 +131,7 @@ def test_list_companies_with_stats(client, auth_headers):
 @pytest.fixture
 def company_id(client, auth_headers):
     """Create a company and return its ID."""
-    res = client.post("/api/v1/companies/", headers=auth_headers, json={
+    res = client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "ProjectCo",
     })
     return res.json()["id"]
@@ -139,7 +139,7 @@ def company_id(client, auth_headers):
 
 def test_create_project(client, auth_headers, company_id):
     """Create a project."""
-    res = client.post("/api/v1/projects/", headers=auth_headers, json={
+    res = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "My Project",
         "methodology": "classic_agile",
@@ -153,25 +153,25 @@ def test_create_project(client, auth_headers, company_id):
 
 def test_list_projects(client, auth_headers, company_id):
     """List projects."""
-    client.post("/api/v1/projects/", headers=auth_headers, json={
+    client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "Proj A",
     })
 
-    res = client.get("/api/v1/projects/", headers=auth_headers)
+    res = client.get("/api/v1/projects", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) >= 1
 
 
 def test_list_projects_filter_by_company(client, auth_headers, company_id):
     """List projects filtered by company."""
-    client.post("/api/v1/projects/", headers=auth_headers, json={
+    client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "Filtered Proj",
     })
 
     res = client.get(
-        f"/api/v1/projects/?company_id={company_id}", headers=auth_headers
+        f"/api/v1/projects?company_id={company_id}", headers=auth_headers
     )
     assert res.status_code == 200
     assert all(p["company_id"] == company_id for p in res.json())
@@ -179,7 +179,7 @@ def test_list_projects_filter_by_company(client, auth_headers, company_id):
 
 def test_get_project(client, auth_headers, company_id):
     """Get a project by ID."""
-    create = client.post("/api/v1/projects/", headers=auth_headers, json={
+    create = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "GetProj",
     })
@@ -192,7 +192,7 @@ def test_get_project(client, auth_headers, company_id):
 
 def test_update_project(client, auth_headers, company_id):
     """Update a project."""
-    create = client.post("/api/v1/projects/", headers=auth_headers, json={
+    create = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "Old Name",
     })
@@ -207,7 +207,7 @@ def test_update_project(client, auth_headers, company_id):
 
 def test_delete_project(client, auth_headers, company_id):
     """Delete a project."""
-    create = client.post("/api/v1/projects/", headers=auth_headers, json={
+    create = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "DeleteProj",
     })
@@ -219,7 +219,7 @@ def test_delete_project(client, auth_headers, company_id):
 
 def test_get_methodology(client, auth_headers, company_id):
     """Get methodology info for a project."""
-    create = client.post("/api/v1/projects/", headers=auth_headers, json={
+    create = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "MethodProj",
         "methodology": "classic_agile",
@@ -236,7 +236,7 @@ def test_get_methodology(client, auth_headers, company_id):
 
 def test_get_project_stats(client, auth_headers, company_id):
     """Get project stats."""
-    create = client.post("/api/v1/projects/", headers=auth_headers, json={
+    create = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "StatsProj",
     })
@@ -256,7 +256,7 @@ def test_get_project_stats(client, auth_headers, company_id):
 @pytest.fixture
 def project_id(client, auth_headers, company_id):
     """Create a project and return its ID."""
-    res = client.post("/api/v1/projects/", headers=auth_headers, json={
+    res = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "NodeProject",
         "methodology": "classic_agile",
@@ -266,7 +266,7 @@ def project_id(client, auth_headers, company_id):
 
 def test_create_node(client, auth_headers, project_id):
     """Create a node."""
-    res = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    res = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "My Story",
@@ -280,14 +280,14 @@ def test_create_node(client, auth_headers, project_id):
 
 def test_list_nodes(client, auth_headers, project_id):
     """List nodes for a project."""
-    client.post("/api/v1/nodes/", headers=auth_headers, json={
+    client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Listed Story",
     })
 
     res = client.get(
-        f"/api/v1/nodes/?project_id={project_id}", headers=auth_headers
+        f"/api/v1/nodes?project_id={project_id}", headers=auth_headers
     )
     assert res.status_code == 200
     assert len(res.json()) >= 1
@@ -295,7 +295,7 @@ def test_list_nodes(client, auth_headers, project_id):
 
 def test_get_node(client, auth_headers, project_id):
     """Get a node by ID (composite response)."""
-    create = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    create = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "GetNode",
@@ -310,7 +310,7 @@ def test_get_node(client, auth_headers, project_id):
 
 def test_update_node(client, auth_headers, project_id):
     """Update a node."""
-    create = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    create = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Old Title",
@@ -326,12 +326,12 @@ def test_update_node(client, auth_headers, project_id):
 
 def test_start_node(client, auth_headers, project_id):
     """Transition task to in_progress (tasks can start directly from backlog)."""
-    story = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    story = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Parent Story",
     })
-    task = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    task = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Start Me",
@@ -348,12 +348,12 @@ def test_start_node(client, auth_headers, project_id):
 
 def test_complete_node(client, auth_headers, project_id):
     """Transition task to done."""
-    story = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    story = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Parent Story",
     })
-    task = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    task = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Complete Me",
@@ -372,12 +372,12 @@ def test_complete_node(client, auth_headers, project_id):
 
 def test_block_node(client, auth_headers, project_id):
     """Mark task as blocked (must be in_progress first)."""
-    story = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    story = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Parent Story",
     })
-    task = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    task = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Block Me",
@@ -397,14 +397,14 @@ def test_block_node(client, auth_headers, project_id):
 
 def test_node_ancestors_descendants(client, auth_headers, project_id):
     """Test ancestor and descendant traversal."""
-    parent = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    parent = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Parent",
     })
     parent_id = parent.json()["id"]
 
-    child = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    child = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Child",
@@ -430,7 +430,7 @@ def test_node_ancestors_descendants(client, auth_headers, project_id):
 
 def test_node_rollup(client, auth_headers, project_id):
     """Get rollup stats for a node."""
-    create = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    create = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Rollup Node",
@@ -450,18 +450,18 @@ def test_node_rollup(client, auth_headers, project_id):
 
 def test_create_edge(client, auth_headers, project_id):
     """Create an edge between two nodes."""
-    n1 = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    n1 = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Source",
     })
-    n2 = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    n2 = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Target",
     })
 
-    res = client.post("/api/v1/edges/", headers=auth_headers, json={
+    res = client.post("/api/v1/edges", headers=auth_headers, json={
         "source_id": n1.json()["id"],
         "target_id": n2.json()["id"],
         "edge_type": "depends_on",
@@ -472,24 +472,24 @@ def test_create_edge(client, auth_headers, project_id):
 
 def test_list_edges(client, auth_headers, project_id):
     """List edges for a project."""
-    n1 = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    n1 = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "E1",
     })
-    n2 = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    n2 = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "E2",
     })
-    client.post("/api/v1/edges/", headers=auth_headers, json={
+    client.post("/api/v1/edges", headers=auth_headers, json={
         "source_id": n1.json()["id"],
         "target_id": n2.json()["id"],
         "edge_type": "depends_on",
     })
 
     res = client.get(
-        f"/api/v1/edges/?project_id={project_id}", headers=auth_headers
+        f"/api/v1/edges?project_id={project_id}", headers=auth_headers
     )
     assert res.status_code == 200
     # Should have at least 1 edge (depends_on)
@@ -498,17 +498,17 @@ def test_list_edges(client, auth_headers, project_id):
 
 def test_delete_edge(client, auth_headers, project_id):
     """Delete an edge."""
-    n1 = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    n1 = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Del Edge 1",
     })
-    n2 = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    n2 = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Del Edge 2",
     })
-    edge = client.post("/api/v1/edges/", headers=auth_headers, json={
+    edge = client.post("/api/v1/edges", headers=auth_headers, json={
         "source_id": n1.json()["id"],
         "target_id": n2.json()["id"],
         "edge_type": "depends_on",
@@ -526,7 +526,7 @@ def test_delete_edge(client, auth_headers, project_id):
 
 def test_create_milestone(client, auth_headers, project_id):
     """Create a milestone."""
-    res = client.post("/api/v1/milestones/", headers=auth_headers, json={
+    res = client.post("/api/v1/milestones", headers=auth_headers, json={
         "project_id": project_id,
         "name": "v1.0",
         "description": "First release",
@@ -537,13 +537,13 @@ def test_create_milestone(client, auth_headers, project_id):
 
 def test_list_milestones(client, auth_headers, project_id):
     """List milestones for a project."""
-    client.post("/api/v1/milestones/", headers=auth_headers, json={
+    client.post("/api/v1/milestones", headers=auth_headers, json={
         "project_id": project_id,
         "name": "v2.0",
     })
 
     res = client.get(
-        f"/api/v1/milestones/?project_id={project_id}", headers=auth_headers
+        f"/api/v1/milestones?project_id={project_id}", headers=auth_headers
     )
     assert res.status_code == 200
     assert len(res.json()) >= 1
@@ -551,7 +551,7 @@ def test_list_milestones(client, auth_headers, project_id):
 
 def test_complete_milestone(client, auth_headers, project_id):
     """Complete a milestone."""
-    create = client.post("/api/v1/milestones/", headers=auth_headers, json={
+    create = client.post("/api/v1/milestones", headers=auth_headers, json={
         "project_id": project_id,
         "name": "v3.0",
     })
@@ -571,7 +571,7 @@ def test_complete_milestone(client, auth_headers, project_id):
 
 def test_create_tag(client, auth_headers):
     """Create a tag."""
-    res = client.post("/api/v1/tags/", headers=auth_headers, json={
+    res = client.post("/api/v1/tags", headers=auth_headers, json={
         "name": "urgent",
         "color": "#ff0000",
     })
@@ -580,25 +580,25 @@ def test_create_tag(client, auth_headers):
 
 def test_list_tags(client, auth_headers):
     """List all tags."""
-    client.post("/api/v1/tags/", headers=auth_headers, json={
+    client.post("/api/v1/tags", headers=auth_headers, json={
         "name": "feature",
     })
 
-    res = client.get("/api/v1/tags/", headers=auth_headers)
+    res = client.get("/api/v1/tags", headers=auth_headers)
     assert res.status_code == 200
     assert len(res.json()) >= 1
 
 
 def test_tag_node(client, auth_headers, project_id):
     """Tag a node."""
-    node = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    node = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Tagged Story",
     })
     node_id = node.json()["id"]
 
-    client.post("/api/v1/tags/", headers=auth_headers, json={
+    client.post("/api/v1/tags", headers=auth_headers, json={
         "name": "critical",
     })
 
@@ -611,14 +611,14 @@ def test_tag_node(client, auth_headers, project_id):
 
 def test_untag_node(client, auth_headers, project_id):
     """Remove a tag from a node."""
-    node = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    node = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Untagged Story",
     })
     node_id = node.json()["id"]
 
-    client.post("/api/v1/tags/", headers=auth_headers, json={"name": "removeme"})
+    client.post("/api/v1/tags", headers=auth_headers, json={"name": "removeme"})
     client.post(
         f"/api/v1/nodes/{node_id}/tags", headers=auth_headers,
         json={"tag_name": "removeme"},
@@ -637,7 +637,7 @@ def test_untag_node(client, auth_headers, project_id):
 
 def test_start_and_stop_timer(client, auth_headers, project_id):
     """Start and stop a timer."""
-    node = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    node = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Timed Task",
@@ -674,14 +674,14 @@ def test_get_current_timer_none(client, auth_headers):
 
 def test_log_time(client, auth_headers, project_id):
     """Log a manual time entry."""
-    node = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    node = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Logged Task",
     })
     node_id = node.json()["id"]
 
-    res = client.post("/api/v1/time-entries/", headers=auth_headers, json={
+    res = client.post("/api/v1/time-entries", headers=auth_headers, json={
         "node_id": node_id,
         "duration_minutes": 30,
         "notes": "Manual log",
@@ -718,7 +718,7 @@ def test_get_activity_with_filters(client, auth_headers):
 
 def test_search(client, auth_headers, project_id):
     """Search for entities."""
-    client.post("/api/v1/nodes/", headers=auth_headers, json={
+    client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "Searchable Story",
@@ -739,12 +739,12 @@ def test_search(client, auth_headers, project_id):
 def test_routes_require_auth(client):
     """All resource routes should return 401 without auth."""
     routes = [
-        ("GET", "/api/v1/companies/"),
-        ("GET", "/api/v1/projects/"),
-        ("GET", "/api/v1/nodes/"),
-        ("GET", "/api/v1/edges/"),
-        ("GET", "/api/v1/milestones/?project_id=x"),
-        ("GET", "/api/v1/tags/"),
+        ("GET", "/api/v1/companies"),
+        ("GET", "/api/v1/projects"),
+        ("GET", "/api/v1/nodes"),
+        ("GET", "/api/v1/edges"),
+        ("GET", "/api/v1/milestones?project_id=x"),
+        ("GET", "/api/v1/tags"),
         ("GET", "/api/v1/timer/current"),
         ("GET", "/api/v1/dashboard"),
         ("GET", "/api/v1/activity"),
@@ -764,14 +764,14 @@ def test_routes_require_auth(client):
 def test_full_crud_flow(client, auth_headers):
     """Integration test: company -> project -> node -> edge -> complete."""
     # Create company
-    company = client.post("/api/v1/companies/", headers=auth_headers, json={
+    company = client.post("/api/v1/companies", headers=auth_headers, json={
         "name": "Flow Corp",
     })
     assert company.status_code == 201
     company_id = company.json()["id"]
 
     # Create project
-    project = client.post("/api/v1/projects/", headers=auth_headers, json={
+    project = client.post("/api/v1/projects", headers=auth_headers, json={
         "company_id": company_id,
         "name": "Flow Project",
     })
@@ -779,7 +779,7 @@ def test_full_crud_flow(client, auth_headers):
     project_id = project.json()["id"]
 
     # Create parent story
-    story = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    story = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "story",
         "title": "User Login",
@@ -788,7 +788,7 @@ def test_full_crud_flow(client, auth_headers):
     story_id = story.json()["id"]
 
     # Create child task
-    task = client.post("/api/v1/nodes/", headers=auth_headers, json={
+    task = client.post("/api/v1/nodes", headers=auth_headers, json={
         "project_id": project_id,
         "node_type": "task",
         "title": "Implement form",

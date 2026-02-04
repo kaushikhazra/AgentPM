@@ -9,7 +9,7 @@ from ..schemas.companies import CompanyCreate
 router = APIRouter(prefix="/companies", tags=["companies"])
 
 
-@router.get("/")
+@router.get("")
 async def list_companies(
     include_stats: bool = False,
     current_user: User = Depends(get_current_user),
@@ -27,7 +27,7 @@ async def get_company(
     return call_mcp_tool("pm_get_company", {"company_id": company_id})
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_company(
     data: CompanyCreate,
     current_user: User = Depends(get_current_user),

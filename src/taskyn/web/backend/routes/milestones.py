@@ -9,7 +9,7 @@ from ..schemas.milestones import MilestoneCreate
 router = APIRouter(prefix="/milestones", tags=["milestones"])
 
 
-@router.get("/")
+@router.get("")
 async def list_milestones(
     project_id: str,
     status: str | None = None,
@@ -22,7 +22,7 @@ async def list_milestones(
     return call_mcp_tool("pm_list_milestones", args)
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_milestone(
     data: MilestoneCreate,
     current_user: User = Depends(get_current_user),

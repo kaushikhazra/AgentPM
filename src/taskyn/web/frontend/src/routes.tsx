@@ -6,9 +6,12 @@ import { Button, Input, Checkbox, Badge, Avatar, StatusDot, Kbd, Icon } from '@/
 import { StatCard, TaskItem, ActivityItem, Breadcrumb, SearchBar } from '@/components/molecules';
 import { AppShell } from '@/components/templates/AppShell';
 import { Section, TimerWidget } from '@/components/organisms';
+import { LoginPage } from '@/pages/LoginPage';
+import { SignupPage } from '@/pages/SignupPage';
+import { OnboardingPage } from '@/pages/OnboardingPage';
 
 /* ============================================================
-   Placeholder pages — will be replaced in Phase 7-9
+   Placeholder pages — will be replaced in Phase 8-9
    ============================================================ */
 function Placeholder({ title }: { title: string }) {
   return (
@@ -21,13 +24,6 @@ function Placeholder({ title }: { title: string }) {
       </div>
     </div>
   );
-}
-
-function LoginPage() {
-  return <Placeholder title="Login" />;
-}
-function SignupPage() {
-  return <Placeholder title="Sign Up" />;
 }
 
 /** Temporary component showcase — replaced in Phase 8 */
@@ -185,6 +181,10 @@ export const routes: RouteObject[] = [
   {
     path: '/signup',
     element: <SignupPage />,
+  },
+  {
+    path: '/onboarding',
+    element: <OnboardingPage />,
   },
   {
     path: '/dashboard',

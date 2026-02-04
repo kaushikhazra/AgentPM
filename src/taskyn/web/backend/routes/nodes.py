@@ -9,7 +9,7 @@ from ..schemas.nodes import BlockRequest, NodeCreate, NodeUpdate, TagRequest
 router = APIRouter(prefix="/nodes", tags=["nodes"])
 
 
-@router.get("/")
+@router.get("")
 async def list_nodes(
     project_id: str | None = None,
     node_type: str | None = None,
@@ -39,7 +39,7 @@ async def get_node(
     return call_mcp_tool("pm_get_node", {"node_id": node_id})
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_node(
     data: NodeCreate,
     current_user: User = Depends(get_current_user),

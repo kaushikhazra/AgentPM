@@ -21,6 +21,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
+    redirect_slashes=False,
 )
 
 # CORS for React dev server

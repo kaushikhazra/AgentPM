@@ -196,20 +196,23 @@
 
 ## Phase 7: React Frontend — Pages (Auth)
 
-- [ ] Implement LoginPage
-  - [ ] Email/password form with validation
-  - [ ] Error display for invalid credentials
-  - [ ] Post-login redirect
+- [x] Implement LoginPage
+  - [x] Email/password form with validation
+  - [x] Error display for invalid credentials
+  - [x] Post-login redirect
   _US-1.2_
 
-- [ ] Implement SignupPage
-  - [ ] Name/email/password form with validation
-  - [ ] Redirect to onboarding on success
+- [x] Implement SignupPage
+  - [x] Name/email/password form with validation
+  - [x] Redirect to onboarding on success
   _US-1.1_
 
-- [ ] Implement OnboardingPage
-  - [ ] Welcome flow (create first company/project)
+- [x] Implement OnboardingPage
+  - [x] Welcome flow (create first company/project)
   _US-1.1_
+
+- [x] Fix trailing-slash redirect bug (redirect_slashes=False, route paths)
+  _US-12.2_
 
 ---
 

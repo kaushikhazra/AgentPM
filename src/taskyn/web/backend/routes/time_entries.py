@@ -9,7 +9,7 @@ from ..schemas.timer import TimeEntryCreate
 router = APIRouter(prefix="/time-entries", tags=["time-entries"])
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def log_time(
     data: TimeEntryCreate,
     current_user: User = Depends(get_current_user),

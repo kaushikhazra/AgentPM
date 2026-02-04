@@ -9,7 +9,7 @@ from ..schemas.projects import ProjectCreate, ProjectUpdate
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-@router.get("/")
+@router.get("")
 async def list_projects(
     company_id: str | None = None,
     status: str | None = None,
@@ -34,7 +34,7 @@ async def get_project(
     return call_mcp_tool("pm_get_project", {"project_id": project_id})
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_project(
     data: ProjectCreate,
     current_user: User = Depends(get_current_user),

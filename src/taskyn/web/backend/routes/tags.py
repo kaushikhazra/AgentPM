@@ -9,7 +9,7 @@ from ..schemas.tags import TagCreate
 router = APIRouter(prefix="/tags", tags=["tags"])
 
 
-@router.get("/")
+@router.get("")
 async def list_tags(
     current_user: User = Depends(get_current_user),
 ):
@@ -17,7 +17,7 @@ async def list_tags(
     return call_mcp_tool("pm_list_tags", {})
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_tag(
     data: TagCreate,
     current_user: User = Depends(get_current_user),

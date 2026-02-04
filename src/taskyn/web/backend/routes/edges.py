@@ -9,7 +9,7 @@ from ..schemas.edges import EdgeCreate
 router = APIRouter(prefix="/edges", tags=["edges"])
 
 
-@router.get("/")
+@router.get("")
 async def list_edges(
     project_id: str | None = None,
     source_id: str | None = None,
@@ -30,7 +30,7 @@ async def list_edges(
     return call_mcp_tool("pm_list_edges", args)
 
 
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def create_edge(
     data: EdgeCreate,
     current_user: User = Depends(get_current_user),
