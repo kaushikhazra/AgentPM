@@ -1,6 +1,6 @@
 """Node routes — CRUD, transitions, traversal, tags."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from ..auth.users import User
 from ..deps import call_mcp_tool, get_current_user
@@ -55,8 +55,18 @@ async def update_node(
     current_user: User = Depends(get_current_user),
 ):
     """Update a node."""
-    args = {"node_id": node_id, **data.model_dump(exclude_none=True)}
+    args = {"node_id": node_id, **data.model_dump(exclude_unset=True)}
     return call_mcp_tool("pm_update_node", args)
+
+
+@router.delete("/{node_id}", status_code=204)
+async def delete_node(
+    node_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a node."""
+    call_mcp_tool("pm_delete_node", {"node_id": node_id})
+    return Response(status_code=204)
 
 
 # --- Status transitions ---

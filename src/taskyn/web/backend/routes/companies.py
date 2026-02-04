@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Response
 
 from ..auth.users import User
 from ..deps import call_mcp_tool, get_current_user
-from ..schemas.companies import CompanyCreate
+from ..schemas.companies import CompanyCreate, CompanyUpdate
 
 router = APIRouter(prefix="/companies", tags=["companies"])
 
@@ -34,6 +34,17 @@ async def create_company(
 ):
     """Create a new company."""
     return call_mcp_tool("pm_create_company", data.model_dump(exclude_none=True))
+
+
+@router.patch("/{company_id}")
+async def update_company(
+    company_id: str,
+    data: CompanyUpdate,
+    current_user: User = Depends(get_current_user),
+):
+    """Update a company."""
+    args = {"company_id": company_id, **data.model_dump(exclude_unset=True)}
+    return call_mcp_tool("pm_update_company", args)
 
 
 @router.delete("/{company_id}", status_code=204)

@@ -6,6 +6,7 @@ It does not import from taskyn.db to maintain web/core separation.
 
 import sqlite3
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from pydantic import BaseModel
@@ -36,45 +37,45 @@ CREATE TABLE IF NOT EXISTS users (
 );
 """
 
+_initialized = False
 
-def _get_conn() -> sqlite3.Connection:
-    """Get a connection to the database with users table ensured."""
+
+@contextmanager
+def _db():
+    """Yield a per-call SQLite connection (thread-safe)."""
+    global _initialized
     ensure_db_directory()
     db_path = get_database_path()
-    conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute(_CREATE_TABLE)
-    conn.commit()
-    return conn
-
-
-# Module-level connection (lazy init)
-_conn: sqlite3.Connection | None = None
-
-
-def _db() -> sqlite3.Connection:
-    global _conn
-    if _conn is None:
-        _conn = _get_conn()
-    return _conn
+    if not _initialized:
+        conn.execute(_CREATE_TABLE)
+        conn.commit()
+        _initialized = True
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def create_user(email: str, password_hash: str, name: str) -> User:
     """Create a new user."""
     user_id = uuid.uuid4().hex
     now = datetime.now(timezone.utc)
-    _db().execute(
-        "INSERT INTO users (id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)",
-        (user_id, email, password_hash, name, now),
-    )
-    _db().commit()
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO users (id, email, password_hash, name, created_at) VALUES (?, ?, ?, ?, ?)",
+            (user_id, email, password_hash, name, now),
+        )
+        conn.commit()
     return User(id=user_id, email=email, name=name, created_at=now)
 
 
 def get_user(user_id: str) -> User | None:
     """Get a user by ID."""
-    row = _db().execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
     if row is None:
         return None
     return User(id=row["id"], email=row["email"], name=row["name"], created_at=row["created_at"])
@@ -82,7 +83,8 @@ def get_user(user_id: str) -> User | None:
 
 def get_user_by_email(email: str) -> UserInDB | None:
     """Get a user by email (includes password hash for verification)."""
-    row = _db().execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
     if row is None:
         return None
     return UserInDB(
@@ -95,8 +97,6 @@ def get_user_by_email(email: str) -> UserInDB | None:
 
 
 def reset_connection() -> None:
-    """Reset the module-level connection (used in testing)."""
-    global _conn
-    if _conn is not None:
-        _conn.close()
-        _conn = None
+    """Reset the initialized flag (used in testing)."""
+    global _initialized
+    _initialized = False

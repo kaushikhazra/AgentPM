@@ -120,6 +120,30 @@ def pm_get_company(company_id: str) -> dict:
 
 
 @mcp.tool()
+def pm_update_company(
+    company_id: str,
+    name: str | None = None,
+    description: str | None = None,
+) -> dict:
+    """
+    Update a company.
+
+    Args:
+        company_id: Company ID
+        name: New name (optional)
+        description: New description (optional)
+
+    Returns:
+        The updated company object
+    """
+    from taskyn.core import update_company
+    company = update_company(company_id, name=name, description=description, actor=get_actor())
+    if company is None:
+        raise ValueError(f"Company not found: {company_id}")
+    return company.model_dump()
+
+
+@mcp.tool()
 def pm_delete_company(company_id: str) -> bool:
     """
     Delete a company and all its associated data.
@@ -443,6 +467,53 @@ def pm_complete_milestone(milestone_id: str) -> dict:
     return milestone.model_dump()
 
 
+@mcp.tool()
+def pm_get_milestone(milestone_id: str) -> dict:
+    """
+    Get a milestone by ID.
+
+    Args:
+        milestone_id: Milestone ID
+
+    Returns:
+        The milestone object
+    """
+    from taskyn.core import get_milestone
+    milestone = get_milestone(milestone_id)
+    if milestone is None:
+        raise ValueError(f"Milestone not found: {milestone_id}")
+    return milestone.model_dump()
+
+
+@mcp.tool()
+def pm_update_milestone(
+    milestone_id: str,
+    name: str | None = None,
+    description: str | None = None,
+    target_date: str | None = None,
+) -> dict:
+    """
+    Update a milestone.
+
+    Args:
+        milestone_id: Milestone ID
+        name: New name (optional)
+        description: New description (optional)
+        target_date: New target date as ISO string (optional)
+
+    Returns:
+        The updated milestone object
+    """
+    from datetime import date as date_type
+    from taskyn.core import update_milestone
+    td = date_type.fromisoformat(target_date) if target_date else None
+    milestone = update_milestone(
+        milestone_id, name=name, description=description,
+        target_date=td, actor=get_actor(),
+    )
+    return milestone.model_dump()
+
+
 # ============================================================
 # Node Tools
 # ============================================================
@@ -678,6 +749,24 @@ def pm_block_node(node_id: str, reason: str) -> dict:
     from taskyn.core import block_node
     node = block_node(node_id, reason, actor=get_actor())
     return node.model_dump()
+
+
+@mcp.tool()
+def pm_delete_node(node_id: str) -> bool:
+    """
+    Delete a node.
+
+    Args:
+        node_id: Node ID
+
+    Returns:
+        True if deleted successfully
+    """
+    from taskyn.graph import delete_node
+    result = delete_node(node_id, actor=get_actor())
+    if not result:
+        raise ValueError(f"Node not found: {node_id}")
+    return result
 
 
 # ============================================================

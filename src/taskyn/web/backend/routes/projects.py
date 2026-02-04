@@ -50,7 +50,7 @@ async def update_project(
     current_user: User = Depends(get_current_user),
 ):
     """Update a project."""
-    args = {"project_id": project_id, **data.model_dump(exclude_none=True)}
+    args = {"project_id": project_id, **data.model_dump(exclude_unset=True)}
     return call_mcp_tool("pm_update_project", args)
 
 

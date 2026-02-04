@@ -11,3 +11,10 @@ class MilestoneCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     target_date: date | None = None
     description: str | None = Field(default=None, max_length=2000)
+
+
+class MilestoneUpdate(BaseModel):
+    """Update milestone request."""
+    name: str | None = Field(default=None, max_length=255)
+    target_date: date | None = None
+    description: str | None = Field(default=None, max_length=2000)

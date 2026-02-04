@@ -362,34 +362,34 @@
 
 ### 11B — Backend Correctness
 
-- [ ] Fix PATCH semantics (CR-10)
-  - [ ] Change `exclude_none=True` to `exclude_unset=True` in all PATCH routes
+- [x] Fix PATCH semantics (CR-10)
+  - [x] Change `exclude_none=True` to `exclude_unset=True` in all PATCH routes
   _US-15.1_
 
-- [ ] Add error logging (CR-11)
-  - [ ] Add `logger.exception()` in `call_mcp_tool` catch-all before re-raise
+- [x] Add error logging (CR-11) — done in 11A
+  - [x] Add `logger.exception()` in `call_mcp_tool` catch-all before re-raise
   _US-15.2_
 
-- [ ] Fix thread-safe SQLite (CR-19)
-  - [ ] Replace module-level `_db()` in `auth/users.py` with per-request connections
+- [x] Fix thread-safe SQLite (CR-19)
+  - [x] Replace module-level `_db()` in `auth/users.py` with per-call context manager
   _US-15.5_
 
-- [ ] Add pagination (CR-20)
+- [ ] Add pagination (CR-20) — deferred
   - [ ] Add `limit`/`offset` parameters to all list endpoints (default 50/0)
   - [ ] Return `X-Total-Count` header
   _US-15.3_
 
-- [ ] Add missing CRUD endpoints (CR-21)
-  - [ ] DELETE `/nodes/:id`
-  - [ ] GET/PATCH `/milestones/:id`
-  - [ ] PATCH `/companies/:id`
+- [x] Add missing CRUD endpoints (CR-21)
+  - [x] DELETE `/nodes/:id` + `pm_delete_node` MCP tool
+  - [x] GET/PATCH `/milestones/:id` + `pm_get_milestone`/`pm_update_milestone` MCP tools
+  - [x] PATCH `/companies/:id` + `pm_update_company` MCP tool
   _US-15.4_
 
-- [ ] Add `email-validator` to pyproject.toml `[web]` extras (CR-33)
+- [x] Add `email-validator` to pyproject.toml `[web]` extras (CR-33) — done in 11A
   _US-15.4_
 
-- [ ] Configure CORS via env var (CR-36, CR-37)
-  - [ ] `TASKYN_CORS_ORIGINS` env var; narrow `allow_methods`/`allow_headers`
+- [x] Configure CORS via env var (CR-36, CR-37) — done in 11A
+  - [x] `TASKYN_CORS_ORIGINS` env var; narrow `allow_methods`/`allow_headers`
   _US-15.5_
 
 ### 11C — Frontend Quality
