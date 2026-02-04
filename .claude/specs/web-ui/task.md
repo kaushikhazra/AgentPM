@@ -159,16 +159,16 @@
 
 ## Phase 5: React Frontend — Atoms & Molecules
 
-- [ ] Implement atom components
-  - [ ] Button (primary, secondary, ghost, danger variants)
-  - [ ] Input (text input with label and error state)
-  - [ ] Checkbox, Badge, Avatar, Icon, StatusDot, Kbd
+- [x] Implement atom components
+  - [x] Button (primary, secondary, ghost, danger variants)
+  - [x] Input (text input with label and error state)
+  - [x] Checkbox, Badge, Avatar, Icon, StatusDot, Kbd
   _US-2.1_
 
-- [ ] Implement molecule components
-  - [ ] NavLink, SearchBar, UserMenu
-  - [ ] TaskItem, StatCard, ActivityItem
-  - [ ] Breadcrumb, FilterBadge
+- [x] Implement molecule components
+  - [x] NavLink, SearchBar, UserMenu
+  - [x] TaskItem, StatCard, ActivityItem
+  - [x] Breadcrumb, FilterBadge
   _US-2.1_
 
 ---
