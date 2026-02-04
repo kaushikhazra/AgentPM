@@ -261,30 +261,30 @@
 
 ## Phase 9: React Frontend — Pages (Views)
 
-- [ ] Implement KanbanPage
-  - [ ] Kanban board with status columns
-  - [ ] Cards with node title, assignee, priority, type icon
-  - [ ] Project selector dropdown
-  - [ ] Drag-and-drop for status transitions
+- [x] Implement KanbanPage
+  - [x] Kanban board with status columns
+  - [x] Cards with node title, assignee, priority, type icon
+  - [x] Project selector dropdown
+  - [-] Drag-and-drop for status transitions (deferred to Phase 10)
   _US-7.1, US-7.2_
 
-- [ ] Implement PlannerPage
-  - [ ] Accordion tree (root > children > grandchildren)
-  - [ ] Expand/collapse nodes
-  - [ ] Inline actions (add child, status change)
-  - [ ] Project selector dropdown
+- [x] Implement PlannerPage
+  - [x] Accordion tree (root > children > grandchildren)
+  - [x] Expand/collapse nodes
+  - [x] Inline actions (add child, status change)
+  - [x] Project selector dropdown
   _US-8.1, US-8.2_
 
-- [ ] Implement TrackerPage
-  - [ ] Time entry list with date, duration, task, notes
-  - [ ] Active timer widget at top
-  - [ ] "Log Time" modal
+- [x] Implement TrackerPage
+  - [x] Time entry list with date, duration, task, notes
+  - [x] Active timer widget at top
+  - [x] "Log Time" modal
   _US-9.1, US-9.2, US-9.3_
 
-- [ ] Implement SettingsPage
-  - [ ] Theme selector (amber, wine, ocean, forest)
-  - [ ] Mode toggle (dark/light)
-  - [ ] Profile display
+- [x] Implement SettingsPage
+  - [x] Theme selector (amber, wine, ocean, forest)
+  - [x] Mode toggle (dark/light)
+  - [x] Profile display
   _US-10.1_
 
 ---

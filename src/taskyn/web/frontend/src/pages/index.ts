@@ -6,3 +6,7 @@ export { CompaniesPage } from './CompaniesPage';
 export { ProjectsPage } from './ProjectsPage';
 export { ProjectDetailPage } from './ProjectDetailPage';
 export { NodeDetailPage } from './NodeDetailPage';
+export { KanbanPage } from './KanbanPage';
+export { PlannerPage } from './PlannerPage';
+export { TrackerPage } from './TrackerPage';
+export { SettingsPage } from './SettingsPage';

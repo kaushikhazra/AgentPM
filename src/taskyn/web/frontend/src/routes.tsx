@@ -10,34 +10,10 @@ import { CompaniesPage } from '@/pages/CompaniesPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
 import { NodeDetailPage } from '@/pages/NodeDetailPage';
-
-/* ============================================================
-   Placeholder pages — will be replaced in Phase 9
-   ============================================================ */
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div className="content-wrapper">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">{title}</h1>
-          <p className="page-subtitle">Coming soon</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-function KanbanPage() {
-  return <Placeholder title="Kanban" />;
-}
-function PlannerPage() {
-  return <Placeholder title="Planner" />;
-}
-function TrackerPage() {
-  return <Placeholder title="Tracker" />;
-}
-function SettingsPage() {
-  return <Placeholder title="Settings" />;
-}
+import { KanbanPage } from '@/pages/KanbanPage';
+import { PlannerPage } from '@/pages/PlannerPage';
+import { TrackerPage } from '@/pages/TrackerPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 
 /* ============================================================
    Protected Route wrapper
