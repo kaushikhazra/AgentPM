@@ -21,6 +21,7 @@ export function DashboardPage() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [tasks, setTasks] = useState<Node[]>([]);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -36,6 +37,8 @@ export function DashboardPage() {
         setActivity(actList);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to load dashboard');
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
@@ -58,6 +61,8 @@ export function DashboardPage() {
       </div>
 
       {error && <p style={{ color: 'var(--status-blocked)' }}>{error}</p>}
+
+      {loading && <p className="text-secondary">Loading dashboard...</p>}
 
       <div className="stats-grid">
         <StatCard label="Total Tasks" value={dashboard?.total_nodes ?? 0} />

@@ -22,6 +22,7 @@ export function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [filterOpen, setFilterOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,8 @@ export function ProjectsPage() {
       setProjects(projectList);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -169,6 +172,8 @@ export function ProjectsPage() {
       </div>
 
       {error && <p style={{ color: 'var(--status-blocked)', marginBottom: 16 }}>{error}</p>}
+
+      {loading && <p className="text-secondary">Loading projects...</p>}
 
       <div className="stats-grid">
         <StatCard label="Total Projects" value={filtered.length} />

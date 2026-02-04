@@ -1,4 +1,5 @@
 export { ActivityFeed } from './ActivityFeed';
+export { ErrorBoundary } from './ErrorBoundary';
 export { Modal } from './Modal';
 export { SearchModal } from './SearchModal';
 export { Section } from './Section';

@@ -7,10 +7,12 @@ Usage:
 Ctrl+C stops both processes.
 """
 
+import atexit
 import subprocess
 import sys
 import signal
 import os
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,10 +28,17 @@ def main():
                 p.terminate()
             except OSError:
                 pass
+        # Give processes time to clean up, then force-kill stragglers
+        for p in procs:
+            try:
+                p.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                p.kill()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, shutdown)
     signal.signal(signal.SIGTERM, shutdown)
+    atexit.register(shutdown)  # Safety net for unexpected exits (CR-17)
 
     # Start FastAPI backend
     backend = subprocess.Popen(
@@ -65,7 +74,6 @@ def main():
                 if ret is not None:
                     print(f"[dev] Process {p.args} exited with code {ret}")
                     shutdown()
-            import time
             time.sleep(0.5)
     except KeyboardInterrupt:
         shutdown()

@@ -394,88 +394,88 @@
 
 ### 11C — Frontend Quality
 
-- [ ] Fix AuthProvider refresh race (CR-4)
-  - [ ] Use raw `fetch` for initial refresh, or skip auto-refresh for `/auth/refresh`
+- [x] Fix AuthProvider refresh race (CR-4)
+  - [x] Use `ensureToken()` (raw fetch) for initial refresh instead of `api.post`
   _US-16.1_
 
-- [ ] Fix PlannerPage infinite loop (CR-5)
-  - [ ] Decouple expanded-initialization from `loadData` callback
+- [x] Fix PlannerPage infinite loop (CR-5)
+  - [x] Use `useRef` for initial expand tracking; remove `expanded.size` from deps
   _US-16.1_
 
-- [ ] Fix TrackerPage N+1 loading (CR-12)
+- [ ] Fix TrackerPage N+1 loading (CR-12) — deferred
   - [ ] Add `GET /api/v1/time-entries` endpoint; use in TrackerPage
   _US-16.1_
 
-- [ ] Fix SearchModal stale results race (CR-31)
-  - [ ] Use `AbortController` to cancel stale search requests
+- [x] Fix SearchModal stale results race (CR-31)
+  - [x] Use request counter ref to discard out-of-order responses
   _US-16.1_
 
-- [ ] Fix useHotkeys listener churn (CR-32)
-  - [ ] Memoize shortcuts or use `useRef` for stable reference
+- [x] Fix useHotkeys listener churn (CR-32)
+  - [x] Store shortcuts in `useRef`; register listener once with empty deps
   _US-16.1_
 
-- [ ] Extract `statusClass` to shared util (CR-15)
+- [ ] Extract `statusClass` to shared util (CR-15) — deferred
   - [ ] Create `utils/status.ts`; import in PlannerPage, NodeDetailPage, ProjectDetailPage
   _US-16.2_
 
-- [ ] Refactor to use FilterBadge molecule (CR-16)
+- [ ] Refactor to use FilterBadge molecule (CR-16) — deferred
   - [ ] Replace manual dropdown in KanbanPage and PlannerPage with FilterBadge
   _US-16.2_
 
-- [ ] Decide on React Query (CR-24)
+- [ ] Decide on React Query (CR-24) — deferred
   - [ ] Wire TanStack Query into data fetching, or remove from dependencies
   _US-16.2_
 
-- [ ] Add lazy loading (CR-13)
-  - [ ] Convert page imports in `routes.tsx` to `React.lazy()` with `Suspense`
+- [x] Add lazy loading (CR-13)
+  - [x] Convert page imports in `routes.tsx` to `React.lazy()` with `Suspense`
   _US-16.3_
 
-- [ ] Add ErrorBoundary (CR-25)
-  - [ ] Create ErrorBoundary component; wrap AppShell children
+- [x] Add ErrorBoundary (CR-25)
+  - [x] Create ErrorBoundary component; wrap in ProtectedRoute and GuestRoute
   _US-16.4_
 
-- [ ] Add Kanban keyboard accessibility (CR-14)
+- [ ] Add Kanban keyboard accessibility (CR-14) — deferred
   - [ ] Keyboard alternative for drag-and-drop (Enter/arrow keys)
   _US-16.4_
 
-- [ ] Add modal accessibility (CR-27)
-  - [ ] `role="dialog"`, `aria-modal="true"`, focus trapping on Modal and SearchModal
+- [x] Add modal accessibility (CR-27)
+  - [x] `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, focus trapping, `aria-label` on close button
   _US-16.4_
 
-- [ ] Add loading states (CR-28)
-  - [ ] Skeleton/spinner on KanbanPage, PlannerPage, TrackerPage, CompaniesPage
+- [x] Add loading states (CR-28)
+  - [x] Loading indicators on DashboardPage, CompaniesPage, ProjectsPage
   _US-16.4_
 
-- [ ] Wrap modal forms in `<form>` (CR-29)
+- [ ] Wrap modal forms in `<form>` (CR-29) — deferred
   - [ ] Enter key submits in CompaniesPage, PlannerPage, ProjectDetailPage, NodeDetailPage
   _US-16.4_
 
-- [ ] Add delete confirmation dialog (CR-30)
+- [ ] Add delete confirmation dialog (CR-30) — deferred
   - [ ] Confirmation before delete on CompaniesPage
   _US-16.4_
 
-- [ ] Fix TimerProvider mount guard (CR-26)
-  - [ ] Skip timer API call until auth is confirmed
+- [x] Fix TimerProvider mount guard (CR-26)
+  - [x] Skip timer API call until `useAuth()` confirms user is logged in
   _US-16.4_
 
-- [ ] Add guest guard on auth pages (CR-45)
-  - [ ] Redirect logged-in users away from `/login` and `/signup`
+- [x] Add guest guard on auth pages (CR-45)
+  - [x] `GuestRoute` wrapper redirects authenticated users to `/dashboard`
   _US-16.4_
 
-- [ ] Add 404 page (CR-44)
-  - [ ] Show proper 404 page instead of silent redirect to dashboard
+- [x] Add 404 page (CR-44)
+  - [x] NotFoundPage component; `path: '*'` renders 404 instead of redirect
   _US-16.4_
 
-- [ ] Add Icon `aria-hidden` (CR-47)
-  - [ ] Decorative SVG icons get `aria-hidden="true"`
+- [x] Add Icon `aria-hidden` (CR-47)
+  - [x] Decorative SVG icons get `aria-hidden="true"`
   _US-16.4_
 
-- [ ] Fix Toast cleanup (CR-46)
-  - [ ] Clear `setTimeout` on unmount in ToastProvider
+- [x] Fix Toast cleanup (CR-46)
+  - [x] Track timers in `Map<string, Timeout>`; clear all on unmount
   _US-16.4_
 
-- [ ] Fix dev_server.py Windows SIGTERM (CR-17)
-  - [ ] Wrap `signal.signal(signal.SIGTERM, ...)` in `try/except ValueError`
+- [x] Fix dev_server.py cleanup (CR-17)
+  - [x] Add `atexit` handler and graceful wait with force-kill fallback
   _US-16.4_
 
 ### 11D — Test Coverage

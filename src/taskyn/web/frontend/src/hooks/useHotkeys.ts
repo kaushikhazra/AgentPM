@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 export interface Shortcut {
   key: string;
@@ -10,14 +10,21 @@ export interface Shortcut {
  * Global keyboard shortcut hook.
  * Ignores keypresses when focus is inside input/textarea/select elements.
  * Supports Ctrl+K as a special combo (always fires, even in inputs).
+ *
+ * Uses a ref for shortcuts to avoid listener churn (CR-32).
  */
 export function useHotkeys(shortcuts: Shortcut[]) {
-  const handler = useCallback(
-    (e: KeyboardEvent) => {
+  const shortcutsRef = useRef(shortcuts);
+  shortcutsRef.current = shortcuts;
+
+  useEffect(() => {
+    function handler(e: KeyboardEvent) {
+      const current = shortcutsRef.current;
+
       // Ctrl+K — always fires (search)
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        const match = shortcuts.find((s) => s.key === 'Ctrl+K');
+        const match = current.find((s) => s.key === 'Ctrl+K');
         if (match) match.action();
         return;
       }
@@ -30,17 +37,14 @@ export function useHotkeys(shortcuts: Shortcut[]) {
       // Skip if modifier keys are held (except Shift for ?)
       if (e.ctrlKey || e.metaKey || e.altKey) return;
 
-      const match = shortcuts.find((s) => s.key === e.key.toUpperCase() || s.key === e.key);
+      const match = current.find((s) => s.key === e.key.toUpperCase() || s.key === e.key);
       if (match) {
         e.preventDefault();
         match.action();
       }
-    },
-    [shortcuts],
-  );
+    }
 
-  useEffect(() => {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [handler]);
+  }, []);
 }

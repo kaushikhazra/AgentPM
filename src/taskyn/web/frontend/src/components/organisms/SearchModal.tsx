@@ -18,6 +18,7 @@ const TYPE_ICONS: Record<string, string> = {
 export function SearchModal({ open, onClose }: SearchModalProps) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchIdRef = useRef(0);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [selected, setSelected] = useState(0);
@@ -33,22 +34,28 @@ export function SearchModal({ open, onClose }: SearchModalProps) {
     }
   }, [open]);
 
-  // Debounced search
+  // Debounced search — request counter discards stale responses (CR-31)
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
+      setLoading(false);
       return;
     }
+    const id = ++searchIdRef.current;
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
         const res = await searchApi.search(query, { limit: 10 });
-        setResults(res);
-        setSelected(0);
+        if (searchIdRef.current === id) {
+          setResults(res);
+          setSelected(0);
+        }
       } catch {
         // silently ignore search errors
       } finally {
-        setLoading(false);
+        if (searchIdRef.current === id) {
+          setLoading(false);
+        }
       }
     }, 250);
     return () => clearTimeout(timer);

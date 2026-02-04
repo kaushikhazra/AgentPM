@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { timerApi } from '@/api/timer';
+import { useAuth } from '@/hooks/useAuth';
 import type { ActiveTimer } from '@/types';
 
 export interface TimerContextValue {
@@ -21,6 +22,7 @@ export interface TimerContextValue {
 export const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
   const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -64,11 +66,12 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     }
   }, [startTicking, stopTicking]);
 
-  // Poll on mount
+  // Poll on mount — only after auth confirms user is logged in (CR-26)
   useEffect(() => {
+    if (authLoading || !user) return;
     void refresh();
     return () => stopTicking();
-  }, [refresh, stopTicking]);
+  }, [refresh, stopTicking, authLoading, user]);
 
   const start = useCallback(
     async (nodeId: string, notes?: string) => {

@@ -1,39 +1,69 @@
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import type { ReactNode } from 'react';
 import { AppShell } from '@/components/templates/AppShell';
-import { LoginPage } from '@/pages/LoginPage';
-import { SignupPage } from '@/pages/SignupPage';
-import { OnboardingPage } from '@/pages/OnboardingPage';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { CompaniesPage } from '@/pages/CompaniesPage';
-import { ProjectsPage } from '@/pages/ProjectsPage';
-import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
-import { NodeDetailPage } from '@/pages/NodeDetailPage';
-import { KanbanPage } from '@/pages/KanbanPage';
-import { PlannerPage } from '@/pages/PlannerPage';
-import { TrackerPage } from '@/pages/TrackerPage';
-import { SettingsPage } from '@/pages/SettingsPage';
+import { ErrorBoundary } from '@/components/organisms';
 
 /* ============================================================
-   Protected Route wrapper
+   Lazy-loaded pages (CR-13)
+   ============================================================ */
+const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const SignupPage = lazy(() => import('@/pages/SignupPage').then((m) => ({ default: m.SignupPage })));
+const OnboardingPage = lazy(() => import('@/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const CompaniesPage = lazy(() => import('@/pages/CompaniesPage').then((m) => ({ default: m.CompaniesPage })));
+const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
+const ProjectDetailPage = lazy(() => import('@/pages/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage })));
+const NodeDetailPage = lazy(() => import('@/pages/NodeDetailPage').then((m) => ({ default: m.NodeDetailPage })));
+const KanbanPage = lazy(() => import('@/pages/KanbanPage').then((m) => ({ default: m.KanbanPage })));
+const PlannerPage = lazy(() => import('@/pages/PlannerPage').then((m) => ({ default: m.PlannerPage })));
+const TrackerPage = lazy(() => import('@/pages/TrackerPage').then((m) => ({ default: m.TrackerPage })));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
+
+/* ============================================================
+   Loading fallback
+   ============================================================ */
+function LoadingFallback() {
+  return (
+    <div className="auth-layout">
+      <p className="text-secondary">Loading...</p>
+    </div>
+  );
+}
+
+/* ============================================================
+   Protected Route wrapper — redirects unauthenticated to login
    ============================================================ */
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="auth-layout">
-        <p className="text-secondary">Loading...</p>
-      </div>
-    );
-  }
+  if (loading) return <LoadingFallback />;
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  return (
+    <AppShell>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+      </ErrorBoundary>
+    </AppShell>
+  );
+}
 
-  return <AppShell>{children}</AppShell>;
+/* ============================================================
+   Guest Route wrapper — redirects authenticated to dashboard (CR-45)
+   ============================================================ */
+function GuestRoute({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <LoadingFallback />;
+  if (user) return <Navigate to="/dashboard" replace />;
+
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+    </ErrorBoundary>
+  );
 }
 
 /* ============================================================
@@ -42,15 +72,27 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 export const routes: RouteObject[] = [
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <GuestRoute>
+        <LoginPage />
+      </GuestRoute>
+    ),
   },
   {
     path: '/signup',
-    element: <SignupPage />,
+    element: (
+      <GuestRoute>
+        <SignupPage />
+      </GuestRoute>
+    ),
   },
   {
     path: '/onboarding',
-    element: <OnboardingPage />,
+    element: (
+      <GuestRoute>
+        <OnboardingPage />
+      </GuestRoute>
+    ),
   },
   {
     path: '/dashboard',
@@ -130,6 +172,10 @@ export const routes: RouteObject[] = [
   },
   {
     path: '*',
-    element: <Navigate to="/dashboard" replace />,
+    element: (
+      <Suspense fallback={<LoadingFallback />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
   },
 ];

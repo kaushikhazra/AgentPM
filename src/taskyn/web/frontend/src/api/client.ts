@@ -40,7 +40,7 @@ async function refreshAccessToken(): Promise<string | null> {
 }
 
 /** Deduplicated token refresh — multiple 401s trigger only one refresh. */
-async function ensureToken(): Promise<string | null> {
+export async function ensureToken(): Promise<string | null> {
   if (!refreshPromise) {
     refreshPromise = refreshAccessToken().finally(() => {
       refreshPromise = null;

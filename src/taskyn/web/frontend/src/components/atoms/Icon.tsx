@@ -122,6 +122,7 @@ export function Icon({ name, size = 18, className = '' }: IconProps) {
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
     >
       {ICONS[name]}
     </svg>

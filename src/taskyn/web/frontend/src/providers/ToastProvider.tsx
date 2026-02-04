@@ -1,6 +1,7 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useRef,
   useState,
   type ReactNode,
@@ -27,16 +28,35 @@ const AUTO_DISMISS_MS = 4000;
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const counterRef = useRef(0);
+  const timersRef = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
+  // Clear all pending timers on unmount (CR-46)
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((t) => clearTimeout(t));
+      timers.clear();
+    };
+  }, []);
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+    const timer = timersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
   }, []);
 
   const addToast = useCallback(
     (type: ToastType, message: string) => {
       const id = String(++counterRef.current);
       setToasts((prev) => [...prev, { id, type, message }]);
-      setTimeout(() => removeToast(id), AUTO_DISMISS_MS);
+      const timer = setTimeout(() => {
+        timersRef.current.delete(id);
+        removeToast(id);
+      }, AUTO_DISMISS_MS);
+      timersRef.current.set(id, timer);
     },
     [removeToast],
   );

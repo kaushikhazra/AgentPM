@@ -70,6 +70,7 @@ export function PlannerPage() {
   const [error, setError] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const initialExpandDone = useRef(false);
 
   // Create node modal
   const [showCreate, setShowCreate] = useState(false);
@@ -101,8 +102,9 @@ export function PlannerPage() {
       setNodes(nodeList);
       setEdges(edgeList);
 
-      // Auto-expand root nodes on first load
-      if (expanded.size === 0) {
+      // Auto-expand root nodes on first load (ref avoids re-render loop — CR-5)
+      if (!initialExpandDone.current) {
+        initialExpandDone.current = true;
         const methUI = METHODOLOGY_UI[projects.find((p) => p.id === selectedId)?.methodology ?? ''];
         const rootType = methUI ? Object.keys(methUI.nodeTypes)[0] : undefined;
         const rootIds = nodeList
@@ -113,7 +115,7 @@ export function PlannerPage() {
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load');
     }
-  }, [selectedId, projects, expanded.size]);
+  }, [selectedId, projects]);
 
   useEffect(() => { loadProjects(); }, [loadProjects]);
   useEffect(() => { loadData(); }, [loadData]);
@@ -147,6 +149,7 @@ export function PlannerPage() {
     setSelectedId(id);
     setDropdownOpen(false);
     setExpanded(new Set());
+    initialExpandDone.current = false;
     navigate(`/planner/${id}`, { replace: true });
   };
 

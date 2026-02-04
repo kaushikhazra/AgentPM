@@ -29,6 +29,7 @@ export function CompaniesPage() {
   const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   // Modal states
@@ -48,6 +49,8 @@ export function CompaniesPage() {
       setProjects(projectList);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -103,6 +106,8 @@ export function CompaniesPage() {
       </div>
 
       {error && <p style={{ color: 'var(--status-blocked)', marginBottom: 16 }}>{error}</p>}
+
+      {loading && <p className="text-secondary">Loading companies...</p>}
 
       <div className="stats-grid">
         <StatCard label="Total Companies" value={companies.length} />

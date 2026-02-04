@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { api, setAccessToken } from '@/api/client';
+import { api, setAccessToken, ensureToken } from '@/api/client';
 import type { LoginRequest, RegisterRequest, TokenResponse, User } from '@/types';
 
 export interface AuthContextValue {
@@ -26,9 +26,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     async function init() {
       try {
-        // Try refreshing the token via cookie
-        const tokenRes = await api.post<TokenResponse>('/auth/refresh');
-        setAccessToken(tokenRes.accessToken);
+        // Use ensureToken (raw fetch) to avoid interceptor race (CR-4)
+        const token = await ensureToken();
+        if (!token) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
         const me = await api.get<User>('/auth/me');
         setUser(me);
       } catch {
