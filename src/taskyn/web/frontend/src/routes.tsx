@@ -1,17 +1,18 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
-import { Button, Input, Checkbox, Badge, Avatar, StatusDot, Kbd, Icon } from '@/components/atoms';
-import { StatCard, TaskItem, ActivityItem, Breadcrumb, SearchBar } from '@/components/molecules';
 import { AppShell } from '@/components/templates/AppShell';
-import { Section, TimerWidget } from '@/components/organisms';
 import { LoginPage } from '@/pages/LoginPage';
 import { SignupPage } from '@/pages/SignupPage';
 import { OnboardingPage } from '@/pages/OnboardingPage';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { CompaniesPage } from '@/pages/CompaniesPage';
+import { ProjectsPage } from '@/pages/ProjectsPage';
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
+import { NodeDetailPage } from '@/pages/NodeDetailPage';
 
 /* ============================================================
-   Placeholder pages — will be replaced in Phase 8-9
+   Placeholder pages — will be replaced in Phase 9
    ============================================================ */
 function Placeholder({ title }: { title: string }) {
   return (
@@ -24,117 +25,6 @@ function Placeholder({ title }: { title: string }) {
       </div>
     </div>
   );
-}
-
-/** Temporary component showcase — replaced in Phase 8 */
-function DashboardPage() {
-  const [checked, setChecked] = useState(false);
-  return (
-    <div className="content-wrapper">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Component Showcase</p>
-        </div>
-        <Button variant="primary" icon={<Icon name="plus" size={16} />}>New Task</Button>
-      </div>
-
-      {/* Stats */}
-      <div className="stats-grid" data-testid="stats-grid">
-        <StatCard label="Tasks Due Today" value={5} />
-        <StatCard label="In Progress" value={3} />
-        <StatCard label="Completed" value={12} />
-        <StatCard label="Time Tracked" value="4h 30m" />
-      </div>
-
-      <div className="content-grid">
-        <div>
-          {/* Buttons */}
-          <Section title="Buttons" className="mb-lg">
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-              <Button variant="primary">Primary</Button>
-              <Button variant="secondary">Secondary</Button>
-              <Button variant="ghost">Ghost</Button>
-              <Button variant="danger">Danger</Button>
-              <Button variant="primary" size="sm">Small</Button>
-              <Button variant="primary" disabled>Disabled</Button>
-            </div>
-          </Section>
-
-          {/* Task Items */}
-          <Section title="Today's Tasks" className="mb-lg" noPadding>
-            <TaskItem title="Implement FastAPI endpoints" meta="Taskyn Dev - Due today" priority="high" />
-            <TaskItem title="Write unit tests" meta="Taskyn Dev - Due tomorrow" priority="medium" />
-            <TaskItem title="Update documentation" meta="Taskyn Dev - No due date" priority="low" checked />
-          </Section>
-
-          {/* Inputs */}
-          <div className="section mb-lg" data-testid="inputs-section">
-            <div className="section-header">
-              <h3 className="section-title">Form Inputs</h3>
-            </div>
-            <div className="section-content">
-              <Input label="Email" type="email" placeholder="you@example.com" />
-              <Input label="Password" isPassword placeholder="Enter your password" />
-              <Input label="With Error" error="This field is required" />
-              <Checkbox checked={checked} onChange={setChecked} label="Accept terms and conditions" />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          {/* Timer Widget */}
-          <TimerWidget />
-
-          {/* Badges & Status */}
-          <Section title="Badges & Status" className="mb-lg">
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
-              <Badge>Default</Badge>
-              <StatusDot status="backlog" /> <span className="text-secondary">Backlog</span>
-              <StatusDot status="ready" /> <span className="text-secondary">Ready</span>
-              <StatusDot status="in_progress" /> <span className="text-secondary">In Progress</span>
-              <StatusDot status="done" /> <span className="text-secondary">Done</span>
-              <StatusDot status="blocked" /> <span className="text-secondary">Blocked</span>
-            </div>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-              <Avatar name="Kaushik" />
-              <Avatar name="Velasari" size="lg" />
-              <Kbd>Ctrl+K</Kbd>
-              <SearchBar />
-            </div>
-          </Section>
-
-          {/* Breadcrumb */}
-          <Section title="Breadcrumb" className="mb-lg">
-            <Breadcrumb items={[
-              { label: 'Companies', to: '/companies' },
-              { label: 'Taskyn Corp', to: '/companies' },
-              { label: 'Web UI Project' },
-            ]} />
-          </Section>
-
-          {/* Activity */}
-          <Section title="Recent Activity" className="mb-lg">
-            <ActivityItem type="complete" text="Completed" highlight="Research UI templates" time="2 minutes ago" />
-            <ActivityItem type="time" text="Tracked 45m on" highlight="FastAPI endpoints" time="1 hour ago" />
-            <ActivityItem type="create" text="Created" highlight="New milestone" time="3 hours ago" />
-          </Section>
-        </div>
-      </div>
-    </div>
-  );
-}
-function CompaniesPage() {
-  return <Placeholder title="Companies" />;
-}
-function ProjectsPage() {
-  return <Placeholder title="Projects" />;
-}
-function ProjectDetailPage() {
-  return <Placeholder title="Project Detail" />;
-}
-function NodeDetailPage() {
-  return <Placeholder title="Node Detail" />;
 }
 function KanbanPage() {
   return <Placeholder title="Kanban" />;

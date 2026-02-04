@@ -13,14 +13,14 @@ export const projectsApi = {
     if (filters?.company_id) params.set('company_id', filters.company_id);
     if (filters?.status) params.set('status', filters.status);
     if (filters?.include_stats) params.set('include_stats', 'true');
-    return api.get<Project[]>(`/projects/?${params}`);
+    return api.get<Project[]>(`/projects?${params}`);
   },
 
   get: (id: string) =>
     api.get<Project>(`/projects/${id}`),
 
   create: (data: ProjectCreate) =>
-    api.post<Project>('/projects/', data),
+    api.post<Project>('/projects', data),
 
   update: (id: string, data: ProjectUpdate) =>
     api.patch<Project>(`/projects/${id}`, data),

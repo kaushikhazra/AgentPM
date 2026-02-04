@@ -13,11 +13,11 @@ export const edgesApi = {
     if (filters?.source_id) params.set('source_id', filters.source_id);
     if (filters?.target_id) params.set('target_id', filters.target_id);
     if (filters?.edge_type) params.set('edge_type', filters.edge_type);
-    return api.get<Edge[]>(`/edges/?${params}`);
+    return api.get<Edge[]>(`/edges?${params}`);
   },
 
   create: (data: EdgeCreate) =>
-    api.post<Edge>('/edges/', data),
+    api.post<Edge>('/edges', data),
 
   delete: (id: string) =>
     api.delete(`/edges/${id}`),

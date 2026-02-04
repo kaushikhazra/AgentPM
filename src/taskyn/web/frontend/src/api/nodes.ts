@@ -13,14 +13,14 @@ export const nodesApi = {
     if (filters?.node_type) params.set('node_type', filters.node_type);
     if (filters?.status) params.set('status', filters.status);
     if (filters?.assignee) params.set('assignee', filters.assignee);
-    return api.get<Node[]>(`/nodes/?${params}`);
+    return api.get<Node[]>(`/nodes?${params}`);
   },
 
   get: (id: string) =>
     api.get<Node>(`/nodes/${id}`),
 
   create: (data: NodeCreate) =>
-    api.post<Node>('/nodes/', data),
+    api.post<Node>('/nodes', data),
 
   update: (id: string, data: NodeUpdate) =>
     api.patch<Node>(`/nodes/${id}`, data),

@@ -1,3 +1,8 @@
 export { LoginPage } from './LoginPage';
 export { SignupPage } from './SignupPage';
 export { OnboardingPage } from './OnboardingPage';
+export { DashboardPage } from './DashboardPage';
+export { CompaniesPage } from './CompaniesPage';
+export { ProjectsPage } from './ProjectsPage';
+export { ProjectDetailPage } from './ProjectDetailPage';
+export { NodeDetailPage } from './NodeDetailPage';

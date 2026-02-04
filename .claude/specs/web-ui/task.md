@@ -218,41 +218,44 @@
 
 ## Phase 8: React Frontend — Pages (Core)
 
-- [ ] Implement DashboardPage
-  - [ ] Stats grid (tasks due, in progress, completed, time)
-  - [ ] Today's tasks list with completion checkboxes
-  - [ ] Timer widget
-  - [ ] Activity feed
-  - [ ] "View all" links to planner
+- [x] Implement DashboardPage
+  - [x] Stats grid (tasks due, in progress, completed, time)
+  - [x] Today's tasks list with completion checkboxes
+  - [x] Timer widget
+  - [x] Activity feed
+  - [x] "View all" links to planner
   _US-3.1, US-3.2, US-3.3_
 
-- [ ] Implement CompaniesPage
-  - [ ] Company cards with stats
-  - [ ] Company detail modal (view, edit)
-  - [ ] Create/delete company modals
+- [x] Implement CompaniesPage
+  - [x] Company cards with stats
+  - [x] Company detail modal (view, edit)
+  - [x] Create/delete company modals
   _US-4.1, US-4.2, US-4.3_
 
-- [ ] Implement ProjectsPage
-  - [ ] Project cards with stats and progress bars
-  - [ ] Filter by company and status
-  - [ ] Create project modal
+- [x] Implement ProjectsPage
+  - [x] Project cards with stats and progress bars
+  - [x] Filter by company and status
+  - [x] Create project modal
   _US-5.1, US-5.3_
 
-- [ ] Implement ProjectDetailPage
-  - [ ] Breadcrumb, stats grid
-  - [ ] Root node list (adapts to methodology)
-  - [ ] Create node modal
-  - [ ] Empty state for new projects
+- [x] Implement ProjectDetailPage
+  - [x] Breadcrumb, stats grid
+  - [x] Root node list (adapts to methodology)
+  - [x] Create node modal
+  - [x] Empty state for new projects
   _US-5.2, US-5.3_
 
-- [ ] Implement NodeDetailPage
-  - [ ] Generic, methodology-aware layout
-  - [ ] Breadcrumb from ancestors
-  - [ ] Node info, status badge, description
-  - [ ] Children list, edges, time entries, rollup
-  - [ ] Status transition actions (start, complete, block)
-  - [ ] Edit/delete modals
+- [x] Implement NodeDetailPage
+  - [x] Generic, methodology-aware layout
+  - [x] Breadcrumb from ancestors
+  - [x] Node info, status badge, description
+  - [x] Children list, edges, time entries, rollup
+  - [x] Status transition actions (start, complete, block)
+  - [x] Edit/delete modals
   _US-6.1, US-6.2, US-6.3_
+
+- [x] Fix trailing-slash URLs in all API modules
+  _US-12.2_
 
 ---
 

@@ -12,5 +12,5 @@ export const timerApi = {
     api.get<ActiveTimer | null>('/timer/current'),
 
   logTime: (data: TimeEntryCreate) =>
-    api.post<TimeEntry>('/time-entries/', data),
+    api.post<TimeEntry>('/time-entries', data),
 };
