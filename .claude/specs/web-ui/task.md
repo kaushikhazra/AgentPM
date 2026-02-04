@@ -110,49 +110,49 @@
 
 ## Phase 4: React Frontend — Foundation
 
-- [ ] Scaffold Vite + React + TypeScript project
-  - [ ] Create `src/taskyn/web/frontend/` with package.json
-  - [ ] Install dependencies: react-router-dom, @tanstack/react-query, react-hook-form, zod
-  - [ ] Configure vite.config.ts with API proxy
+- [x] Scaffold Vite + React + TypeScript project
+  - [x] Create `src/taskyn/web/frontend/` with package.json
+  - [x] Install dependencies: react-router-dom, @tanstack/react-query, react-hook-form, zod
+  - [x] Configure vite.config.ts with API proxy
   _US-13.1_
 
-- [ ] Set up CSS from mockups
-  - [ ] Copy themes.css and base.css from mockup CSS
-  - [ ] Verify theme switching works (data-mode, data-theme attributes)
+- [x] Set up CSS from mockups
+  - [x] Copy themes.css and base.css from mockup CSS
+  - [x] Verify theme switching works (data-mode, data-theme attributes)
   _US-13.1_
 
-- [ ] Implement API client layer
-  - [ ] `api/client.ts` — base request function with auth headers
-  - [ ] Token refresh on 401 with deduplication
-  - [ ] ApiError class
+- [x] Implement API client layer
+  - [x] `api/client.ts` — base request function with auth headers
+  - [x] Token refresh on 401 with deduplication
+  - [x] ApiError class
   _US-13.3_
 
-- [ ] Implement resource API modules
-  - [ ] `api/companies.ts`, `api/projects.ts`, `api/nodes.ts`
-  - [ ] `api/edges.ts`, `api/timer.ts`, `api/activity.ts`
-  - [ ] `api/dashboard.ts`, `api/search.ts`
+- [x] Implement resource API modules
+  - [x] `api/companies.ts`, `api/projects.ts`, `api/nodes.ts`
+  - [x] `api/edges.ts`, `api/timer.ts`, `api/activity.ts`
+  - [x] `api/dashboard.ts`, `api/search.ts`
   _US-13.3_
 
-- [ ] Implement TypeScript types
-  - [ ] `types/index.ts` — Node, Project, Company, Edge, TimeEntry, etc.
+- [x] Implement TypeScript types
+  - [x] `types/index.ts` — Node, Project, Company, Edge, TimeEntry, etc.
   _US-13.1_
 
-- [ ] Implement global providers
-  - [ ] AuthProvider — user state, login/logout/register
-  - [ ] ThemeProvider — mode + theme, localStorage persistence
-  - [ ] TimerProvider — active timer, tick every second
-  - [ ] ModalProvider — open/close, modal type registry
-  - [ ] ToastProvider — notification queue, auto-dismiss
+- [x] Implement global providers
+  - [x] AuthProvider — user state, login/logout/register
+  - [x] ThemeProvider — mode + theme, localStorage persistence
+  - [x] TimerProvider — active timer, tick every second
+  - [x] ModalProvider — open/close, modal type registry
+  - [x] ToastProvider — notification queue, auto-dismiss
   _US-13.2_
 
-- [ ] Implement routing
-  - [ ] `routes.tsx` — all routes with React Router v6
-  - [ ] ProtectedRoute component
-  - [ ] Post-login redirect to intended destination
+- [x] Implement routing
+  - [x] `routes.tsx` — all routes with React Router v6
+  - [x] ProtectedRoute component
+  - [x] Post-login redirect to intended destination
   _US-13.4_
 
-- [ ] Implement methodology UI config
-  - [ ] `config/methodology-ui.ts` — display names, icons, colors per methodology
+- [x] Implement methodology UI config
+  - [x] `config/methodology-ui.ts` — display names, icons, colors per methodology
   _US-6.1_
 
 ---
