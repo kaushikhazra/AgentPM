@@ -1,7 +1,12 @@
 """Pytest configuration and fixtures for Taskyn tests."""
 
+import os
 import tempfile
 from pathlib import Path
+
+# Set env vars before any web backend imports (jwt.py validates at import time)
+os.environ.setdefault("TASKYN_JWT_SECRET", "test-secret-key-for-pytest-minimum-32-chars")
+os.environ.setdefault("TASKYN_RATE_LIMIT", "false")
 
 import pytest
 

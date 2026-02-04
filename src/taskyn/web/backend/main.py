@@ -1,9 +1,14 @@
 """FastAPI application — thin REST bridge to MCP tools."""
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from .routes.activity import router as activity_router
+from .routes.auth import limiter
 from .routes.auth import router as auth_router
 from .routes.companies import router as companies_router
 from .routes.dashboard import router as dashboard_router
@@ -24,13 +29,19 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-# CORS for React dev server
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS — configurable origins via env var
+_cors_origins = os.getenv("TASKYN_CORS_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # Register routers under /api/v1

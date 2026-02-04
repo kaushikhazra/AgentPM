@@ -1,7 +1,11 @@
 """Auth routes — register, login, logout, refresh, me."""
 
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from jose import JWTError
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from ..auth.jwt import create_access_token, create_refresh_token, decode_token
 from ..auth.password import hash_password, verify_password
@@ -10,13 +14,25 @@ from ..deps import get_current_user
 from ..schemas.auth import MessageResponse, TokenResponse, UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+_rate_limit_enabled = os.getenv("TASKYN_RATE_LIMIT", "true").lower() != "false"
+limiter = Limiter(key_func=get_remote_address, enabled=_rate_limit_enabled)
+
+_COOKIE_SECURE = os.getenv("TASKYN_COOKIE_SECURE", "false").lower() == "true"
+_COOKIE_ATTRS = dict(
+    key="refresh_token",
+    httponly=True,
+    secure=_COOKIE_SECURE,
+    samesite="lax",
+    path="/",
+)
 
 
 @router.post("/register", response_model=MessageResponse, status_code=201)
-async def register(data: UserCreate):
+@limiter.limit("10/minute")
+async def register(request: Request, data: UserCreate):
     """Create a new user account."""
     if get_user_by_email(data.email):
-        raise HTTPException(409, detail="Email already registered")
+        raise HTTPException(409, detail="Registration failed")
 
     user = create_user(
         email=data.email,
@@ -27,7 +43,8 @@ async def register(data: UserCreate):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(data: UserLogin, response: Response):
+@limiter.limit("5/minute")
+async def login(request: Request, data: UserLogin, response: Response):
     """Login and receive an access token. Refresh token set as HTTP-only cookie."""
     user = get_user_by_email(data.email)
     if not user or not verify_password(data.password, user.password_hash):
@@ -37,11 +54,8 @@ async def login(data: UserLogin, response: Response):
     refresh_token = create_refresh_token(user.id)
 
     response.set_cookie(
-        key="refresh_token",
+        **_COOKIE_ATTRS,
         value=refresh_token,
-        httponly=True,
-        secure=False,  # False for local dev; True in production
-        samesite="lax",
         max_age=7 * 24 * 60 * 60,  # 7 days
     )
 
@@ -51,11 +65,12 @@ async def login(data: UserLogin, response: Response):
 @router.post("/logout", response_model=MessageResponse)
 async def logout(response: Response):
     """Logout by clearing the refresh cookie."""
-    response.delete_cookie("refresh_token")
+    response.delete_cookie(**_COOKIE_ATTRS)
     return MessageResponse(message="Logged out")
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit("30/minute")
 async def refresh(request: Request):
     """Get a new access token using the refresh cookie."""
     refresh_token = request.cookies.get("refresh_token")

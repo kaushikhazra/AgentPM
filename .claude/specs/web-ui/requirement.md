@@ -445,3 +445,186 @@ As a developer, I need React Router v6 configured with all application routes.
 - Routes: `/dashboard`, `/companies`, `/projects`, `/projects/:projectId`,
   `/nodes/:nodeId`, `/kanban/:projectId`, `/planner/:projectId`, `/tracker`, `/settings`
 - Catch-all redirects to `/`
+
+---
+
+## Epic 14: Security Hardening
+
+### US-14.1: JWT Secret Enforcement
+As an operator, I want the application to refuse to start with a weak or missing
+JWT secret, so that tokens cannot be forged.
+
+**Acceptance Criteria:**
+- App raises `RuntimeError` on startup if `TASKYN_JWT_SECRET` is unset or < 32 chars
+- JWT tokens include `jti` (unique ID) and `iat` (issued-at) claims
+- No hardcoded fallback secret exists in the codebase
+
+### US-14.2: Auth Rate Limiting
+As an operator, I want login and registration endpoints rate-limited, so that
+brute-force and credential-stuffing attacks are mitigated.
+
+**Acceptance Criteria:**
+- `/auth/login`: max 5 failed attempts per minute per IP
+- `/auth/register`: max 10 attempts per minute per IP
+- `/auth/refresh`: max 30 attempts per minute per IP
+- Rate limit exceeded returns HTTP 429 with `Retry-After` header
+
+### US-14.3: Tenant Audit Trail
+As a developer, I want `current_user.id` passed through to every MCP call,
+so that all actions are attributable to the authenticated user.
+
+**Acceptance Criteria:**
+- Every route handler passes `current_user.id` to MCP tool calls
+- Activity log includes `user_id` for attribution
+- No data leaks between users (audit trail only for now; full ownership enforcement
+  deferred until multi-user is required)
+
+### US-14.4: Cookie Security
+As a security-conscious user, I want refresh tokens to be securely stored and
+revocable, so that a stolen cookie cannot be used indefinitely.
+
+**Acceptance Criteria:**
+- `secure` flag configurable via `TASKYN_COOKIE_SECURE` env var (defaults to `true`)
+- `delete_cookie` mirrors all `set_cookie` attributes (samesite, httponly, path)
+- Refresh token hash stored server-side; logout invalidates it
+- Expired/revoked refresh tokens are rejected
+
+### US-14.5: Input Validation
+As a developer, I want all API inputs validated with length and type constraints,
+so that the system is protected from oversized or malformed payloads.
+
+**Acceptance Criteria:**
+- Password: 8-128 characters
+- Names/titles: 1-255 characters
+- Descriptions: 0-5000 characters
+- `MilestoneCreate.target_date`: validated as `datetime.date`
+- `TimeEntryCreate.duration_minutes`: 1-1440 range
+- `/auth/register` returns generic error on duplicate email (no user enumeration)
+
+---
+
+## Epic 15: Backend Correctness
+
+### US-15.1: PATCH Semantics
+As a user, I want to clear optional fields (e.g., un-assign a node) via PATCH,
+so that null values are respected.
+
+**Acceptance Criteria:**
+- All PATCH endpoints use `exclude_unset=True` instead of `exclude_none=True`
+- Sending `{"assignee": null}` correctly clears the assignee
+- Omitting a field leaves it unchanged
+
+### US-15.2: Error Observability
+As an operator, I want unhandled exceptions logged with full stack traces, so
+that production issues can be debugged.
+
+**Acceptance Criteria:**
+- `call_mcp_tool` catch-all logs `exception()` before re-raising as HTTP 500
+- No stack traces are swallowed silently
+
+### US-15.3: Pagination
+As a user with many items, I want list endpoints to support pagination, so that
+responses are bounded.
+
+**Acceptance Criteria:**
+- All list endpoints accept `limit` (default 50) and `offset` (default 0)
+- Response includes `X-Total-Count` header
+- Frontend adapts to paginated responses
+
+### US-15.4: Missing CRUD Endpoints
+As a frontend developer, I need complete CRUD coverage for all resources.
+
+**Acceptance Criteria:**
+- DELETE `/nodes/:id`
+- GET/PATCH `/milestones/:id`
+- PATCH `/companies/:id`
+- `email-validator` added to `pyproject.toml` `[web]` extras
+
+### US-15.5: CORS & Infrastructure
+As a developer, I want CORS and SQLite connections configured safely for production.
+
+**Acceptance Criteria:**
+- `allow_origins` configurable via `TASKYN_CORS_ORIGINS` env var
+- Narrowed `allow_methods` and `allow_headers` to actually used values
+- `auth/users.py` uses per-request SQLite connections (not module-level singleton)
+
+---
+
+## Epic 16: Frontend Quality
+
+### US-16.1: Bug Fixes
+As a user, I want the app free of infinite loops, race conditions, and N+1 queries.
+
+**Acceptance Criteria:**
+- AuthProvider uses raw `fetch` for initial refresh (no recursive 401 retry)
+- PlannerPage expanded-state initialization decoupled from data loading
+- TrackerPage uses a dedicated time-entries endpoint (not loading all nodes)
+- SearchModal cancels stale requests via `AbortController`
+- useHotkeys avoids listener churn (stable reference via `useRef`)
+
+### US-16.2: Code Quality (DRY)
+As a developer, I want duplicated code extracted into shared utilities.
+
+**Acceptance Criteria:**
+- `statusClass` extracted to `utils/status.ts`, imported in 3 pages
+- KanbanPage and PlannerPage refactored to use existing `FilterBadge` molecule
+- React Query either wired into data fetching or removed from dependencies
+
+### US-16.3: Performance
+As a user, I want fast initial page loads through code splitting.
+
+**Acceptance Criteria:**
+- All page imports in `routes.tsx` use `React.lazy()` with `Suspense` fallback
+- Each page in its own chunk (verified in build output)
+
+### US-16.4: Accessibility & UX
+As a user, I want accessible modals, keyboard alternatives, and proper error handling.
+
+**Acceptance Criteria:**
+- Modal and SearchModal have `role="dialog"`, `aria-modal="true"`, and focus trapping
+- Kanban has keyboard alternative for drag-and-drop
+- Icon SVGs have `aria-hidden="true"` for decorative icons
+- ErrorBoundary wraps app content (recovery UI on unhandled errors)
+- Loading states on initial data fetches (KanbanPage, PlannerPage, TrackerPage, CompaniesPage)
+- Delete operations have confirmation dialogs
+- Modal forms wrapped in `<form>` (Enter submits)
+- TimerProvider skips API call until auth confirmed
+- Toast setTimeout cleaned up on unmount
+- Logged-in users redirected away from `/login` and `/signup`
+- Unknown routes show a 404 page
+- `dev_server.py` SIGTERM wrapped for Windows compatibility
+
+---
+
+## Epic 17: Test Coverage
+
+### US-17.1: Security Test Coverage
+As a developer, I want security-critical paths tested, so that regressions are caught.
+
+**Acceptance Criteria:**
+- Expired JWT access token rejected by `/auth/me`
+- Access token rejected when used as refresh token
+- Expired refresh token rejected by `/auth/refresh`
+- Unauthenticated POST/PATCH/DELETE return 401
+
+### US-17.2: Functional Test Coverage
+As a developer, I want key functional flows tested end-to-end.
+
+**Acceptance Criteria:**
+- `pm_create_node` with `parent_id` creates auto-edge
+- 404 responses for non-existent resource IDs
+- `pm_update_project`, `pm_delete_company`, `pm_delete_project` via MCP
+- MCP resources return valid data
+- `pm_create_node` with invalid `node_type` returns error
+
+### US-17.3: Robustness Test Coverage
+As a developer, I want edge cases tested for resilience.
+
+**Acceptance Criteria:**
+- Invalid edge_type on `pm_create_edge`
+- `pm_list_nodes` with various filter combinations
+- `GET /projects?include_stats=true` returns stats
+- `PATCH /nodes/{id}` with empty body is a no-op
+- Search result content verified (not just `isinstance(list)`)
+- Starting second timer auto-stops first
+- `pm_block_node` tested via MCP

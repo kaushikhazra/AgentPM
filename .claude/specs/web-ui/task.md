@@ -310,3 +310,197 @@
   - [x] Vite proxy to FastAPI backend (already configured)
   - [x] Concurrent dev start (scripts/dev_server.py — uvicorn + vite)
   _US-13.1_
+
+---
+
+## Phase 11: Hardening & Quality
+
+### 11A — Security Hardening
+
+- [x] Fix JWT secret handling (CR-1)
+  - [x] Remove hardcoded fallback; raise `RuntimeError` if `TASKYN_JWT_SECRET` unset or < 32 chars
+  - [x] Add `jti` and `iat` claims to JWT tokens
+  _US-14.1_
+
+- [x] Add auth rate limiting (CR-2)
+  - [x] Install `slowapi`; add limiter to `/auth/login` (5/min), `/auth/register` (10/min), `/auth/refresh` (30/min)
+  - [x] Return HTTP 429 with `Retry-After` header (via slowapi default handler)
+  - [x] Configurable via `TASKYN_RATE_LIMIT` env var (default `true`)
+  _US-14.2_
+
+- [ ] Add tenant audit trail (CR-3) — deferred to 11B
+  - [ ] Pass `current_user.id` into every MCP tool call
+  - [ ] Add `user_id` to activity log entries
+  _US-14.3_
+
+- [x] Harden auth cookies (CR-8, CR-9)
+  - [x] Make `secure` flag configurable via `TASKYN_COOKIE_SECURE` env var (default `false` for dev)
+  - [x] Mirror `set_cookie` attributes on `delete_cookie` (shared `_COOKIE_ATTRS`)
+  _US-14.4_
+
+- [x] Add input validation (CR-6, CR-7, CR-22, CR-23)
+  - [x] `password: Field(min_length=8, max_length=128)`, `name: Field(min_length=1, max_length=255)`
+  - [x] Add `max_length` to all string fields across all schemas
+  - [x] `MilestoneCreate.target_date`: change to `datetime.date`
+  - [x] `TimeEntryCreate.duration_minutes`: `Field(gt=0, le=1440)`
+  _US-14.5_
+
+- [x] Fix user enumeration (CR-18)
+  - [x] `/auth/register` returns generic error on duplicate email
+  _US-14.5_
+
+- [x] Configure CORS via env var (CR-36, CR-37)
+  - [x] `TASKYN_CORS_ORIGINS` env var; narrow `allow_methods`/`allow_headers`
+  _US-15.5_
+
+- [x] Add `email-validator` to pyproject.toml `[web]` extras (CR-33)
+  _US-15.4_
+
+- [x] Add error logging (CR-11)
+  - [x] Add `logger.exception()` in `call_mcp_tool` catch-all before re-raise
+  _US-15.2_
+
+### 11B — Backend Correctness
+
+- [ ] Fix PATCH semantics (CR-10)
+  - [ ] Change `exclude_none=True` to `exclude_unset=True` in all PATCH routes
+  _US-15.1_
+
+- [ ] Add error logging (CR-11)
+  - [ ] Add `logger.exception()` in `call_mcp_tool` catch-all before re-raise
+  _US-15.2_
+
+- [ ] Fix thread-safe SQLite (CR-19)
+  - [ ] Replace module-level `_db()` in `auth/users.py` with per-request connections
+  _US-15.5_
+
+- [ ] Add pagination (CR-20)
+  - [ ] Add `limit`/`offset` parameters to all list endpoints (default 50/0)
+  - [ ] Return `X-Total-Count` header
+  _US-15.3_
+
+- [ ] Add missing CRUD endpoints (CR-21)
+  - [ ] DELETE `/nodes/:id`
+  - [ ] GET/PATCH `/milestones/:id`
+  - [ ] PATCH `/companies/:id`
+  _US-15.4_
+
+- [ ] Add `email-validator` to pyproject.toml `[web]` extras (CR-33)
+  _US-15.4_
+
+- [ ] Configure CORS via env var (CR-36, CR-37)
+  - [ ] `TASKYN_CORS_ORIGINS` env var; narrow `allow_methods`/`allow_headers`
+  _US-15.5_
+
+### 11C — Frontend Quality
+
+- [ ] Fix AuthProvider refresh race (CR-4)
+  - [ ] Use raw `fetch` for initial refresh, or skip auto-refresh for `/auth/refresh`
+  _US-16.1_
+
+- [ ] Fix PlannerPage infinite loop (CR-5)
+  - [ ] Decouple expanded-initialization from `loadData` callback
+  _US-16.1_
+
+- [ ] Fix TrackerPage N+1 loading (CR-12)
+  - [ ] Add `GET /api/v1/time-entries` endpoint; use in TrackerPage
+  _US-16.1_
+
+- [ ] Fix SearchModal stale results race (CR-31)
+  - [ ] Use `AbortController` to cancel stale search requests
+  _US-16.1_
+
+- [ ] Fix useHotkeys listener churn (CR-32)
+  - [ ] Memoize shortcuts or use `useRef` for stable reference
+  _US-16.1_
+
+- [ ] Extract `statusClass` to shared util (CR-15)
+  - [ ] Create `utils/status.ts`; import in PlannerPage, NodeDetailPage, ProjectDetailPage
+  _US-16.2_
+
+- [ ] Refactor to use FilterBadge molecule (CR-16)
+  - [ ] Replace manual dropdown in KanbanPage and PlannerPage with FilterBadge
+  _US-16.2_
+
+- [ ] Decide on React Query (CR-24)
+  - [ ] Wire TanStack Query into data fetching, or remove from dependencies
+  _US-16.2_
+
+- [ ] Add lazy loading (CR-13)
+  - [ ] Convert page imports in `routes.tsx` to `React.lazy()` with `Suspense`
+  _US-16.3_
+
+- [ ] Add ErrorBoundary (CR-25)
+  - [ ] Create ErrorBoundary component; wrap AppShell children
+  _US-16.4_
+
+- [ ] Add Kanban keyboard accessibility (CR-14)
+  - [ ] Keyboard alternative for drag-and-drop (Enter/arrow keys)
+  _US-16.4_
+
+- [ ] Add modal accessibility (CR-27)
+  - [ ] `role="dialog"`, `aria-modal="true"`, focus trapping on Modal and SearchModal
+  _US-16.4_
+
+- [ ] Add loading states (CR-28)
+  - [ ] Skeleton/spinner on KanbanPage, PlannerPage, TrackerPage, CompaniesPage
+  _US-16.4_
+
+- [ ] Wrap modal forms in `<form>` (CR-29)
+  - [ ] Enter key submits in CompaniesPage, PlannerPage, ProjectDetailPage, NodeDetailPage
+  _US-16.4_
+
+- [ ] Add delete confirmation dialog (CR-30)
+  - [ ] Confirmation before delete on CompaniesPage
+  _US-16.4_
+
+- [ ] Fix TimerProvider mount guard (CR-26)
+  - [ ] Skip timer API call until auth is confirmed
+  _US-16.4_
+
+- [ ] Add guest guard on auth pages (CR-45)
+  - [ ] Redirect logged-in users away from `/login` and `/signup`
+  _US-16.4_
+
+- [ ] Add 404 page (CR-44)
+  - [ ] Show proper 404 page instead of silent redirect to dashboard
+  _US-16.4_
+
+- [ ] Add Icon `aria-hidden` (CR-47)
+  - [ ] Decorative SVG icons get `aria-hidden="true"`
+  _US-16.4_
+
+- [ ] Fix Toast cleanup (CR-46)
+  - [ ] Clear `setTimeout` on unmount in ToastProvider
+  _US-16.4_
+
+- [ ] Fix dev_server.py Windows SIGTERM (CR-17)
+  - [ ] Wrap `signal.signal(signal.SIGTERM, ...)` in `try/except ValueError`
+  _US-16.4_
+
+### 11D — Test Coverage
+
+- [ ] Add security tests (CR-34, CR-35)
+  - [ ] Expired JWT access token rejected by `/auth/me`
+  - [ ] Access token used as refresh token rejected
+  - [ ] Expired refresh token rejected
+  - [ ] Unauthenticated POST/PATCH/DELETE return 401
+  _US-17.1_
+
+- [ ] Add functional tests
+  - [ ] `pm_create_node` with `parent_id` (auto-edge creation)
+  - [ ] 404 responses for non-existent resource IDs
+  - [ ] `pm_update_project`, `pm_delete_company`, `pm_delete_project` via MCP
+  - [ ] MCP resources (`pm://dashboard`, `pm://activity/recent`)
+  - [ ] `pm_create_node` with invalid `node_type`
+  _US-17.2_
+
+- [ ] Add robustness tests
+  - [ ] `pm_create_edge` with invalid edge_type
+  - [ ] `pm_list_nodes` with filter combinations
+  - [ ] `GET /projects?include_stats=true`
+  - [ ] `PATCH /nodes/{id}` with empty body
+  - [ ] Search result content verification
+  - [ ] Timer: start second auto-stops first
+  - [ ] `pm_block_node` via MCP
+  _US-17.3_

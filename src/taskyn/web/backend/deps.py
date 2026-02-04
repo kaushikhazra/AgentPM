@@ -1,5 +1,7 @@
 """FastAPI dependencies — MCP integration and auth."""
 
+import logging
+
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
@@ -15,6 +17,7 @@ from taskyn.mcp.server import mcp as mcp_server
 from .auth.jwt import decode_token
 from .auth.users import User, get_user
 
+logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 
@@ -49,6 +52,7 @@ def call_mcp_tool(tool_name: str, args: dict):
             raise HTTPException(409, detail=str(e))
         raise HTTPException(422, detail=str(e))
     except Exception:
+        logger.exception("Unexpected error in MCP tool %s", tool_name)
         raise HTTPException(500, detail="Internal server error")
 
 

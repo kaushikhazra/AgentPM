@@ -28,7 +28,10 @@ async def create_milestone(
     current_user: User = Depends(get_current_user),
 ):
     """Create a new milestone."""
-    return call_mcp_tool("pm_create_milestone", data.model_dump(exclude_none=True))
+    args = data.model_dump(exclude_none=True)
+    if "target_date" in args:
+        args["target_date"] = str(args["target_date"])
+    return call_mcp_tool("pm_create_milestone", args)
 
 
 @router.post("/{milestone_id}/complete")

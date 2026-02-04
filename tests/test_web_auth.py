@@ -43,21 +43,31 @@ def test_register_duplicate_email(client):
     """Test registration with existing email."""
     payload = {
         "email": "bob@example.com",
-        "password": "pass123",
+        "password": "password123",
         "name": "Bob",
     }
     client.post("/api/v1/auth/register", json=payload)
     res = client.post("/api/v1/auth/register", json=payload)
     assert res.status_code == 409
-    assert "already registered" in res.json()["detail"]
+    assert "Registration failed" in res.json()["detail"]
 
 
 def test_register_invalid_email(client):
     """Test registration with invalid email format."""
     res = client.post("/api/v1/auth/register", json={
         "email": "not-an-email",
-        "password": "pass123",
+        "password": "password123",
         "name": "Bad",
+    })
+    assert res.status_code == 422
+
+
+def test_register_short_password(client):
+    """Test registration with password shorter than 8 chars."""
+    res = client.post("/api/v1/auth/register", json={
+        "email": "short@example.com",
+        "password": "short",
+        "name": "Short",
     })
     assert res.status_code == 422
 
@@ -88,13 +98,13 @@ def test_login_invalid_password(client):
     """Test login with wrong password."""
     client.post("/api/v1/auth/register", json={
         "email": "dave@example.com",
-        "password": "correct",
+        "password": "correctpass",
         "name": "Dave",
     })
 
     res = client.post("/api/v1/auth/login", json={
         "email": "dave@example.com",
-        "password": "wrong",
+        "password": "wrongpass",
     })
     assert res.status_code == 401
     assert "Invalid credentials" in res.json()["detail"]
@@ -119,12 +129,12 @@ def test_refresh_success(client):
     # Register and login
     client.post("/api/v1/auth/register", json={
         "email": "eve@example.com",
-        "password": "pass123",
+        "password": "password123",
         "name": "Eve",
     })
-    login_res = client.post("/api/v1/auth/login", json={
+    client.post("/api/v1/auth/login", json={
         "email": "eve@example.com",
-        "password": "pass123",
+        "password": "password123",
     })
 
     # Refresh using the cookie set by login
@@ -152,12 +162,12 @@ def test_logout(client):
     # Register, login, then logout
     client.post("/api/v1/auth/register", json={
         "email": "frank@example.com",
-        "password": "pass123",
+        "password": "password123",
         "name": "Frank",
     })
     client.post("/api/v1/auth/login", json={
         "email": "frank@example.com",
-        "password": "pass123",
+        "password": "password123",
     })
 
     res = client.post("/api/v1/auth/logout")
@@ -174,12 +184,12 @@ def test_me_authenticated(client):
     """Test /auth/me with valid token."""
     client.post("/api/v1/auth/register", json={
         "email": "grace@example.com",
-        "password": "pass123",
+        "password": "password123",
         "name": "Grace",
     })
     login_res = client.post("/api/v1/auth/login", json={
         "email": "grace@example.com",
-        "password": "pass123",
+        "password": "password123",
     })
     token = login_res.json()["accessToken"]
 
