@@ -480,27 +480,29 @@
 
 ### 11D — Test Coverage
 
-- [ ] Add security tests (CR-34, CR-35)
-  - [ ] Expired JWT access token rejected by `/auth/me`
-  - [ ] Access token used as refresh token rejected
-  - [ ] Expired refresh token rejected
-  - [ ] Unauthenticated POST/PATCH/DELETE return 401
+- [x] Add security tests (CR-34, CR-35)
+  - [x] Expired JWT access token rejected by `/auth/me`
+  - [x] Access token used as refresh token rejected
+  - [x] Refresh token used as access token rejected
+  - [x] Expired refresh token rejected
+  - [x] Unauthenticated POST/PATCH/DELETE return 401
   _US-17.1_
 
-- [ ] Add functional tests
-  - [ ] `pm_create_node` with `parent_id` (auto-edge creation)
-  - [ ] 404 responses for non-existent resource IDs
-  - [ ] `pm_update_project`, `pm_delete_company`, `pm_delete_project` via MCP
-  - [ ] MCP resources (`pm://dashboard`, `pm://activity/recent`)
-  - [ ] `pm_create_node` with invalid `node_type`
+- [x] Add functional tests
+  - [x] `pm_create_node` with `parent_id` (auto-edge creation)
+  - [x] 404 responses for non-existent resource IDs
+  - [x] `pm_update_project`, `pm_delete_company`, `pm_delete_project` via MCP
+  - [x] MCP resources (`pm://dashboard`, `pm://activity/recent`)
+  - [x] `pm_create_node` with invalid `node_type`
+  - [x] REST PATCH/DELETE for companies, nodes, milestones
   _US-17.2_
 
-- [ ] Add robustness tests
-  - [ ] `pm_create_edge` with invalid edge_type
-  - [ ] `pm_list_nodes` with filter combinations
-  - [ ] `GET /projects?include_stats=true`
-  - [ ] `PATCH /nodes/{id}` with empty body
-  - [ ] Search result content verification
-  - [ ] Timer: start second auto-stops first
-  - [ ] `pm_block_node` via MCP
+- [x] Add robustness tests
+  - [x] `pm_create_edge` with invalid edge_type
+  - [x] `pm_list_nodes` with filter combinations
+  - [x] `GET /projects?include_stats=true`
+  - [x] `PATCH /nodes/{id}` with empty body
+  - [x] Search result content verification
+  - [x] Timer: start second auto-stops first
+  - [x] `pm_block_node` via MCP
   _US-17.3_

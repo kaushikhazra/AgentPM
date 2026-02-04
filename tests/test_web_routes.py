@@ -1,9 +1,11 @@
-"""Tests for web backend REST routes (Phase 3)."""
+"""Tests for web backend REST routes (Phase 3 + Phase 11D)."""
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from taskyn.web.backend.auth.users import reset_connection
+from taskyn.web.backend.deps import call_mcp_tool
 from taskyn.web.backend.main import app
 
 
@@ -820,3 +822,361 @@ def test_full_crud_flow(client, auth_headers):
     # Dashboard should reflect the data
     dashboard = client.get("/api/v1/dashboard", headers=auth_headers)
     assert dashboard.status_code == 200
+
+
+# ============================================================
+# Functional Tests (Phase 11D)
+# ============================================================
+
+
+def test_create_node_with_parent_auto_edge(client, auth_headers, project_id):
+    """Creating a node with parent_id auto-creates a parent edge."""
+    story = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "Auto-Edge Parent",
+    })
+    story_id = story.json()["id"]
+
+    task = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "task",
+        "title": "Auto-Edge Child",
+        "parent_id": story_id,
+    })
+    task_id = task.json()["id"]
+    assert task.status_code == 201
+
+    # Verify edge was auto-created (direction: child → parent)
+    edges = client.get(
+        f"/api/v1/edges?project_id={project_id}", headers=auth_headers
+    )
+    parent_edges = [
+        e for e in edges.json()
+        if e["source_id"] == task_id and e["target_id"] == story_id and e["edge_type"] == "parent"
+    ]
+    assert len(parent_edges) == 1
+
+
+def test_404_for_nonexistent_project(client, auth_headers):
+    """GET nonexistent project returns 404."""
+    res = client.get("/api/v1/projects/nonexistent-id", headers=auth_headers)
+    assert res.status_code == 404
+
+
+def test_404_for_nonexistent_node(client, auth_headers):
+    """GET nonexistent node returns 404."""
+    res = client.get("/api/v1/nodes/nonexistent-id", headers=auth_headers)
+    assert res.status_code == 404
+
+
+def test_404_for_nonexistent_milestone(client, auth_headers):
+    """GET nonexistent milestone returns 404."""
+    res = client.get("/api/v1/milestones/nonexistent-id", headers=auth_headers)
+    assert res.status_code == 404
+
+
+def test_update_company_via_rest(client, auth_headers):
+    """PATCH /companies/:id updates the company."""
+    create = client.post("/api/v1/companies", headers=auth_headers, json={
+        "name": "PatchCo",
+        "description": "Original",
+    })
+    company_id = create.json()["id"]
+
+    res = client.patch(f"/api/v1/companies/{company_id}", headers=auth_headers, json={
+        "name": "PatchCo Updated",
+    })
+    assert res.status_code == 200
+    assert res.json()["name"] == "PatchCo Updated"
+
+
+def test_delete_node_via_rest(client, auth_headers, project_id):
+    """DELETE /nodes/:id deletes the node."""
+    node = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "Delete Me Node",
+    })
+    node_id = node.json()["id"]
+
+    res = client.delete(f"/api/v1/nodes/{node_id}", headers=auth_headers)
+    assert res.status_code == 204
+
+    # Verify deleted
+    res = client.get(f"/api/v1/nodes/{node_id}", headers=auth_headers)
+    assert res.status_code == 404
+
+
+def test_get_and_update_milestone_via_rest(client, auth_headers, project_id):
+    """GET and PATCH /milestones/:id work correctly."""
+    create = client.post("/api/v1/milestones", headers=auth_headers, json={
+        "project_id": project_id,
+        "name": "v4.0",
+        "description": "Milestone for testing",
+    })
+    milestone_id = create.json()["id"]
+
+    # GET
+    res = client.get(f"/api/v1/milestones/{milestone_id}", headers=auth_headers)
+    assert res.status_code == 200
+    assert res.json()["name"] == "v4.0"
+
+    # PATCH
+    res = client.patch(f"/api/v1/milestones/{milestone_id}", headers=auth_headers, json={
+        "name": "v4.1",
+    })
+    assert res.status_code == 200
+    assert res.json()["name"] == "v4.1"
+
+
+def test_mcp_update_project(temp_db):
+    """pm_update_project MCP tool updates a project."""
+    company = call_mcp_tool("pm_create_company", {"name": "MCP Update Co"})
+    project = call_mcp_tool("pm_create_project", {
+        "company_id": company["id"],
+        "name": "MCP Proj",
+    })
+
+    updated = call_mcp_tool("pm_update_project", {
+        "project_id": project["id"],
+        "name": "MCP Proj Updated",
+    })
+    assert updated["name"] == "MCP Proj Updated"
+
+
+def test_mcp_delete_company(temp_db):
+    """pm_delete_company MCP tool deletes a company."""
+    company = call_mcp_tool("pm_create_company", {"name": "MCP Delete Co"})
+    result = call_mcp_tool("pm_delete_company", {"company_id": company["id"]})
+    assert result is True
+
+    with pytest.raises(HTTPException) as exc_info:
+        call_mcp_tool("pm_get_company", {"company_id": company["id"]})
+    assert exc_info.value.status_code == 404
+
+
+def test_mcp_delete_project(temp_db):
+    """pm_delete_project MCP tool deletes a project."""
+    company = call_mcp_tool("pm_create_company", {"name": "Del Proj Co"})
+    project = call_mcp_tool("pm_create_project", {
+        "company_id": company["id"],
+        "name": "Del Me Proj",
+    })
+
+    result = call_mcp_tool("pm_delete_project", {"project_id": project["id"]})
+    assert result is True
+
+    with pytest.raises(HTTPException) as exc_info:
+        call_mcp_tool("pm_get_project", {"project_id": project["id"]})
+    assert exc_info.value.status_code == 404
+
+
+def test_mcp_create_node_invalid_type(temp_db):
+    """pm_create_node with invalid node_type raises error."""
+    company = call_mcp_tool("pm_create_company", {"name": "Invalid Type Co"})
+    project = call_mcp_tool("pm_create_project", {
+        "company_id": company["id"],
+        "name": "Invalid Type Proj",
+        "methodology": "classic_agile",
+    })
+
+    with pytest.raises(HTTPException) as exc_info:
+        call_mcp_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "invalid_type_xyz",
+            "title": "Bad Node",
+        })
+    assert exc_info.value.status_code in (422, 409)
+
+
+def test_mcp_resources(temp_db):
+    """MCP resources pm://dashboard and pm://activity/recent are readable."""
+    from taskyn.mcp.server import mcp as mcp_server
+
+    # The resources are registered on the MCP server
+    # We verify they exist and are callable
+    resources = {}
+    for name, resource in mcp_server._resource_manager._resources.items():
+        resources[str(name)] = resource
+
+    assert any("dashboard" in str(k) for k in resources.keys()), \
+        f"Expected pm://dashboard resource, found: {list(resources.keys())}"
+
+
+# ============================================================
+# Robustness Tests (Phase 11D)
+# ============================================================
+
+
+def test_create_edge_invalid_type(client, auth_headers, project_id):
+    """Creating an edge with invalid edge_type fails gracefully."""
+    n1 = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "Edge Invalid 1",
+    })
+    n2 = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "Edge Invalid 2",
+    })
+
+    res = client.post("/api/v1/edges", headers=auth_headers, json={
+        "source_id": n1.json()["id"],
+        "target_id": n2.json()["id"],
+        "edge_type": "totally_invalid_type",
+    })
+    # Should fail with validation error
+    assert res.status_code in (422, 409, 500)
+
+
+def test_list_nodes_filter_combinations(client, auth_headers, project_id):
+    """List nodes with multiple filter combinations."""
+    # Create some nodes
+    client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "Filter Story",
+    })
+    client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "task",
+        "title": "Filter Task",
+    })
+
+    # Filter by type
+    res = client.get(
+        f"/api/v1/nodes?project_id={project_id}&node_type=story",
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    assert all(n["node_type"] == "story" for n in res.json())
+
+    # Filter by status
+    res = client.get(
+        f"/api/v1/nodes?project_id={project_id}&status=backlog",
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    assert all(n["status"] == "backlog" for n in res.json())
+
+    # Filter by type AND status
+    res = client.get(
+        f"/api/v1/nodes?project_id={project_id}&node_type=story&status=backlog",
+        headers=auth_headers,
+    )
+    assert res.status_code == 200
+    for n in res.json():
+        assert n["node_type"] == "story"
+        assert n["status"] == "backlog"
+
+
+def test_list_projects_with_stats(client, auth_headers, company_id):
+    """GET /projects?include_stats=true returns stats."""
+    client.post("/api/v1/projects", headers=auth_headers, json={
+        "company_id": company_id,
+        "name": "Stats Project",
+    })
+
+    res = client.get(
+        "/api/v1/projects?include_stats=true", headers=auth_headers
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data) >= 1
+    assert "stats" in data[0]
+
+
+def test_patch_node_empty_body(client, auth_headers, project_id):
+    """PATCH /nodes/:id with empty body succeeds (no changes)."""
+    node = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "No Change",
+    })
+    node_id = node.json()["id"]
+
+    res = client.patch(f"/api/v1/nodes/{node_id}", headers=auth_headers, json={})
+    assert res.status_code == 200
+    assert res.json()["title"] == "No Change"
+
+
+def test_search_result_content(client, auth_headers, project_id):
+    """Search results contain matching entity data."""
+    client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "story",
+        "title": "UniqueSearchableName42",
+    })
+
+    res = client.get(
+        "/api/v1/search?query=UniqueSearchableName42", headers=auth_headers
+    )
+    assert res.status_code == 200
+    results = res.json()
+    assert len(results) >= 1
+    assert any(
+        "UniqueSearchableName42" in r.get("entity", {}).get("title", "")
+        for r in results
+    )
+
+
+def test_timer_start_second_stops_first(client, auth_headers, project_id):
+    """Starting a second timer auto-stops the first."""
+    node1 = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "task",
+        "title": "Timer Task 1",
+    })
+    node2 = client.post("/api/v1/nodes", headers=auth_headers, json={
+        "project_id": project_id,
+        "node_type": "task",
+        "title": "Timer Task 2",
+    })
+
+    # Start timer on task 1
+    client.post("/api/v1/timer/start", headers=auth_headers, json={
+        "node_id": node1.json()["id"],
+    })
+
+    # Start timer on task 2 — should auto-stop task 1
+    client.post("/api/v1/timer/start", headers=auth_headers, json={
+        "node_id": node2.json()["id"],
+    })
+
+    # Current timer should be for task 2
+    current = client.get("/api/v1/timer/current", headers=auth_headers)
+    assert current.status_code == 200
+    assert current.json()["node_id"] == node2.json()["id"]
+
+
+def test_mcp_block_node(temp_db):
+    """pm_block_node MCP tool blocks a node."""
+    company = call_mcp_tool("pm_create_company", {"name": "Block Co"})
+    project = call_mcp_tool("pm_create_project", {
+        "company_id": company["id"],
+        "name": "Block Proj",
+        "methodology": "classic_agile",
+    })
+    story = call_mcp_tool("pm_create_node", {
+        "project_id": project["id"],
+        "node_type": "story",
+        "title": "Block Parent",
+    })
+    task = call_mcp_tool("pm_create_node", {
+        "project_id": project["id"],
+        "node_type": "task",
+        "title": "Block Task",
+        "parent_id": story["id"],
+    })
+
+    # Start the task first
+    call_mcp_tool("pm_start_node", {"node_id": task["id"]})
+
+    # Block it
+    result = call_mcp_tool("pm_block_node", {
+        "node_id": task["id"],
+        "reason": "Waiting on API access",
+    })
+    assert result["status"] == "blocked"

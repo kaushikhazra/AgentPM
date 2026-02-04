@@ -1,8 +1,12 @@
-"""Tests for web backend auth (Phase 2)."""
+"""Tests for web backend auth (Phase 2 + Phase 11D security)."""
+
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
+from jose import jwt
 
+from taskyn.web.backend.auth.jwt import ALGORITHM, SECRET_KEY
 from taskyn.web.backend.auth.users import reset_connection
 from taskyn.web.backend.main import app
 
@@ -294,3 +298,117 @@ def test_call_mcp_tool_unknown_tool():
     with pytest.raises(HTTPException) as exc_info:
         call_mcp_tool("pm_nonexistent_tool", {})
     assert exc_info.value.status_code == 500
+
+
+# ============================================================
+# Security Tests (CR-34, CR-35 — Phase 11D)
+# ============================================================
+
+
+def test_expired_access_token_rejected(client):
+    """Expired JWT access token is rejected by /auth/me."""
+    # Register user
+    client.post("/api/v1/auth/register", json={
+        "email": "expired@example.com",
+        "password": "password123",
+        "name": "Expired",
+    })
+
+    # Create a token that expired 1 hour ago
+    expired_token = jwt.encode(
+        {
+            "sub": "fake-id",
+            "email": "expired@example.com",
+            "exp": datetime.now(timezone.utc) - timedelta(hours=1),
+            "iat": datetime.now(timezone.utc) - timedelta(hours=2),
+            "jti": "expired-jti",
+            "type": "access",
+        },
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+    res = client.get("/api/v1/auth/me", headers={
+        "Authorization": f"Bearer {expired_token}",
+    })
+    assert res.status_code == 401
+
+
+def test_access_token_as_refresh_rejected(client):
+    """Access token used as refresh token is rejected."""
+    client.post("/api/v1/auth/register", json={
+        "email": "swap@example.com",
+        "password": "password123",
+        "name": "Swap",
+    })
+    login_res = client.post("/api/v1/auth/login", json={
+        "email": "swap@example.com",
+        "password": "password123",
+    })
+    access_token = login_res.json()["accessToken"]
+
+    # Try to use the access token as a refresh token (via cookie)
+    client.cookies.set("refresh_token", access_token)
+    res = client.post("/api/v1/auth/refresh")
+    assert res.status_code == 401
+    assert "Invalid token type" in res.json()["detail"]
+
+
+def test_refresh_token_as_access_rejected(client):
+    """Refresh token used as access token is rejected."""
+    from taskyn.web.backend.auth.jwt import create_refresh_token
+
+    refresh_token = create_refresh_token("fake-user-id")
+    res = client.get("/api/v1/auth/me", headers={
+        "Authorization": f"Bearer {refresh_token}",
+    })
+    assert res.status_code == 401
+    assert "Invalid token type" in res.json()["detail"]
+
+
+def test_expired_refresh_token_rejected(client):
+    """Expired refresh token is rejected."""
+    expired_refresh = jwt.encode(
+        {
+            "sub": "fake-id",
+            "exp": datetime.now(timezone.utc) - timedelta(days=1),
+            "iat": datetime.now(timezone.utc) - timedelta(days=8),
+            "jti": "expired-refresh-jti",
+            "type": "refresh",
+        },
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+    client.cookies.set("refresh_token", expired_refresh)
+    res = client.post("/api/v1/auth/refresh")
+    assert res.status_code == 401
+
+
+def test_unauthenticated_mutations_rejected(client):
+    """POST/PATCH/DELETE on resource endpoints return 401 without auth."""
+    mutation_routes = [
+        ("POST", "/api/v1/companies", {"name": "Unauthed"}),
+        ("PATCH", "/api/v1/companies/fake-id", {"name": "Updated"}),
+        ("DELETE", "/api/v1/companies/fake-id", None),
+        ("POST", "/api/v1/projects", {"company_id": "x", "name": "Unauthed"}),
+        ("PATCH", "/api/v1/projects/fake-id", {"name": "Updated"}),
+        ("DELETE", "/api/v1/projects/fake-id", None),
+        ("POST", "/api/v1/nodes", {"project_id": "x", "node_type": "task", "title": "Unauthed"}),
+        ("PATCH", "/api/v1/nodes/fake-id", {"title": "Updated"}),
+        ("DELETE", "/api/v1/nodes/fake-id", None),
+        ("POST", "/api/v1/nodes/fake-id/start", None),
+        ("POST", "/api/v1/nodes/fake-id/complete", None),
+        ("POST", "/api/v1/edges", {"source_id": "a", "target_id": "b", "edge_type": "depends_on"}),
+        ("POST", "/api/v1/milestones", {"project_id": "x", "name": "Unauthed"}),
+        ("POST", "/api/v1/timer/start", {"node_id": "x"}),
+        ("POST", "/api/v1/timer/stop", {}),
+    ]
+    for method, path, body in mutation_routes:
+        if method == "POST":
+            res = client.post(path, json=body) if body else client.post(path)
+        elif method == "PATCH":
+            res = client.patch(path, json=body)
+        elif method == "DELETE":
+            res = client.delete(path)
+        assert res.status_code in (401, 403), f"Expected 401/403 for {method} {path}, got {res.status_code}"
