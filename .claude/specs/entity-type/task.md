@@ -59,7 +59,7 @@
   - _US-1: Type is displayed visually as a color in the UI_
 - [x] Update CompaniesPage create handler to send `type` in API call
   - _US-1: Can select a type when creating a company_
-- [ ] Update ProjectsPage for project type support (if applicable)
+- [x] Update ProjectsPage for project type support (if applicable)
   - _US-2: Type is displayed visually as a color in the UI_
 
 ## Testing & Deployment
