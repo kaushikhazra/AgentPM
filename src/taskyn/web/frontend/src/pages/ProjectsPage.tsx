@@ -6,16 +6,12 @@ import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
 import { useToast } from '@/hooks/useToast';
-import type { Company, Project } from '@/types';
+import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company, type Project } from '@/types';
 
-const GRADIENTS = [
-  'var(--gradient-primary)',
-  'var(--gradient-secondary)',
-  'linear-gradient(135deg, var(--accent-mint), var(--accent-sage))',
-  'linear-gradient(135deg, var(--accent-sky), var(--accent-primary))',
-  'linear-gradient(135deg, var(--accent-peach), var(--accent-blush))',
-  'linear-gradient(135deg, var(--accent-butter), var(--accent-mint))',
-];
+// Get color for entity type (with fallback for undefined/missing type)
+function getTypeColor(type: EntityType | undefined): string {
+  return ENTITY_TYPE_COLORS[type ?? 'discovery'];
+}
 
 export function ProjectsPage() {
   const navigate = useNavigate();
@@ -34,7 +30,7 @@ export function ProjectsPage() {
   const [createCompanyId, setCreateCompanyId] = useState('');
   const [createMethodology, setCreateMethodology] = useState('classic_agile');
   const [createDesc, setCreateDesc] = useState('');
-  const [createColor, setCreateColor] = useState(0);
+  const [createType, setCreateType] = useState<EntityType>('discovery');
   const [creating, setCreating] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -74,12 +70,13 @@ export function ProjectsPage() {
         company_id: createCompanyId,
         methodology: createMethodology,
         description: createDesc.trim() || undefined,
+        type: createType,
       });
       setShowCreate(false);
       setCreateName('');
       setCreateDesc('');
       setCreateCompanyId('');
-      setCreateColor(0);
+      setCreateType('discovery');
       addToast('success', 'Project created successfully');
       await loadData();
     } catch (e: unknown) {
@@ -145,7 +142,7 @@ export function ProjectsPage() {
                   <span className="filter-dropdown-label">All Companies</span>
                   <span className="filter-dropdown-count">{projects.length}</span>
                 </div>
-                {companies.map((c, idx) => (
+                {companies.map((c) => (
                   <div
                     key={c.id}
                     className={`filter-dropdown-item${selectedCompany === c.id ? ' selected' : ''}`}
@@ -157,7 +154,7 @@ export function ProjectsPage() {
                   >
                     <div
                       className="filter-dropdown-icon"
-                      style={{ background: GRADIENTS[idx % GRADIENTS.length] }}
+                      style={{ background: getTypeColor(c.type) }}
                     >
                       {c.name[0]?.toUpperCase()}
                     </div>
@@ -210,7 +207,7 @@ export function ProjectsPage() {
         </div>
       ) : (
         <div className="projects-grid">
-          {filtered.map((project, idx) => {
+          {filtered.map((project) => {
             const pct = project.stats?.completion_percentage ?? 0;
             const nodesByType = project.stats?.total_nodes ?? {};
             return (
@@ -222,7 +219,7 @@ export function ProjectsPage() {
                 <div className="project-card-header">
                   <div
                     className="project-icon"
-                    style={{ background: GRADIENTS[idx % GRADIENTS.length] }}
+                    style={{ background: getTypeColor(project.type) }}
                   >
                     {project.name[0]?.toUpperCase()}
                   </div>
@@ -304,20 +301,18 @@ export function ProjectsPage() {
           <p className="form-hint">Defines the workflow: node types, statuses, and transitions.</p>
         </div>
         <div className="form-group">
-          <label className="form-label">Project Color</label>
+          <label className="form-label">Lifecycle Stage</label>
           <div className="color-picker">
-            {GRADIENTS.map((gradient, idx) => (
-              <button
-                key={idx}
-                type="button"
-                className={`color-picker-item${createColor === idx ? ' selected' : ''}`}
-                style={{ background: gradient }}
-                onClick={() => setCreateColor(idx)}
-                aria-label={`Color option ${idx + 1}`}
+            {ENTITY_TYPES.map((type) => (
+              <div
+                key={type}
+                className={`color-option${createType === type ? ' selected' : ''}`}
+                style={{ background: ENTITY_TYPE_COLORS[type] }}
+                onClick={() => setCreateType(type)}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
               />
             ))}
           </div>
-          <p className="form-hint">Choose a color for the project icon.</p>
         </div>
         <div className="form-group">
           <label className="form-label">Description</label>
