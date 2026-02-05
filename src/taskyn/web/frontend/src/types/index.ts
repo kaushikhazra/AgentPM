@@ -154,6 +154,12 @@ export interface MilestoneCreate {
   description?: string;
 }
 
+export interface MilestoneUpdate {
+  name?: string;
+  description?: string;
+  target_date?: string;
+}
+
 // ============================================================
 // Tags
 // ============================================================
@@ -167,6 +173,16 @@ export interface Tag {
 export interface TagCreate {
   name: string;
   color?: string;
+}
+
+export interface TagUsage {
+  tag_name: string;
+  usage_count: number;
+}
+
+export interface TagDeleteResult {
+  deleted: boolean;
+  usage_count: number;
 }
 
 // ============================================================
@@ -211,9 +227,13 @@ export interface ActivityEntry {
   id: string;
   entity_type: string;
   entity_id: string;
+  node_type: string | null;
   action: string;
-  details: Record<string, unknown> | null;
-  timestamp: string;
+  old_value: string | null;
+  new_value: string | null;
+  actor: string;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface SearchResult {

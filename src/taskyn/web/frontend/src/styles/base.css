@@ -1168,6 +1168,43 @@ kbd {
 }
 
 /* ============================================
+   THEME TOGGLE (Login Page)
+   ============================================ */
+.theme-toggle {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 100;
+}
+
+.theme-toggle button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.theme-toggle button:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+.theme-toggle button svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+/* ============================================
    LOGIN PAGE
    ============================================ */
 .login-container {
@@ -1817,6 +1854,21 @@ textarea.form-input {
 }
 .color-option.selected {
     border-color: var(--text-primary);
+}
+.color-picker-item {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.color-picker-item:hover {
+    transform: scale(1.1);
+}
+.color-picker-item.selected {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent-primary);
 }
 .header-actions {
     display: flex;
@@ -2950,6 +3002,31 @@ textarea.form-input {
 
 .time-entry-duration.active {
     color: var(--accent-primary);
+}
+
+.time-entry-delete {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.time-entry-item:hover .time-entry-delete {
+    opacity: 1;
+}
+
+.time-entry-delete:hover {
+    background: var(--bg-tertiary);
+    color: var(--status-blocked);
 }
 
 .time-entry-active {

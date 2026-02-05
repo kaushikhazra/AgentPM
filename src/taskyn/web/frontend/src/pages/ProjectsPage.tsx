@@ -32,6 +32,7 @@ export function ProjectsPage() {
   const [createCompanyId, setCreateCompanyId] = useState('');
   const [createMethodology, setCreateMethodology] = useState('classic_agile');
   const [createDesc, setCreateDesc] = useState('');
+  const [createColor, setCreateColor] = useState(0);
   const [creating, setCreating] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -76,6 +77,7 @@ export function ProjectsPage() {
       setCreateName('');
       setCreateDesc('');
       setCreateCompanyId('');
+      setCreateColor(0);
       await loadData();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to create');
@@ -294,6 +296,22 @@ export function ProjectsPage() {
             <option value="spec_driven">Spec Driven</option>
           </select>
           <p className="form-hint">Defines the workflow: node types, statuses, and transitions.</p>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Project Color</label>
+          <div className="color-picker">
+            {GRADIENTS.map((gradient, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className={`color-picker-item${createColor === idx ? ' selected' : ''}`}
+                style={{ background: gradient }}
+                onClick={() => setCreateColor(idx)}
+                aria-label={`Color option ${idx + 1}`}
+              />
+            ))}
+          </div>
+          <p className="form-hint">Choose a color for the project icon.</p>
         </div>
         <div className="form-group">
           <label className="form-label">Description</label>

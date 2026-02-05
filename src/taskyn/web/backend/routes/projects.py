@@ -22,7 +22,7 @@ async def list_projects(
         args["company_id"] = company_id
     if status:
         args["status"] = status
-    return call_mcp_tool("pm_list_projects", args)
+    return await call_mcp_tool("pm_list_projects", args)
 
 
 @router.get("/{project_id}")
@@ -31,7 +31,7 @@ async def get_project(
     current_user: User = Depends(get_current_user),
 ):
     """Get a project by ID."""
-    return call_mcp_tool("pm_get_project", {"project_id": project_id})
+    return await call_mcp_tool("pm_get_project", {"project_id": project_id})
 
 
 @router.post("", status_code=201)
@@ -40,7 +40,7 @@ async def create_project(
     current_user: User = Depends(get_current_user),
 ):
     """Create a new project."""
-    return call_mcp_tool("pm_create_project", data.model_dump(exclude_none=True))
+    return await call_mcp_tool("pm_create_project", data.model_dump(exclude_none=True))
 
 
 @router.patch("/{project_id}")
@@ -51,7 +51,7 @@ async def update_project(
 ):
     """Update a project."""
     args = {"project_id": project_id, **data.model_dump(exclude_unset=True)}
-    return call_mcp_tool("pm_update_project", args)
+    return await call_mcp_tool("pm_update_project", args)
 
 
 @router.delete("/{project_id}", status_code=204)
@@ -60,7 +60,7 @@ async def delete_project(
     current_user: User = Depends(get_current_user),
 ):
     """Delete a project."""
-    call_mcp_tool("pm_delete_project", {"project_id": project_id})
+    await call_mcp_tool("pm_delete_project", {"project_id": project_id})
     return Response(status_code=204)
 
 
@@ -70,7 +70,7 @@ async def get_methodology(
     current_user: User = Depends(get_current_user),
 ):
     """Get methodology info for a project."""
-    return call_mcp_tool("pm_get_methodology_info", {"project_id": project_id})
+    return await call_mcp_tool("pm_get_methodology_info", {"project_id": project_id})
 
 
 @router.get("/{project_id}/stats")
@@ -79,4 +79,4 @@ async def get_project_stats(
     current_user: User = Depends(get_current_user),
 ):
     """Get project stats."""
-    return call_mcp_tool("pm_get_project_stats", {"project_id": project_id})
+    return await call_mcp_tool("pm_get_project_stats", {"project_id": project_id})

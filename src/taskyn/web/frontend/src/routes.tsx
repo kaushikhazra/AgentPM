@@ -135,10 +135,26 @@ export const routes: RouteObject[] = [
     ),
   },
   {
+    path: '/kanban',
+    element: (
+      <ProtectedRoute>
+        <KanbanPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: '/kanban/:projectId',
     element: (
       <ProtectedRoute>
         <KanbanPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/planner',
+    element: (
+      <ProtectedRoute>
+        <PlannerPage />
       </ProtectedRoute>
     ),
   },

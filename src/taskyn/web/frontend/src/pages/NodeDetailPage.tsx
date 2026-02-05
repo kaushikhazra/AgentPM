@@ -43,6 +43,10 @@ export function NodeDetailPage() {
   const [createDesc, setCreateDesc] = useState('');
   const [creating, setCreating] = useState(false);
 
+  // Delete confirmation modal
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const loadData = useCallback(async () => {
     if (!nodeId) return;
     try {
@@ -128,6 +132,26 @@ export function NodeDetailPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!node || !project) return;
+    setDeleting(true);
+    try {
+      await nodesApi.delete(node.id);
+      // Navigate to parent if exists, otherwise to project
+      const parentNode = ancestors[ancestors.length - 1];
+      if (parentNode) {
+        navigate(`/nodes/${parentNode.id}`);
+      } else {
+        navigate(`/projects/${project.id}`);
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to delete');
+      setShowDelete(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (!node || !project) {
     return (
       <div className="content-wrapper">
@@ -175,6 +199,12 @@ export function NodeDetailPage() {
       }
       headerAction={
         <div className="header-actions">
+          <Button variant="secondary" onClick={() => setShowDelete(true)}>
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
+              <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            Delete
+          </Button>
           {canStart && (
             <Button variant="secondary" onClick={handleStatusAction}>Start</Button>
           )}
@@ -315,6 +345,29 @@ export function NodeDetailPage() {
             onChange={(e) => setCreateDesc(e.target.value)}
           />
         </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        title={`Delete ${typeUI.displayName}`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowDelete(false)}>Cancel</Button>
+            <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting...' : `Delete ${typeUI.displayName}`}
+            </Button>
+          </>
+        }
+      >
+        <p style={{ marginBottom: 16 }}>
+          Are you sure you want to delete <strong>{node.title}</strong>?
+        </p>
+        <p className="text-secondary">
+          This will permanently delete {children.length > 0 ? `all ${children.length} children and their` : 'any associated'} time entries.
+          This action cannot be undone.
+        </p>
       </Modal>
     </DetailLayout>
   );

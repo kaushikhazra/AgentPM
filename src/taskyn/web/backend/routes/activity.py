@@ -21,4 +21,4 @@ async def get_activity(
         args["entity_type"] = entity_type
     if entity_id:
         args["entity_id"] = entity_id
-    return call_mcp_tool("pm_get_recent_activity", args)
+    return await call_mcp_tool("pm_get_recent_activity", args)

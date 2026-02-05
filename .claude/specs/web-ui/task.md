@@ -506,3 +506,168 @@
   - [x] Timer: start second auto-stops first
   - [x] `pm_block_node` via MCP
   _US-17.3_
+
+---
+
+## Phase 12: UI/UX Alignment
+
+Addresses all discrepancies from the Look & Feel Review (`review-ui-lnf.md`).
+
+### 12A — Navigation
+
+- [x] Add Planner nav link to TopNav (LF-1)
+  - [x] Add between Projects and Tracker
+  - [x] Use planner icon from mockup
+  _US-18.1_
+
+- [x] Add Kanban nav link to TopNav (LF-2)
+  - [x] Add between Planner and Tracker
+  - [x] Use kanban icon from mockup
+  _US-18.1_
+
+### 12B — Login Page
+
+- [x] Fix login page text (LF-11, LF-12, LF-13, LF-14, LF-15)
+  - [x] Subtitle: "Sign in to continue to your workspace"
+  - [x] Email label: "Email address"
+  - [x] Social button order: Google first, then GitHub
+  - [x] Signup link: "Create one"
+  - [x] Add theme toggle in top-right corner
+  _US-18.2_
+
+### 12C — Dashboard Page
+
+- [x] Fix dashboard stat cards (LF-3, LF-4)
+  - [x] "Tasks Due Today" label
+  - [x] "Completed This Week" label
+  - [x] "Time Tracked Today" label with timer integration
+  _US-18.3_
+
+- [x] Fix dashboard tasks section (LF-5)
+  - [x] Section title: "Today's Tasks"
+  - [x] Task meta: "Project Name • Due today"
+  - [x] Enable task checkboxes with completion handler
+  _US-18.3_
+
+### 12D — Kanban Board
+
+- [x] Add timer indicator to kanban cards (LF-7)
+  - [x] Show "⏱ HH:MM:SS tracking" on card with active timer
+  - [x] Apply accent border-left to active card
+  _US-18.4_
+
+- [x] Add priority dots to kanban cards (LF-8)
+  - [x] Use task-priority class in card meta
+  _US-18.4_
+
+- [x] Show due dates on kanban cards (LF-9)
+  - [x] Format: "Today", "Tomorrow", "Next week", etc.
+  - [x] Replace node type + ID with due date display
+  _US-18.4_
+
+### 12E — Projects Page
+
+- [x] Add color picker to New Project modal (LF-6)
+  - [x] 6-color palette matching mockup gradients
+  - [x] Store selection in project properties
+  - [x] Apply to project card icon
+  _US-18.5_
+
+---
+
+## Phase 13: Delete Functionality
+
+Completes CRUD coverage for all entities based on delete functionality audit.
+
+### 13A — Backend Additions
+
+- [ ] Add milestone delete (US-18.4)
+  - [ ] Add `pm_delete_milestone(milestone_id)` MCP tool to `server.py`
+  - [ ] Add `DELETE /milestones/:id` route to `routes/milestones.py`
+  - [ ] Add tests for milestone deletion
+  _US-18.4_
+
+- [ ] Add tag delete (US-18.5)
+  - [ ] Add `pm_delete_tag(tag_name)` MCP tool to `server.py`
+  - [ ] Add `DELETE /tags/:name` route to `routes/tags.py`
+  - [ ] Return warning if tag is in use by nodes
+  - [ ] Add tests for tag deletion
+  _US-18.5_
+
+- [ ] Add time entry delete (US-18.7)
+  - [ ] Add `pm_delete_time_entry(entry_id)` MCP tool to `server.py`
+  - [ ] Add `DELETE /time-entries/:id` route to `routes/time_entries.py`
+  - [ ] Add tests for time entry deletion
+  _US-18.7_
+
+### 13B — Frontend API Additions
+
+- [ ] Add node delete to frontend API (US-18.2)
+  - [ ] Add `delete(id)` method to `api/nodes.ts`
+  _US-18.2_
+
+- [ ] Add milestone delete to frontend API (US-18.4)
+  - [ ] Create `api/milestones.ts` if not exists
+  - [ ] Add `delete(id)` method
+  _US-18.4_
+
+- [ ] Add tag delete to frontend API (US-18.5)
+  - [ ] Create `api/tags.ts` if not exists
+  - [ ] Add `delete(name)` method
+  _US-18.5_
+
+- [ ] Add time entry delete to frontend API (US-18.7)
+  - [ ] Create `api/timeEntries.ts` if not exists
+  - [ ] Add `delete(id)` method
+  _US-18.7_
+
+### 13C — Frontend UI Additions
+
+- [ ] Add project delete UI (US-18.1)
+  - [ ] Add delete button to ProjectDetailPage header
+  - [ ] Add confirmation modal with warning about cascading delete
+  - [ ] Handle success (redirect to /projects, show toast)
+  - [ ] Handle failure (show error toast)
+  _US-18.1_
+
+- [ ] Add node delete UI (US-18.2)
+  - [ ] Add delete button to NodeDetailPage header
+  - [ ] Add confirmation modal with warning about children
+  - [ ] Handle success (redirect to parent or project)
+  - [ ] Handle failure (show error toast)
+  _US-18.2_
+
+- [ ] Add edge delete UI (US-18.3)
+  - [ ] Add delete button on edge rows in NodeDetailPage
+  - [ ] Add confirmation modal
+  - [ ] Handle success (refresh node detail)
+  - [ ] Handle failure (show error toast)
+  _US-18.3_
+
+- [ ] Add node tag remove UI (US-18.6)
+  - [ ] Add X button on tag badges in NodeDetailPage
+  - [ ] Handle success (refresh node detail)
+  - [ ] Handle failure (show error toast)
+  _US-18.6_
+
+- [ ] Add time entry delete UI (US-18.7)
+  - [ ] Add delete button on time entry rows in TrackerPage
+  - [ ] Add confirmation modal
+  - [ ] Handle success (refresh list)
+  - [ ] Handle failure (show error toast)
+  _US-18.7_
+
+- [ ] Add tag management UI (US-18.5)
+  - [ ] Add tags section to SettingsPage or create dedicated page
+  - [ ] List all tags with delete button
+  - [ ] Add confirmation modal with in-use warning
+  - [ ] Handle success (refresh list)
+  - [ ] Handle failure (show error toast)
+  _US-18.5_
+
+- [ ] Add milestone delete UI (US-18.4)
+  - [ ] Add delete button on milestone display
+  - [ ] Add confirmation modal
+  - [ ] Handle success (refresh list)
+  - [ ] Handle failure (show error toast)
+  _US-18.4_

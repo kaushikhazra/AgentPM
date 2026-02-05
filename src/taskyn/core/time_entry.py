@@ -255,6 +255,31 @@ def _row_to_time_entry(row) -> TimeEntry:
     )
 
 
+def delete_time_entry(entry_id: str, actor: str | None = None) -> bool:
+    """Delete a time entry by ID."""
+    entry = _get_time_entry(entry_id)
+    if entry is None:
+        return False
+
+    log_activity(
+        entity_type="time_entry",
+        entity_id=entry_id,
+        action="deleted",
+        old_value=str(entry.duration_minutes) if entry.duration_minutes else "running",
+        actor=actor,
+    )
+
+    execute("DELETE FROM time_entries WHERE id = ?", (entry_id,))
+    commit()
+
+    return True
+
+
+def get_time_entry(entry_id: str) -> TimeEntry | None:
+    """Get a time entry by ID (public API)."""
+    return _get_time_entry(entry_id)
+
+
 def _parse_datetime(value) -> datetime:
     """Parse a datetime from SQLite."""
     if isinstance(value, datetime):

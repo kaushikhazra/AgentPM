@@ -409,13 +409,13 @@ All in `.claude/research/web-ui/design/mockups/`:
 | Document | Path | Purpose |
 |----------|------|---------|
 | Route & Data Audit | `.claude/temp/web-ui-route-audit.md` | 7 issues found auditing mockups against routes/API |
-| Code Review | `.claude/specs/web-ui/code-review.md` | 47 issues across 4 severity levels, missing test coverage |
+| Code Review | `.claude/specs/web-ui/review-code.md` | 47 issues across 4 severity levels, missing test coverage |
 
 ---
 
 ## Phase 11: Hardening & Quality
 
-Phase 11 addresses all findings from the code review (`code-review.md`). Organized
+Phase 11 addresses all findings from the code review (`review-code.md`). Organized
 into four sub-phases by domain: security, backend correctness, frontend quality, and
 test coverage.
 
@@ -586,3 +586,150 @@ Fills gaps identified in the review's "Missing Test Coverage" section.
 - Search result content verification
 - Timer: start second timer auto-stops first
 - `pm_block_node` via MCP
+
+---
+
+## Phase 12: UI/UX Alignment
+
+Phase 12 addresses all discrepancies identified in the Look & Feel Review (`review-ui-lnf.md`).
+These ensure the React implementation matches the HTML mockups in `.claude/research/web-ui/design/mockups/`.
+
+### 12A — Navigation
+
+**TopNav Missing Links (LF-1, LF-2)**
+- Add Planner nav link between Projects and Tracker
+- Add Kanban nav link between Planner and Tracker
+- Both routes exist (`/planner`, `/kanban`) but were inaccessible from nav
+
+### 12B — Login Page
+
+**Text Alignment (LF-11 through LF-15)**
+- Subtitle: "Sign in to your account to continue" → "Sign in to continue to your workspace"
+- Email label: "Email" → "Email address"
+- Social button order: GitHub, Google → Google, GitHub
+- Signup link: "Sign up" → "Create one"
+- Add theme toggle button in top-right corner
+
+### 12C — Dashboard Page
+
+**Stat Cards & Section (LF-3, LF-4, LF-5)**
+- Stat card labels: "Total Tasks" → "Tasks Due Today", "Completed" → "Completed This Week", "Projects" → "Time Tracked Today"
+- Section title: "In Progress" → "Today's Tasks"
+- Task meta format: Show "Due today" format matching mockup
+- Enable task checkboxes for completion (TaskItem component already supports this)
+
+### 12D — Kanban Board
+
+**Card Enhancements (LF-7, LF-8, LF-9)**
+- Add timer indicator on cards with active timer ("⏱ 01:45:32 tracking")
+- Add priority dots to card meta (using existing `task-priority` class)
+- Show due dates ("Today", "Tomorrow", "Next week") instead of node type + ID
+- Apply `border-left: 3px solid var(--accent-primary)` to card with active timer
+
+### 12E — Projects Page
+
+**Color Picker (LF-6)**
+- Add 6-color picker to "New Project" modal
+- Colors: primary gradient, secondary gradient, mint-sage, sky-primary, peach-blush, butter-mint
+- Store selected color in project properties or use project color field
+- Display selected color on project card icons
+
+---
+
+## Phase 13: Delete Functionality
+
+Phase 13 completes CRUD coverage by adding delete operations to all entities that are
+missing them. Based on the delete functionality audit:
+
+| Entity | Backend | Frontend API | Frontend UI |
+|--------|---------|--------------|-------------|
+| Company | ✓ | ✓ | ✓ |
+| Project | ✓ | ✓ | ❌ |
+| Node | ✓ | ❌ | ❌ |
+| Edge | ✓ | ✓ | ❌ |
+| Milestone | ❌ | ❌ | ❌ |
+| Tag | ❌ | ❌ | ❌ |
+| Node Tag | ✓ | ✓ | ❌ |
+| Time Entry | ❌ | ❌ | ❌ |
+
+### 13A — Backend Additions
+
+**Milestone Delete (US-18.4)**
+- Add `pm_delete_milestone(milestone_id)` MCP tool to `server.py`
+- Add `DELETE /milestones/:id` route to `routes/milestones.py`
+- Validate milestone exists before delete
+
+**Tag Delete (US-18.5)**
+- Add `pm_delete_tag(tag_name)` MCP tool to `server.py`
+- Add `DELETE /tags/:name` route to `routes/tags.py`
+- Return warning if tag is currently applied to nodes
+
+**Time Entry Delete (US-18.7)**
+- Add `pm_delete_time_entry(entry_id)` MCP tool to `server.py`
+- Add `DELETE /time-entries/:id` route to `routes/time_entries.py`
+- Validate entry exists and belongs to current user
+
+### 13B — Frontend API Additions
+
+**Node API (US-18.2)**
+```typescript
+// api/nodes.ts
+delete: (id: string) => api.delete(`/nodes/${id}`)
+```
+
+**Milestone API (US-18.4)**
+```typescript
+// api/milestones.ts (new file or add to existing)
+delete: (id: string) => api.delete(`/milestones/${id}`)
+```
+
+**Tag API (US-18.5)**
+```typescript
+// api/tags.ts (new file or add to existing)
+delete: (name: string) => api.delete(`/tags/${encodeURIComponent(name)}`)
+```
+
+**Time Entry API (US-18.7)**
+```typescript
+// api/timeEntries.ts (new file or add to existing)
+delete: (id: string) => api.delete(`/time-entries/${id}`)
+```
+
+### 13C — Frontend UI Additions
+
+**ProjectsPage / ProjectDetailPage (US-18.1)**
+- Add delete button to project actions (card menu or detail page header)
+- Confirmation modal: "Delete project? This will also delete all nodes and time entries."
+- On success: redirect to `/projects`, show success toast
+- On failure: show error toast
+
+**NodeDetailPage (US-18.2)**
+- Add delete button to page header actions
+- Confirmation modal: "Delete {nodeType}? This will also delete all children and time entries."
+- On success: redirect to parent node or project
+- On failure: show error toast
+
+**NodeDetailPage - Edges (US-18.3)**
+- Add delete/remove icon button on each edge row
+- Confirmation modal: "Remove relationship to {targetNode}?"
+- On success: refresh node detail
+- On failure: show error toast
+
+**NodeDetailPage - Tags (US-18.6)**
+- Add X button on each tag badge
+- No confirmation needed (quick action)
+- On success: refresh node detail
+- On failure: show error toast
+
+**TrackerPage (US-18.7)**
+- Add delete button on each time entry row
+- Confirmation modal: "Delete time entry for {taskName}?"
+- On success: refresh time entries list
+- On failure: show error toast
+
+**Settings or Tags Page (US-18.5)**
+- Add tags management section or dedicated page
+- List all tags with delete button
+- Confirmation modal with warning if tag is in use: "Delete tag '{name}'? It is currently applied to N nodes."
+- On success: refresh tags list
+- On failure: show error toast

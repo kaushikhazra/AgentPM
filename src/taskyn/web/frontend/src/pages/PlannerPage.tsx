@@ -31,17 +31,20 @@ function statusClass(status: string): string {
 }
 
 function buildTree(nodes: Node[], edges: Edge[]): TreeNode[] {
+  // Edge semantics: source_id = child, target_id = parent
+  // So we map parent -> children (target -> source)
   const childMap = new Map<string, string[]>();
   edges.forEach((e) => {
     if (e.edge_type === 'parent') {
-      const children = childMap.get(e.source_id) ?? [];
-      children.push(e.target_id);
-      childMap.set(e.source_id, children);
+      const children = childMap.get(e.target_id) ?? [];
+      children.push(e.source_id);
+      childMap.set(e.target_id, children);
     }
   });
 
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-  const hasParent = new Set(edges.filter((e) => e.edge_type === 'parent').map((e) => e.target_id));
+  // Nodes that have a parent are the source_id values
+  const hasParent = new Set(edges.filter((e) => e.edge_type === 'parent').map((e) => e.source_id));
 
   function buildChildren(parentId: string): TreeNode[] {
     const childIds = childMap.get(parentId) ?? [];

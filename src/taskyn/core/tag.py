@@ -54,10 +54,47 @@ def delete_tag(tag_id: str) -> bool:
     if tag is None:
         return False
 
+    # Also delete from node_tags junction table
+    execute("DELETE FROM node_tags WHERE tag_id = ?", (tag_id,))
     execute("DELETE FROM tags WHERE id = ?", (tag_id,))
     commit()
 
     return True
+
+
+def get_tag_usage_count(tag_name: str) -> int:
+    """Get the number of nodes using a tag."""
+    tag = get_tag_by_name(tag_name)
+    if tag is None:
+        return 0
+
+    row = fetchone(
+        "SELECT COUNT(*) as count FROM node_tags WHERE tag_id = ?",
+        (tag.id,),
+    )
+    return row["count"] if row else 0
+
+
+def delete_tag_by_name(tag_name: str) -> dict:
+    """
+    Delete a tag by name.
+
+    Returns a dict with:
+    - deleted: bool - whether the tag was deleted
+    - usage_count: int - how many nodes were using the tag
+    """
+    tag = get_tag_by_name(tag_name)
+    if tag is None:
+        return {"deleted": False, "usage_count": 0}
+
+    usage_count = get_tag_usage_count(tag_name)
+
+    # Delete from node_tags junction table first
+    execute("DELETE FROM node_tags WHERE tag_id = ?", (tag.id,))
+    execute("DELETE FROM tags WHERE id = ?", (tag.id,))
+    commit()
+
+    return {"deleted": True, "usage_count": usage_count}
 
 
 def tag_node(node_id: str, tag_name: str, actor: str | None = None) -> None:

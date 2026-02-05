@@ -22,4 +22,4 @@ async def search(
         args["entity_type"] = entity_type
     if project_id:
         args["project_id"] = project_id
-    return call_mcp_tool("pm_search", args)
+    return await call_mcp_tool("pm_search", args)

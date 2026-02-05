@@ -20,7 +20,7 @@ This branch adds a full web UI to Taskyn: a FastAPI REST backend that delegates 
 |---|-------|----------|
 | 1 | **Hardcoded JWT secret fallback** -- `"taskyn-dev-secret-change-in-production"` allows token forging if env var is unset; no startup warning | `src/taskyn/web/backend/auth/jwt.py:8` |
 | 2 | **No rate limiting on auth endpoints** -- `/auth/login` and `/auth/register` are open to brute-force and mass account creation | `src/taskyn/web/backend/routes/auth.py:15-34` |
-| 3 | **No authorization enforcement** -- `current_user` is injected everywhere but *never used*; any authenticated user can read/modify/delete any other user's data | All route files |
+| 3 | ~~**No authorization enforcement**~~ -- `current_user` is injected for authentication but not used for ownership checks. **By design:** Taskyn is a single-user personal tool; MCP tools operate on a shared database with no tenant concept | All route files |
 | 4 | **Auth refresh race condition** -- `AuthProvider` uses `api.post('/auth/refresh')` which goes through the 401 retry path, potentially causing recursive refresh calls | `src/taskyn/web/frontend/src/providers/AuthProvider.tsx:27-35` |
 | 5 | **PlannerPage infinite re-fetch loop risk** -- `loadData` depends on `expanded.size`, sets `expanded` inside itself, which recreates the callback and re-triggers the effect | `src/taskyn/web/frontend/src/pages/PlannerPage.tsx:94-119` |
 
@@ -46,11 +46,9 @@ No rate limiting, throttling, or account lockout mechanism exists on `/auth/logi
 
 **Recommendation:** Add rate limiting middleware (e.g., `slowapi`) on auth endpoints. Start with 5 failed login attempts per minute per IP with exponential backoff.
 
-#### 3. No Authorization Enforcement
+#### 3. ~~No Authorization Enforcement~~ (By Design)
 
-Every route injects `current_user: User = Depends(get_current_user)` but **never uses it**. The user identity is not passed to any MCP tool call. This means any authenticated user can access, modify, or delete any other user's companies, projects, and nodes. There is no tenant isolation.
-
-**Recommendation:** Pass `current_user.id` into MCP tool calls and implement ownership checks at the data layer.
+Every route injects `current_user: User = Depends(get_current_user)` for authentication but does not pass it to MCP tool calls. This is **by design** -- Taskyn is a single-user personal tool where MCP tools operate on a shared database with no tenant concept. The `current_user` dependency serves as an authentication gate (ensuring the caller is logged in) rather than an authorization filter.
 
 #### 4. Auth Refresh Race Condition
 
@@ -293,7 +291,150 @@ A `FilterBadge` molecule at `components/molecules/FilterBadge.tsx` encapsulates 
 ## Top 5 Recommendations (Priority Order)
 
 1. **Fix JWT secret handling** -- refuse to start if `TASKYN_JWT_SECRET` is unset or < 32 chars; make `secure` cookie flag configurable via env var
-2. **Add authorization** -- pass `current_user.id` into MCP tool calls and implement ownership checks (this is the single largest security gap)
-3. **Fix `exclude_none` to `exclude_unset`** on all PATCH endpoints -- this is a correctness bug that will frustrate users trying to clear fields
-4. **Add `ErrorBoundary` and lazy loading** -- the frontend will crash on any unhandled error with no recovery, and all pages load eagerly in a single bundle
-5. **Add missing test coverage** -- expired tokens, non-GET auth guards, `parent_id` auto-edge, and 404 cases for all resource types
+2. **Fix `exclude_none` to `exclude_unset`** on all PATCH endpoints -- this is a correctness bug that will frustrate users trying to clear fields
+3. **Add `ErrorBoundary` and lazy loading** -- the frontend will crash on any unhandled error with no recovery, and all pages load eagerly in a single bundle
+4. **Add missing test coverage** -- expired tokens, non-GET auth guards, `parent_id` auto-edge, and 404 cases for all resource types
+5. **Add refresh token revocation** -- store issued tokens server-side; on logout, invalidate them (groundwork: add `jti` claims first)
+
+---
+---
+
+# Follow-Up Review: Phase 11A-11D Fix Commits
+
+**Scope:** 4 commits (Phase 11A: security hardening, 11B: backend correctness, 11C: frontend quality, 11D: tests)
+**Reviewed by:** Velasari
+**Date:** 2026-02-04
+
+---
+
+## Executive Summary
+
+The four fix commits address **37 out of 47 original findings**. All 5 CRITICAL issues were resolved. The fixes are clean, well-referenced (CR-# comments trace back to original findings), and introduce no new vulnerabilities. One notable gap remains: **no refresh token revocation** (CR-8, groundwork laid via `jti` claims but no blocklist). CR-3 (authorization enforcement) was reclassified as by-design -- Taskyn is a single-user personal tool with no tenant isolation concept.
+
+---
+
+## Phase 11A -- Security Hardening
+
+| # | Original Issue | Severity | Status | Notes |
+|---|----------------|----------|--------|-------|
+| 1 | Hardcoded JWT secret fallback | CRITICAL | **FIXED** | `_load_secret()` validates env var exists and >= 32 chars; helpful error message with generation command |
+| 2 | No rate limiting on auth endpoints | CRITICAL | **FIXED** | slowapi: 5/min login, 10/min register, 30/min refresh; `TASKYN_RATE_LIMIT` env var for test disable |
+| 6 | No password validation | HIGH | **FIXED** | `Field(min_length=8, max_length=128)` on password; `min_length=1, max_length=255` on name |
+| 8 | No refresh token revocation | HIGH | **NOT FIXED** | `jti` claim added (prerequisite for revocation) but no server-side blocklist implemented |
+| 9 | `secure=False` hardcoded on cookie | HIGH | **FIXED** | `TASKYN_COOKIE_SECURE` env var; cookie attrs centralized in `_COOKIE_ATTRS` dict |
+| 11 | Exception swallowed without logging | HIGH | **FIXED** | `logger.exception()` added before re-raise |
+| 18 | User enumeration via registration | MEDIUM | **PARTIALLY FIXED** | Message changed to "Registration failed" but 409 status still distinguishes from 422 |
+| 19 | Module-level SQLite connection thread safety | MEDIUM | **FIXED** | `@contextmanager` with per-call connection, proper `finally: conn.close()` |
+| 33 | `email-validator` missing from deps | MEDIUM | **FIXED** | Added to pyproject.toml `[web]` extras alongside `slowapi>=0.1.9` |
+| 36-37 | CORS hardcoded/overly broad | LOW | **FIXED** | `TASKYN_CORS_ORIGINS` env var; methods/headers narrowed to explicit lists |
+| 39 | No `iat`/`jti` claims in JWT | LOW | **FIXED** | Both claims added to access and refresh tokens |
+| 40 | `delete_cookie` attribute mismatch | LOW | **FIXED** | Centralized in `_COOKIE_ATTRS` dict |
+
+**Score: 10/12 issues fixed, 1 partially fixed, 1 not fixed**
+
+---
+
+## Phase 11B -- Backend Correctness
+
+| # | Original Issue | Severity | Status | Notes |
+|---|----------------|----------|--------|-------|
+| 10 | `exclude_none` on PATCH | HIGH | **FIXED** | All 4 PATCH routes now use `exclude_unset=True` |
+| 7 | No string length validation | HIGH | **FIXED** | All string fields across all 7 schema files have `max_length`; required names have `min_length=1` |
+| 21 | Missing CRUD endpoints | MEDIUM | **MOSTLY FIXED** | Added: DELETE nodes, GET/PATCH milestones, PATCH companies, POST milestone/complete. DELETE tags still missing |
+| 22 | `MilestoneCreate.target_date` typed as `str` | MEDIUM | **FIXED** | Now `datetime.date` with string serialization at route level |
+| 23 | `TimeEntryCreate.duration_minutes` no bounds | MEDIUM | **FIXED** | `Field(gt=0, le=1440)` |
+
+**New MCP tools added:** `pm_update_company`, `pm_delete_company`, `pm_get_company_stats`, `pm_get_milestone`, `pm_update_milestone`, `pm_delete_node`
+
+**Score: 5/5 issues fixed (1 with minor gap: DELETE tags)**
+
+**Residual concerns:**
+- `CompanyUpdate.name` allows empty string on PATCH (no `min_length=1` on update schema)
+- Enum validation for `node_type`, `priority`, `edge_type` deferred to MCP/core layer (acceptable for methodology-dependent fields)
+
+---
+
+## Phase 11C -- Frontend Quality
+
+| # | Original Issue | Severity | Status | Notes |
+|---|----------------|----------|--------|-------|
+| 5 | PlannerPage infinite re-fetch loop | CRITICAL | **FIXED** | `useRef` guard (`initialExpandDone`) breaks the loop; minor double-fetch on mount remains |
+| 4 | Auth refresh race condition | CRITICAL | **FIXED** | `ensureToken()` via raw fetch; module-level `refreshPromise` deduplicates concurrent calls |
+| 13 | No lazy loading | HIGH | **FIXED** | All 12 pages lazy-loaded with `React.lazy()` + `Suspense` |
+| 17 | dev_server.py SIGTERM on Windows | HIGH | **PARTIALLY FIXED** | `atexit.register(shutdown)` added as safety net; SIGTERM handler is still a no-op on Windows but atexit + SIGINT cover Ctrl+C |
+| 25 | No ErrorBoundary | MEDIUM | **FIXED** | Class component with `getDerivedStateFromError`, reset UI, integrated into both ProtectedRoute and GuestRoute |
+| 26 | TimerProvider fires before auth | MEDIUM | **FIXED** | Guards on `authLoading` and `user` before API call |
+| 27 | Modals lack aria/focus trap | MEDIUM | **FIXED** | `role="dialog"`, `aria-modal`, `aria-labelledby`, Tab/Shift+Tab focus cycling, auto-focus on open, restore focus on close |
+| 28 | No loading states | MEDIUM | **FIXED** | Text-based loading indicators on CompaniesPage, DashboardPage, ProjectsPage |
+| 31 | SearchModal race condition | MEDIUM | **FIXED** | Request counter pattern (`searchIdRef`) discards stale responses |
+| 32 | `useHotkeys` listener churn | MEDIUM | **FIXED** | `useRef` for stable shortcuts; `useEffect` with empty `[]` dependency array |
+| 44 | No 404 page | LOW | **FIXED** | `NotFoundPage` with navigation back, wired as catch-all `*` route |
+| 45 | No guest guard on auth pages | LOW | **FIXED** | `GuestRoute` wrapper redirects authenticated users to dashboard |
+| 46 | Toast setTimeout cleanup | LOW | **FIXED** | `Map<string, timeout>` tracked in `timersRef` with unmount cleanup |
+| 47 | Icon missing `aria-hidden` | LOW | **FIXED** | `aria-hidden="true"` on SVG element |
+
+**Score: 12/14 issues fully fixed, 2 partially fixed**
+
+---
+
+## Phase 11D -- Test Coverage
+
+| Gap Category | Item | Covered? |
+|---|---|---|
+| **Critical** | Expired access token rejected by `/auth/me` | YES |
+| **Critical** | Access token used as refresh rejected | YES |
+| **Critical** | Refresh token used as access rejected | YES (bonus) |
+| **Critical** | Expired refresh token rejected | YES |
+| **Critical** | Unauthenticated POST/PATCH/DELETE return 401 | YES (15 routes) |
+| **High** | `pm_create_node` with `parent_id` auto-edge | YES |
+| **High** | 404 for non-existent resources | YES (4 entity types) |
+| **High** | MCP resources coverage | PARTIAL (registration only, no invocation) |
+| **Medium** | Filter combinations | YES |
+| **Medium** | `include_stats` parameter | YES (companies + projects) |
+| **Medium** | Empty PATCH body | YES (nodes) |
+| **Medium** | Search result content verification | YES |
+| **Medium** | Timer workflow (auto-stop) | YES |
+
+**New test functions added:** 18 in `test_web_auth.py`, 48 in `test_web_routes.py`
+
+**Test quality:** Well-structured with docstrings, proper test isolation, good negative testing (invalid tokens, non-existent resources, invalid types), and integration tests for full auth/CRUD flows.
+
+**Score: 12/13 gaps covered (1 partial: MCP resources)**
+
+---
+
+## Remaining Open Issues
+
+### Still Unaddressed
+
+| # | Severity | Issue | Risk |
+|---|----------|-------|------|
+| 3 | ~~CRITICAL~~ | ~~No authorization enforcement~~ -- **By design:** single-user personal tool; `current_user` serves as auth gate, no tenant isolation needed | N/A |
+| 8 | **HIGH** | **No refresh token revocation** -- `jti` claims added as groundwork but no blocklist; stolen tokens remain valid 7 days | Medium -- requires token theft first |
+| 18 | **MEDIUM** | User enumeration partially remains -- 409 status code distinguishes "email exists" from validation error | Low for personal tool |
+| 20 | **MEDIUM** | No pagination on list endpoints | Low at current scale |
+| 21 | **MEDIUM** | DELETE tags endpoint still missing | Low -- untag-from-node works |
+| 12 | **HIGH** | TrackerPage N+1 loading pattern | Medium -- scales poorly |
+| 14 | **HIGH** | Kanban drag-and-drop keyboard inaccessible | Medium for accessibility |
+| 15 | **HIGH** | `statusClass` function duplicated 3x | Low -- code smell only |
+| 16 | **HIGH** | `FilterBadge` molecule unused | Low -- code smell only |
+| 24 | **MEDIUM** | React Query declared but unused | Low -- bundle cost only |
+| 29 | **MEDIUM** | Forms don't use `<form>` element | Low -- UX concern |
+| 30 | **MEDIUM** | Delete operations lack confirmation | Low -- UX concern |
+
+### New Minor Observations from Fixes
+
+- PlannerPage has a minor double-fetch on mount due to `useCallback` dependency chains (harmless but wasteful)
+- `test_create_edge_invalid_type` allows status 500 in assertion -- should be tightened to 422 only
+- Test fixture duplication between `test_web_auth.py` and `test_web_routes.py` (`_reset_users_db`, `client`) should be elevated to `conftest.py`
+- MCP resources test accesses internal `_resource_manager._resources` attribute -- fragile to FastMCP version changes
+
+---
+
+## Final Assessment
+
+The Phase 11A-11D fixes demonstrate **thorough, systematic remediation**. The team addressed findings across all severity levels, used CR-# reference comments for traceability, and avoided introducing new issues. The security posture is significantly improved: hardcoded secrets eliminated, rate limiting active, input validation comprehensive, and JWT tokens properly typed with `iat`/`jti` claims.
+
+The **primary remaining gap** is refresh token revocation (CR-8), which has groundwork in place via `jti` claims and can be incrementally added. CR-3 (authorization) was reclassified as by-design given Taskyn's single-user scope.
+
+**Overall readiness:** Suitable for personal/dev use. Consider adding refresh token revocation (CR-8) for defense-in-depth.

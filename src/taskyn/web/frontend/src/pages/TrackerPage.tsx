@@ -53,6 +53,11 @@ export function TrackerPage() {
   const [saving, setSaving] = useState(false);
   const [allNodes, setAllNodes] = useState<Node[]>([]);
 
+  // Delete confirmation modal
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const loadData = useCallback(async () => {
     try {
       // Load all nodes to get time entries from them
@@ -98,6 +103,26 @@ export function TrackerPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDeleteEntry = async () => {
+    if (!deleteEntryId) return;
+    setDeleting(true);
+    try {
+      await timerApi.deleteTimeEntry(deleteEntryId);
+      setShowDelete(false);
+      setDeleteEntryId(null);
+      await loadData();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to delete');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const openDeleteConfirm = (entryId: string) => {
+    setDeleteEntryId(entryId);
+    setShowDelete(true);
   };
 
   // Filter entries by tab
@@ -212,6 +237,17 @@ export function TrackerPage() {
                       <div className={`time-entry-duration${isRunning ? ' active' : ''}`}>
                         {formatDuration(dur)}
                       </div>
+                      {!isRunning && (
+                        <button
+                          className="time-entry-delete"
+                          onClick={() => openDeleteConfirm(entry.id)}
+                          aria-label="Delete time entry"
+                        >
+                          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
+                            <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   );
                 })
@@ -225,18 +261,32 @@ export function TrackerPage() {
                 dayGroups.map((group) => (
                   <div key={group.label} className="time-entry-day-group">
                     <div className="time-entry-day-header">{group.label}</div>
-                    {group.entries.map((entry) => (
-                      <div key={entry.id} className="time-entry-item">
-                        <div className="time-entry-dot" />
-                        <div className="time-entry-content">
-                          <div className="time-entry-title">{entry.nodeTitle ?? entry.node_id.slice(0, 8)}</div>
-                          <div className="time-entry-meta">{entry.notes ?? ''}</div>
+                    {group.entries.map((entry) => {
+                      const isRunning = !entry.stopped_at;
+                      return (
+                        <div key={entry.id} className="time-entry-item">
+                          <div className="time-entry-dot" />
+                          <div className="time-entry-content">
+                            <div className="time-entry-title">{entry.nodeTitle ?? entry.node_id.slice(0, 8)}</div>
+                            <div className="time-entry-meta">{entry.notes ?? ''}</div>
+                          </div>
+                          <div className="time-entry-duration">
+                            {formatDuration(entry.duration_minutes ?? 0)}
+                          </div>
+                          {!isRunning && (
+                            <button
+                              className="time-entry-delete"
+                              onClick={() => openDeleteConfirm(entry.id)}
+                              aria-label="Delete time entry"
+                            >
+                              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
+                                <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
-                        <div className="time-entry-duration">
-                          {formatDuration(entry.duration_minutes ?? 0)}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ))
               )
@@ -332,6 +382,28 @@ export function TrackerPage() {
             onChange={(e) => setManualNotes(e.target.value)}
           />
         </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={showDelete}
+        onClose={() => { setShowDelete(false); setDeleteEntryId(null); }}
+        title="Delete Time Entry"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => { setShowDelete(false); setDeleteEntryId(null); }}>Cancel</Button>
+            <Button variant="danger" onClick={handleDeleteEntry} disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete Entry'}
+            </Button>
+          </>
+        }
+      >
+        <p style={{ marginBottom: 16 }}>
+          Are you sure you want to delete this time entry?
+        </p>
+        <p className="text-secondary">
+          This action cannot be undone.
+        </p>
       </Modal>
     </div>
   );

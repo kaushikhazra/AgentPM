@@ -36,6 +36,10 @@ export function ProjectDetailPage() {
   const [createDesc, setCreateDesc] = useState('');
   const [creating, setCreating] = useState(false);
 
+  // Delete confirmation modal
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const loadData = useCallback(async () => {
     if (!projectId) return;
     try {
@@ -85,7 +89,21 @@ export function ProjectDetailPage() {
     }
   };
 
-  if (!project) {
+  const handleDelete = async () => {
+    if (!projectId) return;
+    setDeleting(true);
+    try {
+      await projectsApi.delete(projectId);
+      navigate('/projects');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to delete');
+      setShowDelete(false);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  if (!project || !project.methodology) {
     return (
       <div className="content-wrapper">
         {error ? (
@@ -134,6 +152,12 @@ export function ProjectDetailPage() {
       subtitle={project.description ?? undefined}
       headerAction={
         <div className="header-actions">
+          <Button variant="secondary" onClick={() => setShowDelete(true)}>
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
+              <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            Delete
+          </Button>
           <Button variant="primary" onClick={() => setShowCreate(true)}>
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
               <path d="M12 5v14" /><path d="M5 12h14" />
@@ -280,6 +304,29 @@ export function ProjectDetailPage() {
             onChange={(e) => setCreateDesc(e.target.value)}
           />
         </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={showDelete}
+        onClose={() => setShowDelete(false)}
+        title="Delete Project"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowDelete(false)}>Cancel</Button>
+            <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting...' : 'Delete Project'}
+            </Button>
+          </>
+        }
+      >
+        <p style={{ marginBottom: 16 }}>
+          Are you sure you want to delete <strong>{project.name}</strong>?
+        </p>
+        <p className="text-secondary">
+          This will permanently delete all {nodes.length} work items and their time entries.
+          This action cannot be undone.
+        </p>
       </Modal>
     </DetailLayout>
   );

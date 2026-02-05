@@ -7,6 +7,8 @@ from pathlib import Path
 # Set env vars before any web backend imports (jwt.py validates at import time)
 os.environ.setdefault("TASKYN_JWT_SECRET", "test-secret-key-for-pytest-minimum-32-chars")
 os.environ.setdefault("TASKYN_RATE_LIMIT", "false")
+# Set a dummy MCP URL for tests (will be overridden by in-memory transport)
+os.environ.setdefault("TASKYN_MCP_URL", "http://test-mcp:8000/mcp")
 
 import pytest
 
@@ -30,3 +32,30 @@ def temp_db(tmp_path):
     init_database()
     yield db_path
     close_connection()
+
+
+@pytest.fixture
+def mcp_client_with_server(temp_db):
+    """Create an MCP client with in-memory transport to the MCP server.
+
+    This allows testing the full MCP flow without HTTP by using
+    FastMCP's in-memory transport (pass server instance to Client).
+    """
+    import asyncio
+    from fastmcp import Client
+    from taskyn.mcp.server import mcp as mcp_server
+
+    client = Client(mcp_server)
+
+    # For sync tests, we'll provide a helper
+    async def _setup():
+        await client.__aenter__()
+        return client
+
+    loop = asyncio.new_event_loop()
+    try:
+        loop.run_until_complete(_setup())
+        yield client
+    finally:
+        loop.run_until_complete(client.__aexit__(None, None, None))
+        loop.close()

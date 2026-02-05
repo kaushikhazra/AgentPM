@@ -15,4 +15,23 @@ async def log_time(
     current_user: User = Depends(get_current_user),
 ):
     """Log a manual time entry."""
-    return call_mcp_tool("pm_log_time", data.model_dump(exclude_none=True))
+    return await call_mcp_tool("pm_log_time", data.model_dump(exclude_none=True))
+
+
+@router.get("/{entry_id}")
+async def get_time_entry(
+    entry_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Get a time entry by ID."""
+    return await call_mcp_tool("pm_get_time_entry", {"entry_id": entry_id})
+
+
+@router.delete("/{entry_id}", status_code=204)
+async def delete_time_entry(
+    entry_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a time entry."""
+    await call_mcp_tool("pm_delete_time_entry", {"entry_id": entry_id})
+    return None

@@ -25,6 +25,9 @@ export const nodesApi = {
   update: (id: string, data: NodeUpdate) =>
     api.patch<Node>(`/nodes/${id}`, data),
 
+  delete: (id: string) =>
+    api.delete(`/nodes/${id}`),
+
   start: (id: string) =>
     api.post<Node>(`/nodes/${id}/start`),
 

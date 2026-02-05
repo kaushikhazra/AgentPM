@@ -343,6 +343,51 @@ volumes:
   - ./data:/data
 ```
 
+### Two-Container Deployment (Web UI + MCP)
+
+For running the web UI with a separate MCP server:
+
+```bash
+# Build both containers
+docker build -f Dockerfile.mcp -t taskyn-core .
+docker build -f Dockerfile.web -t taskyn-web .
+
+# Or use docker-compose
+docker-compose up -d
+```
+
+This creates two services:
+- **taskyn-core**: MCP server on port 8000 (internal)
+- **taskyn-web**: Web UI + FastAPI backend on port 3000
+
+The web backend connects to the MCP server via `TASKYN_MCP_URL`:
+
+```yaml
+services:
+  taskyn-core:
+    build:
+      dockerfile: Dockerfile.mcp
+    expose:
+      - "8000"
+    volumes:
+      - taskyn-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost',8000)); s.close()"]
+
+  taskyn-web:
+    build:
+      dockerfile: Dockerfile.web
+    ports:
+      - "3000:3000"
+    environment:
+      - TASKYN_MCP_URL=http://taskyn-core:8000/mcp
+    depends_on:
+      taskyn-core:
+        condition: service_healthy
+```
+
+Access the web UI at `http://localhost:3000`.
+
 ## Methodologies
 
 ### Classic Agile (default)
@@ -376,8 +421,10 @@ taskyn project create <company_id> "Project" -m spec_driven
 |----------|-------------|---------|
 | `TASKYN_DB` | Database file path | `~/.taskyn/taskyn.db` |
 | `TASKYN_ACTOR` | Actor ID for activity logs | `mcp` |
-| `TASKYN_MCP_PORT` | HTTP server port | `8000` |
-| `TASKYN_MCP_HOST` | HTTP server host | `127.0.0.1` |
+| `TASKYN_MCP_PORT` | MCP HTTP server port | `8000` |
+| `TASKYN_MCP_HOST` | MCP HTTP server host | `127.0.0.1` |
+| `TASKYN_MCP_URL` | MCP server URL (for web backend) | Required for web UI |
+| `TASKYN_MCP_TIMEOUT` | MCP client timeout in seconds | `30` |
 
 ## Troubleshooting
 

@@ -41,7 +41,7 @@ export function ActivityFeed({ entries, emptyText = 'No recent activity' }: Acti
           type={getActivityType(entry.action)}
           text={entry.action}
           highlight={entry.entity_type}
-          time={formatRelativeTime(entry.timestamp)}
+          time={formatRelativeTime(entry.created_at)}
         />
       ))}
     </>

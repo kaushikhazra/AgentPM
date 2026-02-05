@@ -1,16 +1,22 @@
-"""FastAPI application — thin REST bridge to MCP tools."""
+"""FastAPI application — thin REST bridge to MCP tools via FastMCP Client."""
 
 import os
+from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from .deps import close_mcp_client, get_mcp_client, init_mcp_client
 from .routes.activity import router as activity_router
 from .routes.auth import limiter
 from .routes.auth import router as auth_router
 from .routes.companies import router as companies_router
+from .routes.health import router as health_router
 from .routes.dashboard import router as dashboard_router
 from .routes.edges import router as edges_router
 from .routes.milestones import router as milestones_router
@@ -21,12 +27,22 @@ from .routes.tags import router as tags_router
 from .routes.time_entries import router as time_entries_router
 from .routes.timer import router as timer_router
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifecycle — MCP client connection."""
+    await init_mcp_client()
+    yield
+    await close_mcp_client()
+
+
 app = FastAPI(
     title="Taskyn API",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     redirect_slashes=False,
+    lifespan=lifespan,
 )
 
 # Rate limiting
@@ -44,6 +60,9 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+# Health check at root level for load balancers
+app.include_router(health_router)
+
 # Register routers under /api/v1
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(companies_router, prefix="/api/v1")
@@ -57,3 +76,19 @@ app.include_router(time_entries_router, prefix="/api/v1")
 app.include_router(dashboard_router, prefix="/api/v1")
 app.include_router(activity_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
+
+# Serve frontend static files
+_frontend_dir = Path(__file__).parent.parent / "frontend" / "dist"
+
+if _frontend_dir.exists():
+    # Serve static assets (JS, CSS, etc.)
+    app.mount("/assets", StaticFiles(directory=_frontend_dir / "assets"), name="assets")
+
+    # Serve index.html for all other routes (SPA routing)
+    @app.get("/{path:path}")
+    async def serve_spa(path: str):
+        """Serve the SPA index.html for client-side routing."""
+        index_file = _frontend_dir / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        return {"detail": "Frontend not found"}

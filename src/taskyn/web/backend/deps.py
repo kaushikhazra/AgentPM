@@ -1,18 +1,15 @@
-"""FastAPI dependencies — MCP integration and auth."""
+"""FastAPI dependencies — MCP integration via FastMCP Client over HTTP."""
 
 import logging
+import os
+from functools import lru_cache
+from typing import Annotated, Any
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastmcp import Client
+from fastmcp.exceptions import ClientError
 from jose import JWTError
-
-from taskyn.exceptions import (
-    CycleDetectedError,
-    NotFoundError,
-    TaskynError,
-    ValidationError,
-)
-from taskyn.mcp.server import mcp as mcp_server
 
 from .auth.jwt import decode_token
 from .auth.users import User, get_user
@@ -21,53 +18,160 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 
-async def get_mcp():
-    """Dependency that provides the MCP server instance."""
-    return mcp_server
+# ---------------------------------------------------------------------------
+# MCP Client Configuration
+# ---------------------------------------------------------------------------
 
 
-def call_mcp_tool(tool_name: str, args: dict):
-    """Call an MCP tool by name and map errors to HTTP exceptions.
+@lru_cache
+def get_mcp_settings() -> dict[str, Any]:
+    """Get MCP client configuration from environment variables."""
+    url = os.environ.get("TASKYN_MCP_URL")
+    if not url:
+        raise RuntimeError("TASKYN_MCP_URL environment variable is required")
+    return {
+        "url": url,
+        "timeout": float(os.environ.get("TASKYN_MCP_TIMEOUT", "30")),
+    }
 
-    MCP tools are synchronous functions registered on the server.
-    This helper looks them up and calls them directly (in-process).
+
+# Global client instance (managed by lifespan in main.py)
+_mcp_client: Client | None = None
+
+
+async def init_mcp_client() -> None:
+    """Initialize global MCP client. Called during app startup."""
+    global _mcp_client
+    settings = get_mcp_settings()
+    logger.info("Connecting to MCP server at %s", settings["url"])
+    _mcp_client = Client(settings["url"], timeout=settings["timeout"])
+    await _mcp_client.__aenter__()
+    logger.info("MCP client connected successfully")
+
+
+async def close_mcp_client() -> None:
+    """Close global MCP client. Called during app shutdown."""
+    global _mcp_client
+    if _mcp_client:
+        logger.info("Closing MCP client connection")
+        await _mcp_client.__aexit__(None, None, None)
+        _mcp_client = None
+
+
+def get_mcp_client() -> Client:
+    """Dependency to get MCP client instance."""
+    if _mcp_client is None:
+        raise HTTPException(503, detail="MCP client not initialized")
+    return _mcp_client
+
+
+# Type alias for dependency injection
+MCPClient = Annotated[Client, Depends(get_mcp_client)]
+
+
+# ---------------------------------------------------------------------------
+# MCP Tool Invocation
+# ---------------------------------------------------------------------------
+
+
+async def call_mcp_tool(tool_name: str, args: dict) -> Any:
+    """Call an MCP tool via FastMCP Client and map errors to HTTP exceptions.
+
+    This function communicates with the Taskyn MCP server over HTTP using
+    the FastMCP Client library. Errors from the MCP server are mapped to
+    appropriate HTTP status codes.
     """
-    # Look up the tool function from the registry
-    tool_func = _get_tool_func(tool_name)
+    client = get_mcp_client()
+
     try:
-        return tool_func(**args)
-    except NotFoundError as e:
-        raise HTTPException(404, detail=str(e))
-    except CycleDetectedError as e:
-        raise HTTPException(409, detail=str(e))
-    except ValidationError as e:
-        raise HTTPException(422, detail=str(e))
-    except TaskynError as e:
-        raise HTTPException(422, detail=str(e))
-    except ValueError as e:
-        msg = str(e).lower()
-        if "not found" in msg:
-            raise HTTPException(404, detail=str(e))
-        if "already exists" in msg or "cycle" in msg:
-            raise HTTPException(409, detail=str(e))
-        raise HTTPException(422, detail=str(e))
-    except Exception:
-        logger.exception("Unexpected error in MCP tool %s", tool_name)
-        raise HTTPException(500, detail="Internal server error")
+        result = await client.call_tool(tool_name, args)
+        # FastMCP returns CallToolResult - extract data from various formats
 
+        # Check if the tool call resulted in an error
+        if hasattr(result, 'isError') and result.isError:
+            # Extract error message from content
+            error_msg = "MCP tool error"
+            if hasattr(result, 'content') and result.content:
+                for item in result.content:
+                    if hasattr(item, 'text'):
+                        error_msg = item.text
+                        break
+            # Map error to appropriate HTTP status
+            msg_lower = error_msg.lower()
+            if "not found" in msg_lower:
+                raise HTTPException(404, detail=error_msg)
+            elif "cycle" in msg_lower or "already exists" in msg_lower:
+                raise HTTPException(409, detail=error_msg)
+            elif "validation" in msg_lower or "invalid" in msg_lower:
+                raise HTTPException(422, detail=error_msg)
+            else:
+                raise HTTPException(422, detail=error_msg)
 
-def _get_tool_func(tool_name: str):
-    """Get the underlying Python function for an MCP tool by name.
+        # Try structured_content first (preferred format)
+        if hasattr(result, 'structured_content') and result.structured_content:
+            sc = result.structured_content
+            # Check for 'result' key (our MCP server format)
+            if 'result' in sc:
+                return sc['result']
+            # Otherwise return the whole structured_content
+            return sc
 
-    FastMCP wraps tool functions in FunctionTool objects.
-    We access the original function via the `.fn` attribute.
-    """
-    import taskyn.mcp.server as server_module
-    tool = getattr(server_module, tool_name, None)
-    if tool is None:
-        raise HTTPException(500, detail=f"Unknown MCP tool: {tool_name}")
-    # FastMCP wraps functions in FunctionTool; get the original
-    return getattr(tool, "fn", tool)
+        # Fallback: try to parse from content text (TextContent format)
+        if hasattr(result, 'content') and result.content:
+            import json
+            for content_item in result.content:
+                if hasattr(content_item, 'text'):
+                    try:
+                        return json.loads(content_item.text)
+                    except json.JSONDecodeError:
+                        return content_item.text
+
+        # Last resort: try .data attribute
+        if hasattr(result, 'data'):
+            return result.data
+
+        return None
+
+    except ClientError as e:
+        # Map error messages to HTTP status codes
+        message = str(e)
+        msg_lower = message.lower()
+
+        if "not found" in msg_lower:
+            raise HTTPException(404, detail=message)
+        elif "cycle" in msg_lower:
+            raise HTTPException(409, detail=message)
+        elif "already exists" in msg_lower:
+            raise HTTPException(409, detail=message)
+        elif "validation" in msg_lower or "invalid" in msg_lower:
+            raise HTTPException(422, detail=message)
+        else:
+            raise HTTPException(422, detail=message)
+
+    except ConnectionError as e:
+        logger.error("MCP server connection error: %s", e)
+        raise HTTPException(503, detail=f"MCP server unavailable: {e}")
+
+    except TimeoutError as e:
+        logger.error("MCP server timeout: %s", e)
+        raise HTTPException(504, detail=f"MCP server timeout: {e}")
+
+    except Exception as e:
+        # Check if the exception message contains known error patterns
+        message = str(e)
+        msg_lower = message.lower()
+
+        if "not found" in msg_lower:
+            raise HTTPException(404, detail=message)
+        elif "already exists" in msg_lower:
+            raise HTTPException(409, detail=message)
+        elif "cycle" in msg_lower:
+            raise HTTPException(409, detail=message)
+        elif "validation" in msg_lower or "invalid" in msg_lower:
+            raise HTTPException(422, detail=message)
+
+        logger.exception("Unexpected error calling MCP tool %s", tool_name)
+        raise HTTPException(500, detail=f"MCP client error: {e}")
 
 
 async def get_current_user(

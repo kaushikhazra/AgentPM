@@ -40,19 +40,31 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
     [onClose],
   );
 
+  // Track the previously focused element for restoration
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+
+  // Handle keyboard events (separate effect to avoid focus stealing)
   useEffect(() => {
     if (!open) return;
     document.addEventListener('keydown', handleKeyDown);
-
-    // Auto-focus the modal on open
-    const prev = document.activeElement as HTMLElement | null;
-    modalRef.current?.focus();
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      prev?.focus();
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, handleKeyDown]);
+
+  // Auto-focus only when modal first opens (not on every render)
+  useEffect(() => {
+    if (!open) return;
+    prevFocusRef.current = document.activeElement as HTMLElement | null;
+    // Focus the first input, or the modal itself
+    const firstInput = modalRef.current?.querySelector<HTMLElement>('input,textarea,select');
+    if (firstInput) {
+      firstInput.focus();
+    } else {
+      modalRef.current?.focus();
+    }
+    return () => {
+      prevFocusRef.current?.focus();
+    };
+  }, [open]); // Only depend on `open`, not handleKeyDown
 
   if (!open) return null;
 

@@ -514,6 +514,24 @@ def pm_update_milestone(
     return milestone.model_dump()
 
 
+@mcp.tool()
+def pm_delete_milestone(milestone_id: str) -> bool:
+    """
+    Delete a milestone.
+
+    Args:
+        milestone_id: Milestone ID
+
+    Returns:
+        True if deleted successfully
+    """
+    from taskyn.core import delete_milestone
+    result = delete_milestone(milestone_id, actor=get_actor())
+    if not result:
+        raise ValueError(f"Milestone not found: {milestone_id}")
+    return result
+
+
 # ============================================================
 # Node Tools
 # ============================================================
@@ -982,6 +1000,42 @@ def pm_get_active_timer() -> dict | None:
     }
 
 
+@mcp.tool()
+def pm_get_time_entry(entry_id: str) -> dict:
+    """
+    Get a time entry by ID.
+
+    Args:
+        entry_id: Time entry ID
+
+    Returns:
+        The time entry object
+    """
+    from taskyn.core.time_entry import get_time_entry
+    entry = get_time_entry(entry_id)
+    if entry is None:
+        raise ValueError(f"Time entry not found: {entry_id}")
+    return entry.model_dump()
+
+
+@mcp.tool()
+def pm_delete_time_entry(entry_id: str) -> bool:
+    """
+    Delete a time entry.
+
+    Args:
+        entry_id: Time entry ID
+
+    Returns:
+        True if deleted successfully
+    """
+    from taskyn.core.time_entry import delete_time_entry
+    result = delete_time_entry(entry_id, actor=get_actor())
+    if not result:
+        raise ValueError(f"Time entry not found: {entry_id}")
+    return result
+
+
 # ============================================================
 # Reporting Tools
 # ============================================================
@@ -1202,6 +1256,47 @@ def pm_untag_node(node_id: str, tag_name: str) -> bool:
     """
     from taskyn.core import untag_node
     return untag_node(node_id, tag_name, actor=get_actor())
+
+
+@mcp.tool()
+def pm_delete_tag(tag_name: str) -> dict:
+    """
+    Delete a tag from the system.
+
+    This removes the tag from all nodes that have it.
+
+    Args:
+        tag_name: Tag name to delete
+
+    Returns:
+        Dict with 'deleted' (bool) and 'usage_count' (int - nodes that had this tag)
+    """
+    from taskyn.core.tag import delete_tag_by_name
+    result = delete_tag_by_name(tag_name)
+    if not result["deleted"]:
+        raise ValueError(f"Tag not found: {tag_name}")
+    return result
+
+
+@mcp.tool()
+def pm_get_tag_usage(tag_name: str) -> dict:
+    """
+    Get usage information for a tag.
+
+    Args:
+        tag_name: Tag name
+
+    Returns:
+        Dict with 'tag_name' and 'usage_count' (number of nodes using this tag)
+    """
+    from taskyn.core.tag import get_tag_usage_count, get_tag_by_name
+    tag = get_tag_by_name(tag_name)
+    if tag is None:
+        raise ValueError(f"Tag not found: {tag_name}")
+    return {
+        "tag_name": tag_name,
+        "usage_count": get_tag_usage_count(tag_name),
+    }
 
 
 # ============================================================

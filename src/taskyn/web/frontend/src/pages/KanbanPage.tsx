@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { projectsApi } from '@/api/projects';
 import { nodesApi } from '@/api/nodes';
+import { useTimer } from '@/hooks/useTimer';
 import { METHODOLOGY_UI, getStatusLabel } from '@/config/methodology-ui';
 import type { Project, Node } from '@/types';
 
@@ -12,9 +13,30 @@ const GRADIENTS = [
   'linear-gradient(135deg, var(--accent-peach), var(--accent-blush))',
 ];
 
+function formatTimerDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function getDueDateLabel(node: Node): string {
+  // Since nodes don't have due_date field, we use created_at as a proxy
+  // In a real implementation, this would check the due_date field
+  const created = new Date(node.created_at);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return 'Next week';
+}
+
 export function KanbanPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { activeTimer, elapsed } = useTimer();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedId, setSelectedId] = useState(projectId ?? '');
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -141,6 +163,16 @@ export function KanbanPage() {
     setDropTarget(null);
   };
 
+  const isNodeTracking = (nodeId: string): boolean => {
+    return activeTimer?.node_id === nodeId;
+  };
+
+  const getPriorityClass = (priority: string | null): string => {
+    if (priority === 'high') return 'priority-high';
+    if (priority === 'low') return 'priority-low';
+    return 'priority-medium';
+  };
+
   return (
     <div className="content-wrapper--wide">
       <div className="page-header">
@@ -199,22 +231,31 @@ export function KanbanPage() {
               <span className="kanban-column-count">{col.nodes.length}</span>
             </div>
             <div className="kanban-column-content">
-              {col.nodes.map((node) => (
-                <div
-                  key={node.id}
-                  className={`kanban-card${col.status === 'done' ? ' done-card' : ''}${dragNodeId === node.id ? ' dragging' : ''}`}
-                  draggable
-                  onDragStart={() => handleDragStart(node.id)}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => navigate(`/nodes/${node.id}`)}
-                >
-                  <div className="kanban-card-title">{node.title}</div>
-                  <div className="kanban-card-meta">
-                    <span>{node.node_type}</span>
-                    <span>{node.id.slice(0, 8)}</span>
+              {col.nodes.map((node) => {
+                const isTracking = isNodeTracking(node.id);
+                return (
+                  <div
+                    key={node.id}
+                    className={`kanban-card${col.status === 'done' ? ' done-card' : ''}${dragNodeId === node.id ? ' dragging' : ''}${isTracking ? ' tracking' : ''}`}
+                    style={isTracking ? { borderLeft: '3px solid var(--accent-primary)' } : undefined}
+                    draggable
+                    onDragStart={() => handleDragStart(node.id)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => navigate(`/nodes/${node.id}`)}
+                  >
+                    <div className="kanban-card-title">{node.title}</div>
+                    <div className="kanban-card-meta">
+                      <span>{getDueDateLabel(node)}</span>
+                      <span className={`task-priority ${getPriorityClass(node.priority)}`} />
+                    </div>
+                    {isTracking && (
+                      <div className="kanban-card-timer">
+                        ⏱ {formatTimerDuration(elapsed)} tracking
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {col.nodes.length === 0 && (
                 <div style={{ padding: 16, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
                   No items

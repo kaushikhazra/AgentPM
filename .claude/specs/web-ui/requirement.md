@@ -628,3 +628,85 @@ As a developer, I want edge cases tested for resilience.
 - Search result content verified (not just `isinstance(list)`)
 - Starting second timer auto-stops first
 - `pm_block_node` tested via MCP
+
+---
+
+## Epic 18: Delete Functionality
+
+### US-18.1: Project Delete UI
+As a user, I want to delete projects from the Projects page, so that I can remove
+projects I no longer need.
+
+**Acceptance Criteria:**
+- Delete button in project detail or project card actions
+- Confirmation dialog before delete
+- Calls existing `DELETE /projects/:id` endpoint
+- Redirects to projects list after successful delete
+- Shows error toast on failure
+
+### US-18.2: Node Delete API & UI
+As a user, I want to delete nodes (tasks, stories, etc.) from the UI, so that I
+can remove work items I no longer need.
+
+**Acceptance Criteria:**
+- Add `nodesApi.delete(id)` to frontend API module
+- Delete button on NodeDetailPage
+- Confirmation dialog before delete
+- Calls existing `DELETE /nodes/:id` endpoint
+- Redirects to parent or project after successful delete
+- Shows error toast on failure
+
+### US-18.3: Edge Delete UI
+As a user, I want to remove relationships (edges) between nodes from the UI.
+
+**Acceptance Criteria:**
+- Delete button on edges displayed in NodeDetailPage
+- Confirmation dialog before delete
+- Calls existing `DELETE /edges/:id` endpoint
+- Refreshes node detail after successful delete
+- Shows error toast on failure
+
+### US-18.4: Milestone Delete Backend & UI
+As a user, I want to delete milestones, so that I can remove milestones that are
+no longer relevant.
+
+**Acceptance Criteria:**
+- Add `pm_delete_milestone` MCP tool
+- Add `DELETE /milestones/:id` backend route
+- Add `milestonesApi.delete(id)` to frontend API module
+- Delete button on milestone display
+- Confirmation dialog before delete
+- Refreshes list after successful delete
+
+### US-18.5: Tag Delete Backend & UI
+As a user, I want to delete tags from the system, so that I can clean up unused tags.
+
+**Acceptance Criteria:**
+- Add `pm_delete_tag` MCP tool
+- Add `DELETE /tags/:id` backend route
+- Add `tagsApi.delete(id)` to frontend API module
+- Delete button on tags management (Settings or dedicated page)
+- Confirmation dialog before delete
+- Shows warning if tag is in use
+
+### US-18.6: Node Tag Remove UI
+As a user, I want to remove tags from nodes in the UI, so that I can reorganize
+my work items.
+
+**Acceptance Criteria:**
+- Remove/X button on tag badges in NodeDetailPage
+- Calls existing `DELETE /nodes/:id/tags/:name` endpoint
+- Refreshes node detail after successful removal
+- Shows error toast on failure
+
+### US-18.7: Time Entry Delete Backend & UI
+As a user, I want to delete time entries, so that I can correct mistakes in my
+time tracking.
+
+**Acceptance Criteria:**
+- Add `pm_delete_time_entry` MCP tool
+- Add `DELETE /time-entries/:id` backend route
+- Add `timeEntriesApi.delete(id)` to frontend API module
+- Delete button on time entry rows in TrackerPage
+- Confirmation dialog before delete
+- Refreshes list after successful delete

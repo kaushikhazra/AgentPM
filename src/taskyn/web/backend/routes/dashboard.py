@@ -13,4 +13,4 @@ async def get_dashboard(
     current_user: User = Depends(get_current_user),
 ):
     """Get dashboard aggregates."""
-    return call_mcp_tool("pm_get_dashboard", {})
+    return await call_mcp_tool("pm_get_dashboard", {})

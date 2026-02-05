@@ -15,7 +15,7 @@ async def start_timer(
     current_user: User = Depends(get_current_user),
 ):
     """Start a timer on a node."""
-    return call_mcp_tool("pm_start_timer", data.model_dump(exclude_none=True))
+    return await call_mcp_tool("pm_start_timer", data.model_dump(exclude_none=True))
 
 
 @router.post("/stop")
@@ -24,7 +24,7 @@ async def stop_timer(
     current_user: User = Depends(get_current_user),
 ):
     """Stop the active timer (or a specific timer by entry_id)."""
-    return call_mcp_tool("pm_stop_timer", data.model_dump(exclude_none=True))
+    return await call_mcp_tool("pm_stop_timer", data.model_dump(exclude_none=True))
 
 
 @router.get("/current")
@@ -32,4 +32,4 @@ async def get_active_timer(
     current_user: User = Depends(get_current_user),
 ):
     """Get the currently active timer."""
-    return call_mcp_tool("pm_get_active_timer", {})
+    return await call_mcp_tool("pm_get_active_timer", {})

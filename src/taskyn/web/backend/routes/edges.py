@@ -27,7 +27,7 @@ async def list_edges(
         args["target_id"] = target_id
     if edge_type:
         args["edge_type"] = edge_type
-    return call_mcp_tool("pm_list_edges", args)
+    return await call_mcp_tool("pm_list_edges", args)
 
 
 @router.post("", status_code=201)
@@ -36,7 +36,7 @@ async def create_edge(
     current_user: User = Depends(get_current_user),
 ):
     """Create a new edge."""
-    return call_mcp_tool("pm_create_edge", data.model_dump())
+    return await call_mcp_tool("pm_create_edge", data.model_dump())
 
 
 @router.delete("/{edge_id}", status_code=204)
@@ -45,5 +45,5 @@ async def delete_edge(
     current_user: User = Depends(get_current_user),
 ):
     """Delete an edge."""
-    call_mcp_tool("pm_delete_edge", {"edge_id": edge_id})
+    await call_mcp_tool("pm_delete_edge", {"edge_id": edge_id})
     return Response(status_code=204)

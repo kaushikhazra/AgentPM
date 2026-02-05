@@ -19,6 +19,8 @@ export function TopNav({ onSearchClick }: TopNavProps) {
         <NavLink to="/dashboard" icon="dashboard" label="Dashboard" />
         <NavLink to="/companies" icon="companies" label="Companies" />
         <NavLink to="/projects" icon="projects" label="Projects" />
+        <NavLink to="/planner" icon="planner" label="Planner" />
+        <NavLink to="/kanban" icon="kanban" label="Kanban" />
         <NavLink to="/tracker" icon="tracker" label="Tracker" />
       </div>
 

@@ -13,4 +13,10 @@ export const timerApi = {
 
   logTime: (data: TimeEntryCreate) =>
     api.post<TimeEntry>('/time-entries', data),
+
+  getTimeEntry: (id: string) =>
+    api.get<TimeEntry>(`/time-entries/${id}`),
+
+  deleteTimeEntry: (id: string) =>
+    api.delete(`/time-entries/${id}`),
 };

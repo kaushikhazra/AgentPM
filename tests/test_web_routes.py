@@ -1,11 +1,15 @@
 """Tests for web backend REST routes (Phase 3 + Phase 11D)."""
 
+import asyncio
+
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from fastmcp import Client
 
+from taskyn.mcp.server import mcp as mcp_server
 from taskyn.web.backend.auth.users import reset_connection
-from taskyn.web.backend.deps import call_mcp_tool
+from taskyn.web.backend import deps
 from taskyn.web.backend.main import app
 
 
@@ -18,9 +22,26 @@ def _reset_users_db(temp_db):
 
 
 @pytest.fixture
-def client():
-    """Create a test client for the FastAPI app."""
-    return TestClient(app)
+def client(temp_db):
+    """Create a test client with MCP client using in-memory transport."""
+    mcp_client = Client(mcp_server)
+
+    async def setup():
+        await mcp_client.__aenter__()
+        deps._mcp_client = mcp_client
+
+    async def teardown():
+        await mcp_client.__aexit__(None, None, None)
+        deps._mcp_client = None
+
+    loop = asyncio.new_event_loop()
+    try:
+        loop.run_until_complete(setup())
+        with TestClient(app, raise_server_exceptions=False) as test_client:
+            yield test_client
+    finally:
+        loop.run_until_complete(teardown())
+        loop.close()
 
 
 @pytest.fixture
@@ -930,64 +951,80 @@ def test_get_and_update_milestone_via_rest(client, auth_headers, project_id):
     assert res.json()["name"] == "v4.1"
 
 
-def test_mcp_update_project(temp_db):
+@pytest.mark.asyncio
+async def test_mcp_update_project(temp_db):
     """pm_update_project MCP tool updates a project."""
-    company = call_mcp_tool("pm_create_company", {"name": "MCP Update Co"})
-    project = call_mcp_tool("pm_create_project", {
-        "company_id": company["id"],
-        "name": "MCP Proj",
-    })
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
 
-    updated = call_mcp_tool("pm_update_project", {
-        "project_id": project["id"],
-        "name": "MCP Proj Updated",
-    })
-    assert updated["name"] == "MCP Proj Updated"
-
-
-def test_mcp_delete_company(temp_db):
-    """pm_delete_company MCP tool deletes a company."""
-    company = call_mcp_tool("pm_create_company", {"name": "MCP Delete Co"})
-    result = call_mcp_tool("pm_delete_company", {"company_id": company["id"]})
-    assert result is True
-
-    with pytest.raises(HTTPException) as exc_info:
-        call_mcp_tool("pm_get_company", {"company_id": company["id"]})
-    assert exc_info.value.status_code == 404
-
-
-def test_mcp_delete_project(temp_db):
-    """pm_delete_project MCP tool deletes a project."""
-    company = call_mcp_tool("pm_create_company", {"name": "Del Proj Co"})
-    project = call_mcp_tool("pm_create_project", {
-        "company_id": company["id"],
-        "name": "Del Me Proj",
-    })
-
-    result = call_mcp_tool("pm_delete_project", {"project_id": project["id"]})
-    assert result is True
-
-    with pytest.raises(HTTPException) as exc_info:
-        call_mcp_tool("pm_get_project", {"project_id": project["id"]})
-    assert exc_info.value.status_code == 404
-
-
-def test_mcp_create_node_invalid_type(temp_db):
-    """pm_create_node with invalid node_type raises error."""
-    company = call_mcp_tool("pm_create_company", {"name": "Invalid Type Co"})
-    project = call_mcp_tool("pm_create_project", {
-        "company_id": company["id"],
-        "name": "Invalid Type Proj",
-        "methodology": "classic_agile",
-    })
-
-    with pytest.raises(HTTPException) as exc_info:
-        call_mcp_tool("pm_create_node", {
-            "project_id": project["id"],
-            "node_type": "invalid_type_xyz",
-            "title": "Bad Node",
+        company = await deps.call_mcp_tool("pm_create_company", {"name": "MCP Update Co"})
+        project = await deps.call_mcp_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "MCP Proj",
         })
-    assert exc_info.value.status_code in (422, 409)
+
+        updated = await deps.call_mcp_tool("pm_update_project", {
+            "project_id": project["id"],
+            "name": "MCP Proj Updated",
+        })
+        assert updated["name"] == "MCP Proj Updated"
+
+
+@pytest.mark.asyncio
+async def test_mcp_delete_company(temp_db):
+    """pm_delete_company MCP tool deletes a company."""
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
+
+        company = await deps.call_mcp_tool("pm_create_company", {"name": "MCP Delete Co"})
+        result = await deps.call_mcp_tool("pm_delete_company", {"company_id": company["id"]})
+        assert result is True
+
+        with pytest.raises(HTTPException) as exc_info:
+            await deps.call_mcp_tool("pm_get_company", {"company_id": company["id"]})
+        assert exc_info.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_mcp_delete_project(temp_db):
+    """pm_delete_project MCP tool deletes a project."""
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
+
+        company = await deps.call_mcp_tool("pm_create_company", {"name": "Del Proj Co"})
+        project = await deps.call_mcp_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Del Me Proj",
+        })
+
+        result = await deps.call_mcp_tool("pm_delete_project", {"project_id": project["id"]})
+        assert result is True
+
+        with pytest.raises(HTTPException) as exc_info:
+            await deps.call_mcp_tool("pm_get_project", {"project_id": project["id"]})
+        assert exc_info.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_mcp_create_node_invalid_type(temp_db):
+    """pm_create_node with invalid node_type raises error."""
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
+
+        company = await deps.call_mcp_tool("pm_create_company", {"name": "Invalid Type Co"})
+        project = await deps.call_mcp_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Invalid Type Proj",
+            "methodology": "classic_agile",
+        })
+
+        with pytest.raises(HTTPException) as exc_info:
+            await deps.call_mcp_tool("pm_create_node", {
+                "project_id": project["id"],
+                "node_type": "invalid_type_xyz",
+                "title": "Bad Node",
+            })
+        assert exc_info.value.status_code in (422, 409)
 
 
 def test_mcp_resources(temp_db):
@@ -1151,32 +1188,36 @@ def test_timer_start_second_stops_first(client, auth_headers, project_id):
     assert current.json()["node_id"] == node2.json()["id"]
 
 
-def test_mcp_block_node(temp_db):
+@pytest.mark.asyncio
+async def test_mcp_block_node(temp_db):
     """pm_block_node MCP tool blocks a node."""
-    company = call_mcp_tool("pm_create_company", {"name": "Block Co"})
-    project = call_mcp_tool("pm_create_project", {
-        "company_id": company["id"],
-        "name": "Block Proj",
-        "methodology": "classic_agile",
-    })
-    story = call_mcp_tool("pm_create_node", {
-        "project_id": project["id"],
-        "node_type": "story",
-        "title": "Block Parent",
-    })
-    task = call_mcp_tool("pm_create_node", {
-        "project_id": project["id"],
-        "node_type": "task",
-        "title": "Block Task",
-        "parent_id": story["id"],
-    })
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
 
-    # Start the task first
-    call_mcp_tool("pm_start_node", {"node_id": task["id"]})
+        company = await deps.call_mcp_tool("pm_create_company", {"name": "Block Co"})
+        project = await deps.call_mcp_tool("pm_create_project", {
+            "company_id": company["id"],
+            "name": "Block Proj",
+            "methodology": "classic_agile",
+        })
+        story = await deps.call_mcp_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "story",
+            "title": "Block Parent",
+        })
+        task = await deps.call_mcp_tool("pm_create_node", {
+            "project_id": project["id"],
+            "node_type": "task",
+            "title": "Block Task",
+            "parent_id": story["id"],
+        })
 
-    # Block it
-    result = call_mcp_tool("pm_block_node", {
-        "node_id": task["id"],
-        "reason": "Waiting on API access",
-    })
-    assert result["status"] == "blocked"
+        # Start the task first
+        await deps.call_mcp_tool("pm_start_node", {"node_id": task["id"]})
+
+        # Block it
+        result = await deps.call_mcp_tool("pm_block_node", {
+            "node_id": task["id"],
+            "reason": "Waiting on API access",
+        })
+        assert result["status"] == "blocked"
