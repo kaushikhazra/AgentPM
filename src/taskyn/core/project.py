@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from taskyn.db.connection import execute, fetchone, fetchall, commit
+from taskyn.db.enums import EntityType
 from taskyn.db.models import Project
 from taskyn.methodologies import methodology_exists
 from taskyn.exceptions import ValidationError
@@ -16,6 +17,7 @@ def create_project(
     name: str,
     methodology: str = "classic_agile",
     description: str | None = None,
+    type: EntityType = EntityType.DISCOVERY,
     config: dict | None = None,
     actor: str | None = None,
 ) -> Project:
@@ -44,10 +46,10 @@ def create_project(
 
     execute(
         """
-        INSERT INTO projects (id, company_id, name, description, methodology, status, config, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO projects (id, company_id, name, description, type, methodology, status, config, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (project_id, company_id, name, description, methodology, "active", config_json, now, now),
+        (project_id, company_id, name, description, type.value, methodology, "active", config_json, now, now),
     )
 
     # Log activity
@@ -66,6 +68,7 @@ def create_project(
         company_id=company_id,
         name=name,
         description=description,
+        type=type,
         methodology=methodology,
         status="active",
         config=config,
@@ -123,6 +126,7 @@ def update_project(
     project_id: str,
     name: str | None = None,
     description: str | None = None,
+    type: EntityType | None = None,
     status: str | None = None,
     config: dict | None = None,
     actor: str | None = None,
@@ -148,6 +152,10 @@ def update_project(
     if description is not None and description != project.description:
         updates.append("description = ?")
         params.append(description)
+
+    if type is not None and type != project.type:
+        updates.append("type = ?")
+        params.append(type.value)
 
     if status is not None and status != project.status:
         updates.append("status = ?")
@@ -213,11 +221,15 @@ def _row_to_project(row) -> Project:
         except json.JSONDecodeError:
             pass
 
+    # Handle type field - default to DISCOVERY if NULL (for existing data)
+    type_value = row["type"] if row["type"] else "discovery"
+
     return Project(
         id=row["id"],
         company_id=row["company_id"],
         name=row["name"],
         description=row["description"],
+        type=EntityType(type_value),
         methodology=row["methodology"],
         status=row["status"],
         config=config,

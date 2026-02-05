@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from taskyn.db.enums import EntityType
+
 
 class Company(BaseModel):
     """Company model - top-level container for projects."""
@@ -12,6 +14,7 @@ class Company(BaseModel):
     id: str
     name: str
     description: str | None = None
+    type: EntityType = EntityType.DISCOVERY
     created_at: datetime
     updated_at: datetime
 
@@ -23,6 +26,7 @@ class Project(BaseModel):
     company_id: str
     name: str
     description: str | None = None
+    type: EntityType = EntityType.DISCOVERY
     methodology: str = "classic_agile"
     status: str = "active"
     config: dict[str, Any] | None = None

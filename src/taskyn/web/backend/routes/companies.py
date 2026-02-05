@@ -33,7 +33,11 @@ async def create_company(
     current_user: User = Depends(get_current_user),
 ):
     """Create a new company."""
-    return await call_mcp_tool("pm_create_company", data.model_dump(exclude_none=True))
+    args = data.model_dump(exclude_none=True)
+    # Convert enum to string value for MCP
+    if "type" in args:
+        args["type"] = args["type"].value
+    return await call_mcp_tool("pm_create_company", args)
 
 
 @router.patch("/{company_id}")
@@ -44,6 +48,9 @@ async def update_company(
 ):
     """Update a company."""
     args = {"company_id": company_id, **data.model_dump(exclude_unset=True)}
+    # Convert enum to string value for MCP
+    if "type" in args and args["type"] is not None:
+        args["type"] = args["type"].value
     return await call_mcp_tool("pm_update_company", args)
 
 

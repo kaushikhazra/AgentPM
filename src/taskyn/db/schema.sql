@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS companies (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
+    type TEXT DEFAULT 'discovery' CHECK (type IN ('discovery', 'potential', 'matured', 'engaged', 'active', 'dormant')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS projects (
     company_id TEXT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     description TEXT,
+    type TEXT DEFAULT 'discovery' CHECK (type IN ('discovery', 'potential', 'matured', 'engaged', 'active', 'dormant')),
     methodology TEXT NOT NULL DEFAULT 'classic_agile',
     status TEXT DEFAULT 'active' CHECK (status IN ('active', 'on_hold', 'completed', 'archived')),
     config JSON,

@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from taskyn.db.connection import execute, fetchone, fetchall, commit
+from taskyn.db.enums import EntityType
 from taskyn.db.models import Company
 from taskyn.exceptions import ValidationError
 
@@ -12,6 +13,7 @@ from taskyn.exceptions import ValidationError
 def create_company(
     name: str,
     description: str | None = None,
+    type: EntityType = EntityType.DISCOVERY,
     actor: str | None = None,
 ) -> Company:
     """Create a new company."""
@@ -25,10 +27,10 @@ def create_company(
 
     execute(
         """
-        INSERT INTO companies (id, name, description, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO companies (id, name, description, type, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (company_id, name, description, now, now),
+        (company_id, name, description, type.value, now, now),
     )
 
     # Log activity
@@ -46,6 +48,7 @@ def create_company(
         id=company_id,
         name=name,
         description=description,
+        type=type,
         created_at=now,
         updated_at=now,
     )
@@ -87,6 +90,7 @@ def update_company(
     company_id: str,
     name: str | None = None,
     description: str | None = None,
+    type: EntityType | None = None,
     actor: str | None = None,
 ) -> Company | None:
     """Update a company."""
@@ -113,6 +117,10 @@ def update_company(
     if description is not None and description != company.description:
         updates.append("description = ?")
         params.append(description)
+
+    if type is not None and type != company.type:
+        updates.append("type = ?")
+        params.append(type.value)
 
     if not updates:
         return company
@@ -155,10 +163,13 @@ def delete_company(company_id: str, actor: str | None = None) -> bool:
 
 def _row_to_company(row) -> Company:
     """Convert a database row to a Company model."""
+    # Handle type field - default to DISCOVERY if NULL (for existing data)
+    type_value = row["type"] if row["type"] else "discovery"
     return Company(
         id=row["id"],
         name=row["name"],
         description=row["description"],
+        type=EntityType(type_value),
         created_at=_parse_datetime(row["created_at"]),
         updated_at=_parse_datetime(row["updated_at"]),
     )

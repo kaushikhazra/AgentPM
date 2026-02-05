@@ -81,19 +81,26 @@ def pm_list_companies(include_stats: bool = False) -> list[dict]:
 
 
 @mcp.tool()
-def pm_create_company(name: str, description: str | None = None) -> dict:
+def pm_create_company(
+    name: str,
+    description: str | None = None,
+    type: str = "discovery"
+) -> dict:
     """
     Create a new company.
 
     Args:
         name: Company name
         description: Optional description
+        type: Lifecycle stage (discovery, potential, matured, engaged, active, dormant)
 
     Returns:
         The created company object
     """
     from taskyn.core import create_company
-    company = create_company(name, description, actor=get_actor())
+    from taskyn.db.enums import EntityType
+    entity_type = EntityType(type)
+    company = create_company(name, description, type=entity_type, actor=get_actor())
     return company.model_dump()
 
 
@@ -124,6 +131,7 @@ def pm_update_company(
     company_id: str,
     name: str | None = None,
     description: str | None = None,
+    type: str | None = None,
 ) -> dict:
     """
     Update a company.
@@ -132,12 +140,15 @@ def pm_update_company(
         company_id: Company ID
         name: New name (optional)
         description: New description (optional)
+        type: New lifecycle stage (discovery, potential, matured, engaged, active, dormant)
 
     Returns:
         The updated company object
     """
     from taskyn.core import update_company
-    company = update_company(company_id, name=name, description=description, actor=get_actor())
+    from taskyn.db.enums import EntityType
+    entity_type = EntityType(type) if type else None
+    company = update_company(company_id, name=name, description=description, type=entity_type, actor=get_actor())
     if company is None:
         raise ValueError(f"Company not found: {company_id}")
     return company.model_dump()
@@ -250,7 +261,8 @@ def pm_create_project(
     company_id: str,
     name: str,
     methodology: str = "classic_agile",
-    description: str | None = None
+    description: str | None = None,
+    type: str = "discovery"
 ) -> dict:
     """
     Create a new project.
@@ -260,13 +272,17 @@ def pm_create_project(
         name: Project name
         methodology: PM methodology (classic_agile, spec_driven, etc.)
         description: Optional description
+        type: Lifecycle stage (discovery, potential, matured, engaged, active, dormant)
 
     Returns:
         The created project object
     """
     from taskyn.core import create_project
+    from taskyn.db.enums import EntityType
+    entity_type = EntityType(type)
     project = create_project(
         company_id, name, methodology, description,
+        type=entity_type,
         actor=get_actor()
     )
     return project.model_dump()
@@ -312,7 +328,8 @@ def pm_update_project(
     project_id: str,
     status: str | None = None,
     name: str | None = None,
-    description: str | None = None
+    description: str | None = None,
+    type: str | None = None
 ) -> dict:
     """
     Update a project.
@@ -322,16 +339,20 @@ def pm_update_project(
         status: New status (active, on_hold, completed, archived)
         name: New name
         description: New description
+        type: New lifecycle stage (discovery, potential, matured, engaged, active, dormant)
 
     Returns:
         The updated project object
     """
     from taskyn.core import update_project
+    from taskyn.db.enums import EntityType
+    entity_type = EntityType(type) if type else None
     project = update_project(
         project_id,
         status=status,
         name=name,
         description=description,
+        type=entity_type,
         actor=get_actor()
     )
     return project.model_dump()

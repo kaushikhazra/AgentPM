@@ -5,24 +5,16 @@ import { projectsApi } from '@/api/projects';
 import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
-import type { Company, Project } from '@/types';
-
-const GRADIENTS = [
-  'var(--gradient-primary)',
-  'var(--gradient-secondary)',
-  'linear-gradient(135deg, var(--accent-mint), var(--accent-sage))',
-  'linear-gradient(135deg, var(--accent-sky), var(--accent-primary))',
-  'linear-gradient(135deg, var(--accent-peach), var(--accent-blush))',
-  'linear-gradient(135deg, var(--accent-butter), var(--accent-mint))',
-];
-
-function getGradient(index: number): string {
-  return GRADIENTS[index % GRADIENTS.length] ?? GRADIENTS[0]!;
-}
+import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company, type Project } from '@/types';
 
 function formatTime(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
   return `${Math.round(minutes / 60)}h`;
+}
+
+// Get color for entity type (with fallback for undefined/missing type)
+function getTypeColor(type: EntityType | undefined): string {
+  return ENTITY_TYPE_COLORS[type ?? 'discovery'];
 }
 
 export function CompaniesPage() {
@@ -37,6 +29,7 @@ export function CompaniesPage() {
   const [showView, setShowView] = useState<Company | null>(null);
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
+  const [createType, setCreateType] = useState<EntityType>('discovery');
   const [creating, setCreating] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -63,10 +56,12 @@ export function CompaniesPage() {
       await companiesApi.create({
         name: createName.trim(),
         description: createDesc.trim() || undefined,
+        type: createType,
       });
       setShowCreate(false);
       setCreateName('');
       setCreateDesc('');
+      setCreateType('discovery');
       await loadData();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to create');
@@ -117,7 +112,7 @@ export function CompaniesPage() {
       </div>
 
       <div className="companies-grid">
-        {companies.map((company, idx) => {
+        {companies.map((company) => {
           const cp = companyProjects(company.id);
           return (
             <div
@@ -126,7 +121,7 @@ export function CompaniesPage() {
               onClick={() => setShowView(company)}
             >
               <div className="company-card-header">
-                <div className="company-icon" style={{ background: getGradient(idx) }}>
+                <div className="company-icon" style={{ background: getTypeColor(company.type) }}>
                   {company.name[0]?.toUpperCase()}
                 </div>
                 <div className="company-info">
@@ -212,6 +207,20 @@ export function CompaniesPage() {
           />
           <p className="form-hint">A brief description helps you organize your work.</p>
         </div>
+        <div className="form-group">
+          <label className="form-label">Lifecycle Stage</label>
+          <div className="color-picker">
+            {ENTITY_TYPES.map((type) => (
+              <div
+                key={type}
+                className={`color-option${createType === type ? ' selected' : ''}`}
+                style={{ background: ENTITY_TYPE_COLORS[type] }}
+                onClick={() => setCreateType(type)}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
+              />
+            ))}
+          </div>
+        </div>
       </Modal>
 
       {/* View Company Modal */}
@@ -245,7 +254,7 @@ export function CompaniesPage() {
             <div className="company-detail-header">
               <div
                 className="company-detail-icon"
-                style={{ background: getGradient(companies.indexOf(showView)) }}
+                style={{ background: getTypeColor(showView.type) }}
               >
                 {showView.name[0]?.toUpperCase()}
               </div>

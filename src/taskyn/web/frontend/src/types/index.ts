@@ -1,6 +1,23 @@
 /* Taskyn TypeScript types — mirrors backend Pydantic models & MCP responses. */
 
 // ============================================================
+// Entity Type (Lifecycle Stages)
+// ============================================================
+
+export const ENTITY_TYPES = ['discovery', 'potential', 'matured', 'engaged', 'active', 'dormant'] as const;
+export type EntityType = typeof ENTITY_TYPES[number];
+
+// Fixed colors (theme-independent)
+export const ENTITY_TYPE_COLORS: Record<EntityType, string> = {
+  discovery: '#0077B6',  // Ocean Blue
+  potential: '#FFD60A',  // Chrome Yellow
+  matured: '#2A9D8F',    // Ocean Green
+  engaged: '#606C38',    // Moss Green
+  active: '#E63946',     // Coral Red
+  dormant: '#6C757D',    // Grey
+};
+
+// ============================================================
 // Companies
 // ============================================================
 
@@ -8,6 +25,7 @@ export interface Company {
   id: string;
   name: string;
   description: string | null;
+  type: EntityType;
   created_at: string;
   updated_at: string;
   stats?: CompanyStats;
@@ -24,6 +42,7 @@ export interface CompanyStats {
 export interface CompanyCreate {
   name: string;
   description?: string;
+  type?: EntityType;
 }
 
 // ============================================================
@@ -36,6 +55,7 @@ export interface Project {
   company_id: string | null;
   methodology: string;
   description: string | null;
+  type: EntityType;
   status: string;
   created_at: string;
   updated_at: string;
@@ -54,12 +74,14 @@ export interface ProjectCreate {
   name: string;
   methodology?: string;
   description?: string;
+  type?: EntityType;
 }
 
 export interface ProjectUpdate {
   name?: string;
   description?: string;
   status?: string;
+  type?: EntityType;
 }
 
 // ============================================================
