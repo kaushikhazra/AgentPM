@@ -13,6 +13,23 @@ export interface MethodologyUI {
   statusLabels: Record<string, string>;
 }
 
+/** Defines the parent → child hierarchy for each methodology.
+ * Only node types that can be parents are listed.
+ * If a node type is not listed, it cannot have children (leaf node).
+ */
+export const METHODOLOGY_HIERARCHY: Record<string, Record<string, string>> = {
+  classic_agile: {
+    epic: 'story',    // Epic's child is Story
+    story: 'task',    // Story's child is Task
+    // task and bug are leaf nodes - they cannot have children per edge validation
+  },
+  spec_driven: {
+    spec: 'design',           // Spec's child is Design
+    design: 'implementation', // Design's child is Implementation
+    // implementation and validation are leaf nodes
+  },
+};
+
 export const METHODOLOGY_UI: Record<string, MethodologyUI> = {
   classic_agile: {
     displayName: 'Classic Agile',
@@ -109,4 +126,16 @@ export function getNodeTypeUI(
 /** Get human-readable status label. */
 export function getStatusLabel(methodology: string, status: string): string {
   return METHODOLOGY_UI[methodology]?.statusLabels[status] ?? status;
+}
+
+/** Get the appropriate child type for a parent node type.
+ * Returns null if the parent node type cannot have children.
+ */
+export function getChildType(methodology: string, parentNodeType: string): string | null {
+  return METHODOLOGY_HIERARCHY[methodology]?.[parentNodeType] ?? null;
+}
+
+/** Check if a node type can have children. */
+export function canHaveChildren(methodology: string, nodeType: string): boolean {
+  return METHODOLOGY_HIERARCHY[methodology]?.[nodeType] !== undefined;
 }

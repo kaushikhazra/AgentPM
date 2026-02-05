@@ -7,7 +7,7 @@ import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
-import { getNodeTypeUI, getStatusLabel } from '@/config/methodology-ui';
+import { getNodeTypeUI, getStatusLabel, getChildType, canHaveChildren } from '@/config/methodology-ui';
 import type { Node, Project, Company } from '@/types';
 
 function statusClass(status: string): string {
@@ -108,12 +108,10 @@ export function NodeDetailPage() {
 
   const handleCreateChild = async () => {
     if (!createTitle.trim() || !node || !project) return;
+    const childType = getChildType(project.methodology, node.node_type);
+    if (!childType) return; // Node type cannot have children
     setCreating(true);
     try {
-      // Determine child type from methodology hierarchy
-      const methodology = project.methodology;
-      // Default: task is child of anything in classic_agile, implementation for spec_driven
-      const childType = methodology === 'classic_agile' ? 'task' : 'implementation';
       await nodesApi.create({
         project_id: project.id,
         node_type: childType,
@@ -166,6 +164,9 @@ export function NodeDetailPage() {
 
   const methodology = project.methodology;
   const typeUI = getNodeTypeUI(methodology, node.node_type);
+  const childNodeType = getChildType(methodology, node.node_type);
+  const allowsChildren = canHaveChildren(methodology, node.node_type);
+  const childTypeUI = childNodeType ? getNodeTypeUI(methodology, childNodeType) : null;
   const rollup = node.rollup;
   const totalChildren = rollup?.total_children ?? children.length;
   const completedChildren = rollup?.completed_children ?? children.filter((c) => c.status === 'done' || c.status === 'approved').length;
@@ -211,12 +212,14 @@ export function NodeDetailPage() {
           {isInProgress && (
             <Button variant="secondary" onClick={handleStatusAction}>Complete</Button>
           )}
-          <Button variant="primary" onClick={() => setShowCreate(true)}>
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
-              <path d="M12 5v14" /><path d="M5 12h14" />
-            </svg>
-            New Child
-          </Button>
+          {allowsChildren && childTypeUI && (
+            <Button variant="primary" onClick={() => setShowCreate(true)}>
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
+                <path d="M12 5v14" /><path d="M5 12h14" />
+              </svg>
+              New {childTypeUI.displayName}
+            </Button>
+          )}
         </div>
       }
     >
@@ -237,115 +240,119 @@ export function NodeDetailPage() {
         <StatCard label="Progress" value={`${pct}%`} />
       </div>
 
-      <Section
-        title="Children"
-        action={
-          <span
-            className="section-action"
-            style={{ cursor: 'pointer' }}
-            onClick={() => setShowCreate(true)}
-          >
-            + Add Child
-          </span>
-        }
-      >
-        {children.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <svg viewBox="0 0 24 24">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+      {allowsChildren && childTypeUI && (
+        <Section
+          title={childTypeUI.plural}
+          action={
+            <span
+              className="section-action"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setShowCreate(true)}
+            >
+              + Add {childTypeUI.displayName}
+            </span>
+          }
+        >
+          {children.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <svg viewBox="0 0 24 24">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <div className="empty-state-title">No {childTypeUI.plural.toLowerCase()} yet</div>
+              <div className="empty-state-text">Break this {typeUI.displayName.toLowerCase()} into {childTypeUI.plural.toLowerCase()}</div>
+              <Button variant="primary" onClick={() => setShowCreate(true)}>Add {childTypeUI.displayName}</Button>
             </div>
-            <div className="empty-state-title">No children yet</div>
-            <div className="empty-state-text">Break this {typeUI.displayName.toLowerCase()} into smaller work items</div>
-            <Button variant="primary" onClick={() => setShowCreate(true)}>Add Child</Button>
-          </div>
-        ) : (
-          <div className="task-checklist">
-            {children.map((child) => {
-              const childDone = child.status === 'done' || child.status === 'approved';
-              const childTime = child.time_entries?.reduce(
-                (sum, te) => sum + (te.duration_minutes ?? 0), 0
-              ) ?? 0;
-              return (
-                <div
-                  key={child.id}
-                  className={`task-check-item${childDone ? ' completed' : ''}`}
-                >
+          ) : (
+            <div className="task-checklist">
+              {children.map((child) => {
+                const childDone = child.status === 'done' || child.status === 'approved';
+                const childTime = child.time_entries?.reduce(
+                  (sum, te) => sum + (te.duration_minutes ?? 0), 0
+                ) ?? 0;
+                return (
                   <div
-                    className="task-check-box"
-                    onClick={() => {
-                      if (childDone) return;
-                      if (child.status === 'in_progress') {
-                        handleComplete(child.id);
-                      } else {
-                        handleStart(child.id);
-                      }
-                    }}
+                    key={child.id}
+                    className={`task-check-item${childDone ? ' completed' : ''}`}
                   >
-                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
-                  </div>
-                  <div
-                    className="task-check-content"
-                    onClick={() => navigate(`/nodes/${child.id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <div className="task-check-title">{child.title}</div>
-                    <div className="task-check-meta">
-                      {getStatusLabel(methodology, child.status)}
+                    <div
+                      className="task-check-box"
+                      onClick={() => {
+                        if (childDone) return;
+                        if (child.status === 'in_progress') {
+                          handleComplete(child.id);
+                        } else {
+                          handleStart(child.id);
+                        }
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
+                    </div>
+                    <div
+                      className="task-check-content"
+                      onClick={() => navigate(`/nodes/${child.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="task-check-title">{child.title}</div>
+                      <div className="task-check-meta">
+                        {getStatusLabel(methodology, child.status)}
+                      </div>
+                    </div>
+                    <div className="task-check-right">
+                      {childTime > 0 && (
+                        <span className="task-time-badge">{formatTime(childTime)}</span>
+                      )}
+                      {!childDone && (
+                        <span className={`status-badge ${statusClass(child.status)}`}>
+                          {getStatusLabel(methodology, child.status)}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="task-check-right">
-                    {childTime > 0 && (
-                      <span className="task-time-badge">{formatTime(childTime)}</span>
-                    )}
-                    {!childDone && (
-                      <span className={`status-badge ${statusClass(child.status)}`}>
-                        {getStatusLabel(methodology, child.status)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </Section>
+                );
+              })}
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* Create Child Modal */}
-      <Modal
-        open={showCreate}
-        onClose={() => setShowCreate(false)}
-        title="New Child"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleCreateChild} disabled={creating}>
-              {creating ? 'Creating...' : 'Create'}
-            </Button>
-          </>
-        }
-      >
-        <div className="form-group">
-          <label className="form-label">Title</label>
-          <input
-            className="form-input"
-            placeholder="Title for the new work item"
-            value={createTitle}
-            onChange={(e) => setCreateTitle(e.target.value)}
-            autoFocus
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Description</label>
-          <textarea
-            className="form-input"
-            placeholder="Describe the work item..."
-            value={createDesc}
-            onChange={(e) => setCreateDesc(e.target.value)}
-          />
-        </div>
-      </Modal>
+      {allowsChildren && childTypeUI && (
+        <Modal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          title={`New ${childTypeUI.displayName}`}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
+              <Button variant="primary" onClick={handleCreateChild} disabled={creating}>
+                {creating ? 'Creating...' : 'Create'}
+              </Button>
+            </>
+          }
+        >
+          <div className="form-group">
+            <label className="form-label">Title</label>
+            <input
+              className="form-input"
+              placeholder="Title for the new work item"
+              value={createTitle}
+              onChange={(e) => setCreateTitle(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-input"
+              placeholder="Describe the work item..."
+              value={createDesc}
+              onChange={(e) => setCreateDesc(e.target.value)}
+            />
+          </div>
+        </Modal>
+      )}
 
       {/* Delete Confirmation Modal */}
       <Modal
