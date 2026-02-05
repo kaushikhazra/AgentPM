@@ -5,6 +5,7 @@ import { projectsApi } from '@/api/projects';
 import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
+import { useToast } from '@/hooks/useToast';
 import type { Company, Project } from '@/types';
 
 const GRADIENTS = [
@@ -18,6 +19,7 @@ const GRADIENTS = [
 
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
@@ -78,9 +80,13 @@ export function ProjectsPage() {
       setCreateDesc('');
       setCreateCompanyId('');
       setCreateColor(0);
+      addToast('success', 'Project created successfully');
       await loadData();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to create');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to create project';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to create project:', e);
     } finally {
       setCreating(false);
     }

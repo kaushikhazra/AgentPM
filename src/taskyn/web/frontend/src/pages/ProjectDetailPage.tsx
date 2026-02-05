@@ -8,6 +8,7 @@ import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
 import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel } from '@/config/methodology-ui';
+import { useToast } from '@/hooks/useToast';
 import type { Project, Company, Node } from '@/types';
 
 function statusClass(status: string): string {
@@ -23,6 +24,7 @@ function statusClass(status: string): string {
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [project, setProject] = useState<Project | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -81,9 +83,13 @@ export function ProjectDetailPage() {
       setShowCreate(false);
       setCreateTitle('');
       setCreateDesc('');
+      addToast('success', `${getNodeTypeUI(project?.methodology ?? 'classic_agile', createType).displayName} created successfully`);
       await loadData();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to create');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to create';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to create node:', e);
     } finally {
       setCreating(false);
     }
@@ -94,9 +100,13 @@ export function ProjectDetailPage() {
     setDeleting(true);
     try {
       await projectsApi.delete(projectId);
+      addToast('success', 'Project deleted successfully');
       navigate('/projects');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to delete');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to delete';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to delete project:', e);
       setShowDelete(false);
     } finally {
       setDeleting(false);

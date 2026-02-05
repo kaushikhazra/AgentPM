@@ -81,8 +81,11 @@ export interface Node {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  parent_id?: string | null;
   // Composite fields from pm_get_node
   edges?: Edge[];
+  outgoing_edges?: Edge[];
+  incoming_edges?: Edge[];
   time_entries?: TimeEntry[];
   rollup?: NodeRollup;
 }

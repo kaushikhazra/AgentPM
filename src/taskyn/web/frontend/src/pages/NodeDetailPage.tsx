@@ -8,6 +8,7 @@ import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
 import { getNodeTypeUI, getStatusLabel, getChildType, canHaveChildren } from '@/config/methodology-ui';
+import { useToast } from '@/hooks/useToast';
 import type { Node, Project, Company } from '@/types';
 
 function statusClass(status: string): string {
@@ -30,6 +31,7 @@ function formatTime(minutes: number): string {
 export function NodeDetailPage() {
   const { nodeId } = useParams<{ nodeId: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
   const [node, setNode] = useState<Node | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
@@ -60,8 +62,14 @@ export function NodeDetailPage() {
       ]);
       setProject(proj);
       setAncestors(ancestorList);
-      // Show all descendants as children
-      setChildren(descendantList);
+      // Filter to only show direct children of the expected type
+      // Methodology enforces strict hierarchy (e.g., Epic → Story → Task),
+      // so descendants of the expected child type are direct children
+      const expectedChildType = getChildType(proj.methodology, nodeData.node_type);
+      const directChildren = expectedChildType
+        ? descendantList.filter(d => d.node_type === expectedChildType)
+        : [];
+      setChildren(directChildren);
 
       if (proj.company_id) {
         const comp = await companiesApi.get(proj.company_id);
@@ -77,18 +85,26 @@ export function NodeDetailPage() {
   const handleComplete = async (childId: string) => {
     try {
       await nodesApi.complete(childId);
+      addToast('success', 'Marked as complete');
       await loadData();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to complete');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to complete';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to complete node:', e);
     }
   };
 
   const handleStart = async (childId: string) => {
     try {
       await nodesApi.start(childId);
+      addToast('success', 'Started');
       await loadData();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to start');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to start';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to start node:', e);
     }
   };
 
@@ -97,12 +113,17 @@ export function NodeDetailPage() {
     try {
       if (node.status === 'backlog' || node.status === 'ready' || node.status === 'draft') {
         await nodesApi.start(node.id);
+        addToast('success', 'Started');
       } else if (node.status === 'in_progress') {
         await nodesApi.complete(node.id);
+        addToast('success', 'Marked as complete');
       }
       await loadData();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to update status');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to update status';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to update node status:', e);
     }
   };
 
@@ -122,9 +143,13 @@ export function NodeDetailPage() {
       setShowCreate(false);
       setCreateTitle('');
       setCreateDesc('');
+      addToast('success', `${getNodeTypeUI(project.methodology, childType).displayName} created successfully`);
       await loadData();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to create');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to create';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to create child node:', e);
     } finally {
       setCreating(false);
     }
@@ -135,6 +160,7 @@ export function NodeDetailPage() {
     setDeleting(true);
     try {
       await nodesApi.delete(node.id);
+      addToast('success', `${getNodeTypeUI(project.methodology, node.node_type).displayName} deleted successfully`);
       // Navigate to parent if exists, otherwise to project
       const parentNode = ancestors[ancestors.length - 1];
       if (parentNode) {
@@ -143,7 +169,10 @@ export function NodeDetailPage() {
         navigate(`/projects/${project.id}`);
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to delete');
+      const errorMessage = e instanceof Error ? e.message : 'Failed to delete';
+      setError(errorMessage);
+      addToast('error', errorMessage);
+      console.error('Failed to delete node:', e);
       setShowDelete(false);
     } finally {
       setDeleting(false);
