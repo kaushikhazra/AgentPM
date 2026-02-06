@@ -82,32 +82,6 @@ export function NodeDetailPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleComplete = async (childId: string) => {
-    try {
-      await nodesApi.complete(childId);
-      addToast('success', 'Marked as complete');
-      await loadData();
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to complete';
-      setError(errorMessage);
-      addToast('error', errorMessage);
-      console.error('Failed to complete node:', e);
-    }
-  };
-
-  const handleStart = async (childId: string) => {
-    try {
-      await nodesApi.start(childId);
-      addToast('success', 'Started');
-      await loadData();
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to start';
-      setError(errorMessage);
-      addToast('error', errorMessage);
-      console.error('Failed to start node:', e);
-    }
-  };
-
   const handleStatusAction = async () => {
     if (!node) return;
     try {
@@ -304,25 +278,10 @@ export function NodeDetailPage() {
                   <div
                     key={child.id}
                     className={`task-check-item${childDone ? ' completed' : ''}`}
+                    onClick={() => navigate(`/nodes/${child.id}`)}
+                    style={{ cursor: 'pointer' }}
                   >
-                    <div
-                      className="task-check-box"
-                      onClick={() => {
-                        if (childDone) return;
-                        if (child.status === 'in_progress') {
-                          handleComplete(child.id);
-                        } else {
-                          handleStart(child.id);
-                        }
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
-                    </div>
-                    <div
-                      className="task-check-content"
-                      onClick={() => navigate(`/nodes/${child.id}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
+                    <div className="task-check-content">
                       <div className="task-check-title">{child.title}</div>
                       <div className="task-check-meta">
                         {getStatusLabel(methodology, child.status)}

@@ -239,17 +239,16 @@ def pm_list_projects(
         data = p.model_dump()
         if include_stats:
             stats = get_project_stats(p.id)
-            total_nodes = sum(stats.total_nodes.values())
+            total_count = sum(stats.total_nodes.values())
             completed_nodes = stats.nodes_by_status.get("done", 0)
             data["stats"] = {
-                "total_nodes": total_nodes,
-                "completed_nodes": completed_nodes,
+                "total_nodes": stats.total_nodes,  # Record<string, number> by type
+                "nodes_by_status": stats.nodes_by_status,
                 "completion_percentage": (
-                    round(completed_nodes / total_nodes * 100, 1)
-                    if total_nodes > 0 else 0
+                    round(completed_nodes / total_count * 100, 1)
+                    if total_count > 0 else 0
                 ),
-                "total_time_minutes": stats.time_total,
-                "nodes_by_type": stats.total_nodes,
+                "time_total": stats.time_total,
             }
         result.append(data)
 

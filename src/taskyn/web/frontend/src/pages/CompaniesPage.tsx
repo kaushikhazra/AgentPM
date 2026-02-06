@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { companiesApi } from '@/api/companies';
 import { projectsApi } from '@/api/projects';
-import { Button } from '@/components/atoms';
+import { Button, Icon } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
 import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company, type Project } from '@/types';
@@ -27,10 +27,17 @@ export function CompaniesPage() {
   // Modal states
   const [showCreate, setShowCreate] = useState(false);
   const [showView, setShowView] = useState<Company | null>(null);
+  const [showEdit, setShowEdit] = useState<Company | null>(null);
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createType, setCreateType] = useState<EntityType>('discovery');
   const [creating, setCreating] = useState(false);
+
+  // Edit form states
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editType, setEditType] = useState<EntityType>('discovery');
+  const [updating, setUpdating] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -77,6 +84,32 @@ export function CompaniesPage() {
       await loadData();
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to delete');
+    }
+  };
+
+  const openEdit = (company: Company) => {
+    setEditName(company.name);
+    setEditDesc(company.description ?? '');
+    setEditType(company.type ?? 'discovery');
+    setShowView(null);
+    setShowEdit(company);
+  };
+
+  const handleUpdate = async () => {
+    if (!showEdit || !editName.trim()) return;
+    setUpdating(true);
+    try {
+      await companiesApi.update(showEdit.id, {
+        name: editName.trim(),
+        description: editDesc.trim() || undefined,
+        type: editType,
+      });
+      setShowEdit(null);
+      await loadData();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to update');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -152,7 +185,7 @@ export function CompaniesPage() {
               <div className="company-projects">
                 {cp.slice(0, 3).map((p) => (
                   <span key={p.id} className="company-project-tag">
-                    <span className="project-tag-dot" style={{ background: 'var(--accent-primary)' }} />
+                    <span className="project-tag-dot" style={{ background: getTypeColor(p.type) }} />
                     {p.name}
                   </span>
                 ))}
@@ -229,24 +262,33 @@ export function CompaniesPage() {
         onClose={() => setShowView(null)}
         title="Company Details"
         footer={
-          <>
-            <Button variant="secondary" onClick={() => setShowView(null)}>Close</Button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
             <Button
-              variant="danger"
+              variant="ghost"
               onClick={() => showView && handleDelete(showView.id)}
             >
-              Delete
+              <Icon name="trash" size={18} />
             </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setShowView(null);
-                navigate('/projects');
-              }}
-            >
-              View Projects
-            </Button>
-          </>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Button variant="secondary" onClick={() => setShowView(null)}>Close</Button>
+              <Button
+                variant="secondary"
+                onClick={() => showView && openEdit(showView)}
+              >
+                <Icon name="edit" size={16} />
+                Edit
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setShowView(null);
+                  navigate('/projects');
+                }}
+              >
+                View Projects
+              </Button>
+            </div>
+          </div>
         }
       >
         {showView && (
@@ -298,7 +340,7 @@ export function CompaniesPage() {
                         navigate(`/projects/${p.id}`);
                       }}
                     >
-                      <div className="project-list-dot" style={{ background: 'var(--accent-primary)' }} />
+                      <div className="project-list-dot" style={{ background: getTypeColor(p.type) }} />
                       <div className="project-list-info">
                         <div className="project-list-name">{p.name}</div>
                         <div className="project-list-meta">{p.methodology}</div>
@@ -316,6 +358,55 @@ export function CompaniesPage() {
             </div>
           </>
         )}
+      </Modal>
+
+      {/* Edit Company Modal */}
+      <Modal
+        open={!!showEdit}
+        onClose={() => setShowEdit(null)}
+        title="Edit Company"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowEdit(null)}>Cancel</Button>
+            <Button variant="primary" onClick={handleUpdate} disabled={updating}>
+              {updating ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </>
+        }
+      >
+        <div className="form-group">
+          <label className="form-label">Company Name</label>
+          <input
+            className="form-input"
+            placeholder="e.g., Personal Projects, Acme Corp"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Description</label>
+          <textarea
+            className="form-input"
+            placeholder="What kind of projects will this company contain?"
+            value={editDesc}
+            onChange={(e) => setEditDesc(e.target.value)}
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Lifecycle Stage</label>
+          <div className="color-picker">
+            {ENTITY_TYPES.map((type) => (
+              <div
+                key={type}
+                className={`color-option${editType === type ? ' selected' : ''}`}
+                style={{ background: ENTITY_TYPE_COLORS[type] }}
+                onClick={() => setEditType(type)}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
+              />
+            ))}
+          </div>
+        </div>
       </Modal>
     </div>
   );

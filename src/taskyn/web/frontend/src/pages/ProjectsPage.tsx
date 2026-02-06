@@ -13,6 +13,13 @@ function getTypeColor(type: EntityType | undefined): string {
   return ENTITY_TYPE_COLORS[type ?? 'discovery'];
 }
 
+function pluralize(type: string, count: number): string {
+  if (count === 1) return `1 ${type}`;
+  // Handle special cases
+  if (type === 'story') return `${count} stories`;
+  return `${count} ${type}s`;
+}
+
 export function ProjectsPage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -232,9 +239,9 @@ export function ProjectsPage() {
                   <p className="project-desc">{project.description}</p>
                 )}
                 <div className="project-stats">
-                  {Object.entries(nodesByType).map(([type, count]) => (
+                  {(['epic', 'story', 'task'] as const).map((type) => (
                     <span key={type} className="project-stat">
-                      {count} {type}{count !== 1 ? 's' : ''}
+                      {pluralize(type, nodesByType[type] ?? 0)}
                     </span>
                   ))}
                 </div>

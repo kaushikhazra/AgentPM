@@ -11,6 +11,9 @@ export const companiesApi = {
   create: (data: CompanyCreate) =>
     api.post<Company>('/companies', data),
 
+  update: (id: string, data: Partial<CompanyCreate>) =>
+    api.patch<Company>(`/companies/${id}`, data),
+
   delete: (id: string) =>
     api.delete(`/companies/${id}`),
 
