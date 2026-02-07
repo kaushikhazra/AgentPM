@@ -55,9 +55,11 @@ async def update_project(
 ):
     """Update a project."""
     args = {"project_id": project_id, **data.model_dump(exclude_unset=True)}
-    # Convert enum to string value for MCP
+    # Convert enums to string values for MCP
     if "type" in args and args["type"] is not None:
         args["type"] = args["type"].value
+    if "methodology" in args and args["methodology"] is not None:
+        args["methodology"] = args["methodology"].value
     return await call_mcp_tool("pm_update_project", args)
 
 

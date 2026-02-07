@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from taskyn.db.enums import EntityType
+from taskyn.db.enums import EntityType, Methodology
 
 
 class ProjectCreate(BaseModel):
@@ -20,3 +20,4 @@ class ProjectUpdate(BaseModel):
     description: str | None = Field(default=None, max_length=2000)
     status: str | None = Field(default=None, max_length=64)
     type: EntityType | None = Field(default=None)
+    methodology: Methodology | None = Field(default=None)

@@ -82,6 +82,7 @@ export interface ProjectUpdate {
   description?: string;
   status?: string;
   type?: EntityType;
+  methodology?: string;
 }
 
 // ============================================================
