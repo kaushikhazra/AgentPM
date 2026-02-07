@@ -6,8 +6,11 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { timerApi } from '@/api/timer';
+import { queryKeys } from '@/api/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
+import { useTimerCurrent } from '@/hooks/queries/useTimerQuery';
 import type { ActiveTimer } from '@/types';
 
 export interface TimerContextValue {
@@ -23,79 +26,71 @@ export const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
+  const queryClient = useQueryClient();
+
+  const isAuthenticated = !authLoading && !!user;
+
+  // TanStack Query handles polling — 1s refetchInterval when authenticated
+  const { data: activeTimer = null, isPending } = useTimerCurrent({
+    enabled: isAuthenticated,
+    refetchInterval: isAuthenticated ? 1_000 : undefined,
+  });
+
   const [elapsed, setElapsed] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [mutating, setMutating] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const calcElapsed = useCallback((startedAt: string): number => {
     return Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
   }, []);
 
-  const startTicking = useCallback(
-    (startedAt: string) => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setElapsed(calcElapsed(startedAt));
+  // Manage the elapsed tick interval based on activeTimer state
+  useEffect(() => {
+    if (activeTimer?.started_at) {
+      setElapsed(calcElapsed(activeTimer.started_at));
       intervalRef.current = setInterval(() => {
-        setElapsed(calcElapsed(startedAt));
+        setElapsed(calcElapsed(activeTimer.started_at));
       }, 1000);
-    },
-    [calcElapsed],
-  );
-
-  const stopTicking = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    } else {
+      setElapsed(0);
     }
-    setElapsed(0);
-  }, []);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [activeTimer, calcElapsed]);
 
   const refresh = useCallback(async () => {
-    try {
-      const timer = await timerApi.getCurrent();
-      setActiveTimer(timer);
-      if (timer) {
-        startTicking(timer.started_at);
-      } else {
-        stopTicking();
-      }
-    } catch {
-      setActiveTimer(null);
-      stopTicking();
-    }
-  }, [startTicking, stopTicking]);
-
-  // Poll on mount — only after auth confirms user is logged in (CR-26)
-  useEffect(() => {
-    if (authLoading || !user) return;
-    void refresh();
-    return () => stopTicking();
-  }, [refresh, stopTicking, authLoading, user]);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.timer.all() });
+  }, [queryClient]);
 
   const start = useCallback(
     async (nodeId: string, notes?: string) => {
-      setLoading(true);
+      setMutating(true);
       try {
         await timerApi.start(nodeId, notes);
         await refresh();
       } finally {
-        setLoading(false);
+        setMutating(false);
       }
     },
     [refresh],
   );
 
   const stop = useCallback(async () => {
-    setLoading(true);
+    setMutating(true);
     try {
       await timerApi.stop();
-      setActiveTimer(null);
-      stopTicking();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.timer.all() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all() });
     } finally {
-      setLoading(false);
+      setMutating(false);
     }
-  }, [stopTicking]);
+  }, [queryClient]);
+
+  const loading = (isPending && isAuthenticated) || mutating;
 
   return (
     <TimerContext.Provider

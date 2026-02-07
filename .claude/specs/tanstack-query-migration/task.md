@@ -102,23 +102,23 @@
 
 ## DataRefreshProvider
 
-- [ ] Create DataRefreshProvider (`src/providers/DataRefreshProvider.tsx`)
-  - [ ] Expose `refreshAll()` — invalidates all queries
-  - [ ] Expose `isRefreshing` — true while queries are refetching
-  - [ ] Create `useDataRefresh()` hook
+- [x] Create DataRefreshProvider (`src/providers/DataRefreshProvider.tsx`)
+  - [x] Expose `refreshAll()` — invalidates all queries
+  - [x] Expose `isRefreshing` — true while queries are refetching
+  - [x] Create `useDataRefresh()` hook
   _US-11_
 
-- [ ] Wire DataRefreshProvider into App.tsx provider hierarchy
-  - [ ] Place between QueryClientProvider and ThemeProvider
+- [x] Wire DataRefreshProvider into App.tsx provider hierarchy
+  - [x] Place between QueryClientProvider and ThemeProvider
   _US-11_
 
 ## TimerProvider Migration
 
-- [ ] Migrate TimerProvider to use query hook internally
-  - [ ] Replace manual `timerApi.getCurrent()` with `useTimerCurrent()` query hook
-  - [ ] Replace manual `timerApi.start()` / `timerApi.stop()` with mutation hooks
-  - [ ] Keep `setInterval` for smooth elapsed counter
-  - [ ] Verify public interface (`useTimer()`) is unchanged
+- [x] Migrate TimerProvider to use query hook internally
+  - [x] Replace manual `timerApi.getCurrent()` with `useTimerCurrent()` query hook
+  - [x] Replace manual `timerApi.start()` / `timerApi.stop()` with query invalidation
+  - [x] Keep `setInterval` for smooth elapsed counter
+  - [x] Verify public interface (`useTimer()`) is unchanged
   _US-12_
 
 ## Page Migrations

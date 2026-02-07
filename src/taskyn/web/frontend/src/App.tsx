@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { TimerProvider } from '@/providers/TimerProvider';
 import { ModalProvider } from '@/providers/ModalProvider';
 import { ToastProvider } from '@/providers/ToastProvider';
+import { DataRefreshProvider } from '@/providers/DataRefreshProvider';
 import { routes } from '@/routes';
 
 const queryClient = new QueryClient({
@@ -23,17 +24,19 @@ const router = createBrowserRouter(routes);
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TimerProvider>
-            <ModalProvider>
-              <ToastProvider>
-                <RouterProvider router={router} />
-              </ToastProvider>
-            </ModalProvider>
-          </TimerProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <DataRefreshProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <TimerProvider>
+              <ModalProvider>
+                <ToastProvider>
+                  <RouterProvider router={router} />
+                </ToastProvider>
+              </ModalProvider>
+            </TimerProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </DataRefreshProvider>
     </QueryClientProvider>
   );
 }
