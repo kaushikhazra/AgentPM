@@ -1,28 +1,30 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { companiesApi } from '@/api/companies';
-import { projectsApi } from '@/api/projects';
+import { useCompanies } from '@/hooks/queries/useCompanies';
+import { useProjects } from '@/hooks/queries/useProjects';
+import { useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/hooks/mutations/useCompanyMutations';
 import { Button, Icon } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
-import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company, type Project } from '@/types';
+import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company } from '@/types';
 
 function formatTime(minutes: number): string {
   if (minutes < 60) return `${minutes}m`;
   return `${Math.round(minutes / 60)}h`;
 }
 
-// Get color for entity type (with fallback for undefined/missing type)
 function getTypeColor(type: EntityType | undefined): string {
   return ENTITY_TYPE_COLORS[type ?? 'discovery'];
 }
 
 export function CompaniesPage() {
   const navigate = useNavigate();
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const { data: companies = [], isLoading: loading, error: queryError } = useCompanies(true);
+  const { data: projects = [] } = useProjects({ include_stats: true });
+
+  const createCompany = useCreateCompany();
+  const updateCompany = useUpdateCompany();
+  const deleteCompany = useDeleteCompany();
 
   // Modal states
   const [showCreate, setShowCreate] = useState(false);
@@ -31,60 +33,33 @@ export function CompaniesPage() {
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createType, setCreateType] = useState<EntityType>('discovery');
-  const [creating, setCreating] = useState(false);
 
   // Edit form states
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [editType, setEditType] = useState<EntityType>('discovery');
-  const [updating, setUpdating] = useState(false);
 
-  const loadData = useCallback(async () => {
-    try {
-      const [companyList, projectList] = await Promise.all([
-        companiesApi.list(true),
-        projectsApi.list({ include_stats: true }),
-      ]);
-      setCompanies(companyList);
-      setProjects(projectList);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
+  const error = queryError?.message ?? '';
 
   const handleCreate = async () => {
     if (!createName.trim()) return;
-    setCreating(true);
-    try {
-      await companiesApi.create({
-        name: createName.trim(),
-        description: createDesc.trim() || undefined,
-        type: createType,
-      });
-      setShowCreate(false);
-      setCreateName('');
-      setCreateDesc('');
-      setCreateType('discovery');
-      await loadData();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to create');
-    } finally {
-      setCreating(false);
-    }
+    createCompany.mutate(
+      { name: createName.trim(), description: createDesc.trim() || undefined, type: createType },
+      {
+        onSuccess: () => {
+          setShowCreate(false);
+          setCreateName('');
+          setCreateDesc('');
+          setCreateType('discovery');
+        },
+      },
+    );
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      await companiesApi.delete(id);
-      setShowView(null);
-      await loadData();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to delete');
-    }
+    deleteCompany.mutate(id, {
+      onSuccess: () => setShowView(null),
+    });
   };
 
   const openEdit = (company: Company) => {
@@ -97,20 +72,12 @@ export function CompaniesPage() {
 
   const handleUpdate = async () => {
     if (!showEdit || !editName.trim()) return;
-    setUpdating(true);
-    try {
-      await companiesApi.update(showEdit.id, {
-        name: editName.trim(),
-        description: editDesc.trim() || undefined,
-        type: editType,
-      });
-      setShowEdit(null);
-      await loadData();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to update');
-    } finally {
-      setUpdating(false);
-    }
+    updateCompany.mutate(
+      { id: showEdit.id, data: { name: editName.trim(), description: editDesc.trim() || undefined, type: editType } },
+      {
+        onSuccess: () => setShowEdit(null),
+      },
+    );
   };
 
   const totalProjects = projects.length;
@@ -214,8 +181,8 @@ export function CompaniesPage() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleCreate} disabled={creating}>
-              {creating ? 'Creating...' : 'Create Company'}
+            <Button variant="primary" onClick={handleCreate} disabled={createCompany.isPending}>
+              {createCompany.isPending ? 'Creating...' : 'Create Company'}
             </Button>
           </>
         }
@@ -368,8 +335,8 @@ export function CompaniesPage() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowEdit(null)}>Cancel</Button>
-            <Button variant="primary" onClick={handleUpdate} disabled={updating}>
-              {updating ? 'Saving...' : 'Save Changes'}
+            <Button variant="primary" onClick={handleUpdate} disabled={updateCompany.isPending}>
+              {updateCompany.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </>
         }

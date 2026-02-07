@@ -1,34 +1,31 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { companiesApi } from '@/api/companies';
-import { projectsApi } from '@/api/projects';
+import { useCompanies } from '@/hooks/queries/useCompanies';
+import { useProjects } from '@/hooks/queries/useProjects';
+import { useCreateProject } from '@/hooks/mutations/useProjectMutations';
 import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
-import { useToast } from '@/hooks/useToast';
-import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company, type Project } from '@/types';
+import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType } from '@/types';
 
-// Get color for entity type (with fallback for undefined/missing type)
 function getTypeColor(type: EntityType | undefined): string {
   return ENTITY_TYPE_COLORS[type ?? 'discovery'];
 }
 
 function pluralize(type: string, count: number): string {
   if (count === 1) return `1 ${type}`;
-  // Handle special cases
   if (type === 'story') return `${count} stories`;
   return `${count} ${type}s`;
 }
 
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const { addToast } = useToast();
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const { data: companies = [] } = useCompanies();
+  const { data: projects = [], isLoading: loading, error: queryError } = useProjects({ include_stats: true });
+  const createProject = useCreateProject();
+
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Create modal
@@ -38,24 +35,8 @@ export function ProjectsPage() {
   const [createMethodology, setCreateMethodology] = useState('classic_agile');
   const [createDesc, setCreateDesc] = useState('');
   const [createType, setCreateType] = useState<EntityType>('discovery');
-  const [creating, setCreating] = useState(false);
 
-  const loadData = useCallback(async () => {
-    try {
-      const [companyList, projectList] = await Promise.all([
-        companiesApi.list(),
-        projectsApi.list({ include_stats: true }),
-      ]);
-      setCompanies(companyList);
-      setProjects(projectList);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
+  const error = queryError?.message ?? '';
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -70,30 +51,24 @@ export function ProjectsPage() {
 
   const handleCreate = async () => {
     if (!createName.trim() || !createCompanyId) return;
-    setCreating(true);
-    try {
-      await projectsApi.create({
+    createProject.mutate(
+      {
         name: createName.trim(),
         company_id: createCompanyId,
         methodology: createMethodology,
         description: createDesc.trim() || undefined,
         type: createType,
-      });
-      setShowCreate(false);
-      setCreateName('');
-      setCreateDesc('');
-      setCreateCompanyId('');
-      setCreateType('discovery');
-      addToast('success', 'Project created successfully');
-      await loadData();
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to create project';
-      setError(errorMessage);
-      addToast('error', errorMessage);
-      console.error('Failed to create project:', e);
-    } finally {
-      setCreating(false);
-    }
+      },
+      {
+        onSuccess: () => {
+          setShowCreate(false);
+          setCreateName('');
+          setCreateDesc('');
+          setCreateCompanyId('');
+          setCreateType('discovery');
+        },
+      },
+    );
   };
 
   const filtered = selectedCompany === 'all'
@@ -265,8 +240,8 @@ export function ProjectsPage() {
         footer={
           <>
             <Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button variant="primary" onClick={handleCreate} disabled={creating}>
-              {creating ? 'Creating...' : 'Create Project'}
+            <Button variant="primary" onClick={handleCreate} disabled={createProject.isPending}>
+              {createProject.isPending ? 'Creating...' : 'Create Project'}
             </Button>
           </>
         }

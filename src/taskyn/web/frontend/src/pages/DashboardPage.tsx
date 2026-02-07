@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useTimer } from '@/hooks/useTimer';
-import { dashboardApi } from '@/api/dashboard';
-import { nodesApi } from '@/api/nodes';
-import { activityApi } from '@/api/activity';
-import { projectsApi } from '@/api/projects';
+import { useDashboard } from '@/hooks/queries/useDashboard';
+import { useNodes } from '@/hooks/queries/useNodes';
+import { useActivity } from '@/hooks/queries/useActivity';
+import { useProjects } from '@/hooks/queries/useProjects';
+import { useCompleteNode } from '@/hooks/mutations/useNodeMutations';
 import { Section, TimerWidget, ActivityFeed } from '@/components/organisms';
 import { StatCard, TaskItem } from '@/components/molecules';
-import type { Dashboard, Node, ActivityEntry, Project } from '@/types';
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -28,57 +28,28 @@ export function DashboardPage() {
   const { user } = useAuth();
   const { elapsed } = useTimer();
   const navigate = useNavigate();
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [tasks, setTasks] = useState<Node[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [activity, setActivity] = useState<ActivityEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
-  const loadData = useCallback(async () => {
-    try {
-      const [dash, nodeList, actList, projList] = await Promise.all([
-        dashboardApi.get(),
-        nodesApi.list({ status: 'in_progress' }),
-        activityApi.list({ limit: 5 }),
-        projectsApi.list(),
-      ]);
-      setDashboard(dash);
-      setTasks(nodeList);
-      setActivity(actList);
-      setProjects(projList);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load dashboard');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: dashboard } = useDashboard({ refetchInterval: 60_000 });
+  const { data: tasks = [], isLoading: loadingTasks } = useNodes({ status: 'in_progress' });
+  const { data: activity = [] } = useActivity({ limit: 5 });
+  const { data: projects = [] } = useProjects();
+  const completeNode = useCompleteNode();
 
-  useEffect(() => { loadData(); }, [loadData]);
+  const loading = loadingTasks;
 
   const handleTaskComplete = async (nodeId: string, checked: boolean) => {
     if (checked) {
-      // Optimistic update
       setCompletedIds((prev) => new Set(prev).add(nodeId));
-      try {
-        await nodesApi.complete(nodeId);
-        // Refresh tasks list
-        const updated = await nodesApi.list({ status: 'in_progress' });
-        setTasks(updated);
-        setCompletedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(nodeId);
-          return next;
-        });
-      } catch (e: unknown) {
-        setCompletedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(nodeId);
-          return next;
-        });
-        setError(e instanceof Error ? e.message : 'Failed to complete task');
-      }
+      completeNode.mutate(nodeId, {
+        onSettled: () => {
+          setCompletedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(nodeId);
+            return next;
+          });
+        },
+      });
     }
   };
 
@@ -90,8 +61,6 @@ export function DashboardPage() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const inProgress = dashboard?.nodes_by_status?.in_progress ?? 0;
   const done = dashboard?.nodes_by_status?.done ?? 0;
-
-  // Calculate time tracked today (use timer elapsed as a simple approximation)
   const timeTrackedMinutes = Math.floor(elapsed / 60);
 
   return (
@@ -106,8 +75,6 @@ export function DashboardPage() {
           </p>
         </div>
       </div>
-
-      {error && <p style={{ color: 'var(--status-blocked)' }}>{error}</p>}
 
       {loading && <p className="text-secondary">Loading dashboard...</p>}
 
