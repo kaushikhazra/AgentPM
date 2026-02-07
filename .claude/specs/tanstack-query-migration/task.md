@@ -61,43 +61,43 @@
 
 ## Mutation Hooks
 
-- [ ] Create mutation hooks directory (`src/hooks/mutations/`)
+- [x] Create mutation hooks directory (`src/hooks/mutations/`)
   _US-2_
 
-- [ ] Implement company mutation hooks (`useCompanyMutations.ts`)
-  - [ ] `useCreateCompany` — invalidates `companies.all`
-  - [ ] `useUpdateCompany` — invalidates `companies.all`
-  - [ ] `useDeleteCompany` — invalidates `companies.all`, `projects.all`
+- [x] Implement company mutation hooks (`useCompanyMutations.ts`)
+  - [x] `useCreateCompany` — invalidates `companies.all`
+  - [x] `useUpdateCompany` — invalidates `companies.all`
+  - [x] `useDeleteCompany` — invalidates `companies.all`, `projects.all`
   _US-2_
 
-- [ ] Implement project mutation hooks (`useProjectMutations.ts`)
-  - [ ] `useCreateProject` — invalidates `projects.all`, `companies.all`
-  - [ ] `useUpdateProject` — invalidates `projects.all`
-  - [ ] `useDeleteProject` — invalidates `projects.all`, `companies.all`
+- [x] Implement project mutation hooks (`useProjectMutations.ts`)
+  - [x] `useCreateProject` — invalidates `projects.all`, `companies.all`
+  - [x] `useUpdateProject` — invalidates `projects.all`
+  - [x] `useDeleteProject` — invalidates `projects.all`, `companies.all`
   _US-2_
 
-- [ ] Implement node mutation hooks (`useNodeMutations.ts`)
-  - [ ] `useCreateNode` — invalidates `nodes.all`, `dashboard.all`, `projects.all`
-  - [ ] `useUpdateNode` — invalidates `nodes.all`, `dashboard.all` (with optimistic update support)
-  - [ ] `useDeleteNode` — invalidates `nodes.all`, `dashboard.all`, `projects.all`
-  - [ ] `useStartNode` — invalidates `nodes.all`, `dashboard.all`
-  - [ ] `useCompleteNode` — invalidates `nodes.all`, `dashboard.all`, `projects.all`
-  - [ ] `useBlockNode` — invalidates `nodes.all`, `dashboard.all`
+- [x] Implement node mutation hooks (`useNodeMutations.ts`)
+  - [x] `useCreateNode` — invalidates `nodes.all`, `dashboard.all`, `projects.all`
+  - [x] `useUpdateNode` — invalidates `nodes.all`, `dashboard.all` (with optimistic update support)
+  - [x] `useDeleteNode` — invalidates `nodes.all`, `dashboard.all`, `projects.all`
+  - [x] `useStartNode` — invalidates `nodes.all`, `dashboard.all`
+  - [x] `useCompleteNode` — invalidates `nodes.all`, `dashboard.all`, `projects.all`
+  - [x] `useBlockNode` — invalidates `nodes.all`, `dashboard.all`
   _US-2_
 
-- [ ] Implement edge mutation hooks (`useEdgeMutations.ts`)
-  - [ ] `useCreateEdge` — invalidates `edges.all`, `nodes.all`
-  - [ ] `useDeleteEdge` — invalidates `edges.all`, `nodes.all`
+- [x] Implement edge mutation hooks (`useEdgeMutations.ts`)
+  - [x] `useCreateEdge` — invalidates `edges.all`, `nodes.all`
+  - [x] `useDeleteEdge` — invalidates `edges.all`, `nodes.all`
   _US-2_
 
-- [ ] Implement timer mutation hooks (`useTimerMutations.ts`)
-  - [ ] `useStartTimer` — invalidates `timer.all`
-  - [ ] `useStopTimer` — invalidates `timer.all`, `nodes.all`
-  - [ ] `useLogTime` — invalidates `nodes.all`, `timer.all`
-  - [ ] `useDeleteTimeEntry` — invalidates `nodes.all`, `timer.all`
+- [x] Implement timer mutation hooks (`useTimerMutations.ts`)
+  - [x] `useStartTimer` — invalidates `timer.all`
+  - [x] `useStopTimer` — invalidates `timer.all`, `nodes.all`
+  - [x] `useLogTime` — invalidates `nodes.all`, `timer.all`
+  - [x] `useDeleteTimeEntry` — invalidates `nodes.all`, `timer.all`
   _US-2_
 
-- [ ] Create mutation hooks barrel export (`src/hooks/mutations/index.ts`)
+- [x] Create mutation hooks barrel export (`src/hooks/mutations/index.ts`)
   _US-2_
 
 ## DataRefreshProvider
