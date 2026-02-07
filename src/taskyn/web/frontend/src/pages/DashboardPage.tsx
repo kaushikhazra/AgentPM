@@ -30,7 +30,7 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
-  const { data: dashboard } = useDashboard({ refetchInterval: 60_000 });
+  const { data: dashboard } = useDashboard({ refetchInterval: 10_000 });
   const { data: tasks = [], isLoading: loadingTasks } = useNodes({ status: 'in_progress' });
   const { data: activity = [] } = useActivity({ limit: 5 });
   const { data: projects = [] } = useProjects();

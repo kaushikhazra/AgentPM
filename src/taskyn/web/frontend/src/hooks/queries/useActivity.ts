@@ -10,6 +10,6 @@ export function useActivity(filters?: {
   return useQuery({
     queryKey: queryKeys.activity.list(filters),
     queryFn: () => activityApi.list(filters),
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }

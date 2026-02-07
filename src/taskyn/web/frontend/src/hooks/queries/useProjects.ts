@@ -10,7 +10,7 @@ export function useProjects(filters?: {
   return useQuery({
     queryKey: queryKeys.projects.list(filters),
     queryFn: () => projectsApi.list(filters),
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }
 
@@ -19,7 +19,7 @@ export function useProject(id: string | undefined) {
     queryKey: queryKeys.projects.detail(id!),
     queryFn: () => projectsApi.get(id!),
     enabled: !!id,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }
 

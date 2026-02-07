@@ -11,7 +11,7 @@ export function useNodes(filters?: {
   return useQuery({
     queryKey: queryKeys.nodes.list(filters),
     queryFn: () => nodesApi.list(filters),
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }
 
@@ -20,7 +20,7 @@ export function useNode(id: string | undefined) {
     queryKey: queryKeys.nodes.detail(id!),
     queryFn: () => nodesApi.get(id!),
     enabled: !!id,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }
 
@@ -29,7 +29,7 @@ export function useNodeAncestors(id: string | undefined, edgeType?: string) {
     queryKey: queryKeys.nodes.ancestors(id!, edgeType),
     queryFn: () => nodesApi.getAncestors(id!, edgeType),
     enabled: !!id,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }
 
@@ -38,7 +38,7 @@ export function useNodeDescendants(id: string | undefined, edgeType?: string) {
     queryKey: queryKeys.nodes.descendants(id!, edgeType),
     queryFn: () => nodesApi.getDescendants(id!, edgeType),
     enabled: !!id,
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
   });
 }
 
