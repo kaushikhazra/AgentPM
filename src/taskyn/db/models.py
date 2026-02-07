@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from taskyn.db.enums import EntityType
+from taskyn.db.enums import EntityType, Methodology
 
 
 class Company(BaseModel):
@@ -27,7 +27,7 @@ class Project(BaseModel):
     name: str
     description: str | None = None
     type: EntityType = EntityType.DISCOVERY
-    methodology: str = "classic_agile"
+    methodology: Methodology = Methodology.CLASSIC_AGILE
     status: str = "active"
     config: dict[str, Any] | None = None
     created_at: datetime

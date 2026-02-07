@@ -5,7 +5,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from taskyn.db.connection import execute, fetchone, fetchall, commit
-from taskyn.db.enums import EntityType
+from taskyn.db.enums import EntityType, Methodology
 from taskyn.db.models import Project
 from taskyn.methodologies import methodology_exists
 from taskyn.exceptions import ValidationError
@@ -15,7 +15,7 @@ from taskyn.core.company import get_company
 def create_project(
     company_id: str,
     name: str,
-    methodology: str = "classic_agile",
+    methodology: Methodology = Methodology.CLASSIC_AGILE,
     description: str | None = None,
     type: EntityType = EntityType.DISCOVERY,
     config: dict | None = None,
@@ -23,8 +23,8 @@ def create_project(
 ) -> Project:
     """Create a new project."""
     # Validate methodology exists
-    if not methodology_exists(methodology):
-        raise ValidationError(f"Unknown methodology: {methodology}")
+    if not methodology_exists(methodology.value):
+        raise ValidationError(f"Unknown methodology: {methodology.value}")
 
     # Validate company exists (supports prefix matching)
     company = get_company(company_id)
@@ -49,7 +49,7 @@ def create_project(
         INSERT INTO projects (id, company_id, name, description, type, methodology, status, config, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (project_id, company_id, name, description, type.value, methodology, "active", config_json, now, now),
+        (project_id, company_id, name, description, type.value, methodology.value, "active", config_json, now, now),
     )
 
     # Log activity
@@ -127,6 +127,7 @@ def update_project(
     name: str | None = None,
     description: str | None = None,
     type: EntityType | None = None,
+    methodology: Methodology | None = None,
     status: str | None = None,
     config: dict | None = None,
     actor: str | None = None,
@@ -140,6 +141,18 @@ def update_project(
     valid_statuses = ["active", "on_hold", "completed", "archived"]
     if status is not None and status not in valid_statuses:
         raise ValidationError(f"Invalid status: {status}. Must be one of: {valid_statuses}")
+
+    # Validate methodology change
+    if methodology is not None and methodology != project.methodology:
+        node_count = fetchone(
+            "SELECT COUNT(*) as cnt FROM nodes WHERE project_id = ?",
+            (project.id,),
+        )
+        if node_count and node_count["cnt"] > 0:
+            raise ValidationError(
+                f"Cannot change methodology: project has {node_count['cnt']} existing node(s). "
+                f"Delete all nodes first, or create a new project with '{methodology.value}' methodology."
+            )
 
     now = datetime.utcnow()
     updates = []
@@ -167,6 +180,18 @@ def update_project(
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (uuid4().hex, "project", project_id, "status_changed", project.status, status, actor, now),
+        )
+
+    if methodology is not None and methodology != project.methodology:
+        updates.append("methodology = ?")
+        params.append(methodology.value)
+        # Log activity
+        execute(
+            """
+            INSERT INTO activity_log (id, entity_type, entity_id, action, old_value, new_value, actor, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (uuid4().hex, "project", project_id, "methodology_changed", project.methodology.value, methodology.value, actor, now),
         )
 
     if config is not None:

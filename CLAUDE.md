@@ -65,6 +65,10 @@ pip install -e ".[dev]"
 - **Edge**: Relationship between nodes (parent, blocks, depends_on)
 - **UNSET sentinel**: Used in update functions to distinguish "not provided" from "set to None"
 
+## Coding Principles
+
+- **Enum over string**: Always prefer enums over raw strings for fixed-value fields (e.g., methodology, entity type, status). Enums prevent typos, provide discoverability, and serve as a single source of truth. Define enums in `src/taskyn/db/enums.py`.
+
 ## Methodologies
 
 - `classic_agile`: story → task, statuses: backlog/ready/in_progress/done

@@ -41,12 +41,13 @@ def create_project(
 ):
     """Create a new project."""
     from taskyn.core import create_project as _create_project
+    from taskyn.db.enums import Methodology
 
     project = _create_project(
         company_id=company_id,
         name=name,
         description=description,
-        methodology=methodology,
+        methodology=Methodology(methodology),
     )
 
     if state.json_output:
@@ -54,7 +55,7 @@ def create_project(
     else:
         console.print(f"[green]✓[/green] Created project: {project.name}")
         console.print(f"  ID: {project.id}")
-        console.print(f"  Methodology: {project.methodology}")
+        console.print(f"  Methodology: {project.methodology.value}")
 
 
 @app.command("show")
@@ -89,7 +90,7 @@ def show_project(
         console.print(f"[bold]{project.name}[/bold]")
         console.print(f"  ID: {project.id}")
         console.print(f"  Status: {project.status}")
-        console.print(f"  Methodology: {project.methodology}")
+        console.print(f"  Methodology: {project.methodology.value}")
         console.print(f"  Description: {project.description or '-'}")
         console.print(f"  Created: {format_date(project.created_at)}")
         console.print()

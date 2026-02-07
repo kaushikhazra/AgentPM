@@ -2,6 +2,7 @@
 
 import pytest
 
+from taskyn.db.enums import Methodology
 from taskyn.methodologies import get_methodology, list_methodologies
 from taskyn.core import create_company, create_project
 from taskyn.graph import create_node, create_edge, update_node
@@ -47,15 +48,15 @@ def test_spec_driven_edge_types():
 def test_create_spec_project(temp_db):
     """Test creating a project with spec_driven methodology."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
-    assert project.methodology == "spec_driven"
+    assert project.methodology == Methodology.SPEC_DRIVEN
 
 
 def test_create_spec_node(temp_db):
     """Test creating a spec node."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     spec = create_node(project.id, "spec", "User Authentication")
     assert spec.node_type == "spec"
@@ -65,7 +66,7 @@ def test_create_spec_node(temp_db):
 def test_spec_approval_workflow(temp_db):
     """Test the spec approval workflow."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     spec = create_node(project.id, "spec", "User Authentication")
     assert spec.status == "draft"
@@ -86,7 +87,7 @@ def test_spec_approval_workflow(temp_db):
 def test_design_review_workflow(temp_db):
     """Test the design review workflow."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     design = create_node(project.id, "design", "Auth Design Doc")
     assert design.status == "draft"
@@ -103,7 +104,7 @@ def test_design_review_workflow(temp_db):
 def test_design_rejection_workflow(temp_db):
     """Test design rejection and revision."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     design = create_node(project.id, "design", "Auth Design Doc")
 
@@ -122,7 +123,7 @@ def test_design_rejection_workflow(temp_db):
 def test_implementation_workflow(temp_db):
     """Test implementation workflow with rework."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     impl = create_node(project.id, "implementation", "Implement Auth")
     assert impl.status == "todo"
@@ -151,7 +152,7 @@ def test_implementation_workflow(temp_db):
 def test_validation_workflow(temp_db):
     """Test validation pass/fail workflow."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     validation = create_node(project.id, "validation", "Auth Validation")
     assert validation.status == "pending"
@@ -176,7 +177,7 @@ def test_validation_workflow(temp_db):
 def test_gates_edge(temp_db):
     """Test creating gates edge between phases."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     spec = create_node(project.id, "spec", "User Auth Spec")
     design = create_node(project.id, "design", "Auth Design")
@@ -189,7 +190,7 @@ def test_gates_edge(temp_db):
 def test_validates_edge(temp_db):
     """Test creating validates edge."""
     company = create_company("Test Co")
-    project = create_project(company.id, "Spec Project", "spec_driven")
+    project = create_project(company.id, "Spec Project", Methodology.SPEC_DRIVEN)
 
     impl = create_node(project.id, "implementation", "Implement Auth")
     validation = create_node(project.id, "validation", "Auth Tests")

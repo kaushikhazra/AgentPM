@@ -21,3 +21,13 @@ class EntityType(str, Enum):
     ENGAGED = "engaged"
     ACTIVE = "active"
     DORMANT = "dormant"
+
+
+class Methodology(str, Enum):
+    """Project management methodology.
+
+    Defines the valid node types, statuses, and transitions for a project.
+    """
+
+    CLASSIC_AGILE = "classic_agile"
+    SPEC_DRIVEN = "spec_driven"

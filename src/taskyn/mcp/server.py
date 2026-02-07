@@ -277,10 +277,11 @@ def pm_create_project(
         The created project object
     """
     from taskyn.core import create_project
-    from taskyn.db.enums import EntityType
+    from taskyn.db.enums import EntityType, Methodology
     entity_type = EntityType(type)
+    method = Methodology(methodology)
     project = create_project(
-        company_id, name, methodology, description,
+        company_id, name, method, description,
         type=entity_type,
         actor=get_actor()
     )
@@ -328,7 +329,8 @@ def pm_update_project(
     status: str | None = None,
     name: str | None = None,
     description: str | None = None,
-    type: str | None = None
+    type: str | None = None,
+    methodology: str | None = None
 ) -> dict:
     """
     Update a project.
@@ -339,19 +341,22 @@ def pm_update_project(
         name: New name
         description: New description
         type: New lifecycle stage (discovery, potential, matured, engaged, active, dormant)
+        methodology: New methodology (classic_agile, spec_driven). Only allowed if project has no nodes.
 
     Returns:
         The updated project object
     """
     from taskyn.core import update_project
-    from taskyn.db.enums import EntityType
+    from taskyn.db.enums import EntityType, Methodology
     entity_type = EntityType(type) if type else None
+    method = Methodology(methodology) if methodology else None
     project = update_project(
         project_id,
         status=status,
         name=name,
         description=description,
         type=entity_type,
+        methodology=method,
         actor=get_actor()
     )
     return project.model_dump()

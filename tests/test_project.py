@@ -11,6 +11,7 @@ from taskyn.core import (
     delete_project,
     ValidationError,
 )
+from taskyn.db.enums import Methodology
 from taskyn.methodologies import get_methodology
 
 
@@ -41,18 +42,16 @@ def test_create_project_with_methodology(company):
     project = create_project(
         company.id,
         "Agile Project",
-        methodology="classic_agile",
+        methodology=Methodology.CLASSIC_AGILE,
     )
 
-    assert project.methodology == "classic_agile"
+    assert project.methodology == Methodology.CLASSIC_AGILE
 
 
 def test_create_project_invalid_methodology(company):
     """Test creating a project with invalid methodology."""
-    with pytest.raises(ValidationError) as exc_info:
-        create_project(company.id, "Bad Project", methodology="invalid")
-
-    assert "Unknown methodology" in str(exc_info.value)
+    with pytest.raises(ValueError):
+        create_project(company.id, "Bad Project", methodology=Methodology("invalid"))
 
 
 def test_create_project_invalid_company(temp_db):
@@ -147,6 +146,47 @@ def test_update_project_invalid_status(company):
     assert "Invalid status" in str(exc_info.value)
 
 
+def test_update_project_methodology(company):
+    """Test updating a project's methodology when it has no nodes."""
+    project = create_project(company.id, "Agile Project")
+
+    updated = update_project(project.id, methodology=Methodology.SPEC_DRIVEN)
+
+    assert updated is not None
+    assert updated.methodology == Methodology.SPEC_DRIVEN
+
+
+def test_update_project_methodology_invalid(company):
+    """Test updating a project with invalid methodology."""
+    project = create_project(company.id, "Test Project")
+
+    with pytest.raises(ValueError):
+        update_project(project.id, methodology=Methodology("nonexistent"))
+
+
+def test_update_project_methodology_with_nodes(company):
+    """Test that methodology change is rejected when project has nodes."""
+    from taskyn.graph.nodes import create_node
+
+    project = create_project(company.id, "Has Nodes")
+    create_node(project.id, "task", "Some task")
+
+    with pytest.raises(ValidationError) as exc_info:
+        update_project(project.id, methodology=Methodology.SPEC_DRIVEN)
+
+    assert "Cannot change methodology" in str(exc_info.value)
+
+
+def test_update_project_methodology_same_noop(company):
+    """Test that setting methodology to current value is a no-op."""
+    project = create_project(company.id, "Same Method")
+
+    updated = update_project(project.id, methodology=Methodology.CLASSIC_AGILE)
+
+    assert updated is not None
+    assert updated.methodology == Methodology.CLASSIC_AGILE
+
+
 def test_delete_project(company):
     """Test deleting a project."""
     project = create_project(company.id, "To Delete")
@@ -159,7 +199,7 @@ def test_delete_project(company):
 
 def test_project_has_correct_methodology(company):
     """Test that project has correct methodology attached."""
-    project = create_project(company.id, "Agile Project", methodology="classic_agile")
+    project = create_project(company.id, "Agile Project", methodology=Methodology.CLASSIC_AGILE)
 
     methodology = get_methodology(project.methodology)
 
