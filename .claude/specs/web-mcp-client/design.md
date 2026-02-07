@@ -300,7 +300,7 @@ services:
       - TASKYN_MCP_URL=http://mcp:8000/mcp
       - TASKYN_JWT_SECRET=${TASKYN_JWT_SECRET}
     ports:
-      - "3000:3000"
+      - "3020:3020"
     depends_on:
       mcp:
         condition: service_healthy

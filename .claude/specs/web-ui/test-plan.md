@@ -1,7 +1,7 @@
 # Web UI Test Plan
 
 ## Test Environment
-- URL: http://localhost:3000
+- URL: http://localhost:3020
 - Docker containers: taskyn-core, taskyn-web
 - Test Date: 2026-02-05
 - Tester: Velasari (E2E via Puppeteer)
@@ -280,7 +280,7 @@ Create a complete project hierarchy:
 - 2 Tasks under each Story (8 total)
 
 ### Prerequisites
-- [ ] Application running at http://localhost:3000
+- [ ] Application running at http://localhost:3020
 - [ ] At least one company exists (or will be created)
 - [ ] User logged in
 
@@ -289,7 +289,7 @@ Create a complete project hierarchy:
 ### Test Case 11.1: Login and Navigate to Projects
 
 **Steps:**
-1. Navigate to `http://localhost:3000`
+1. Navigate to `http://localhost:3020`
 2. If redirected to login, enter credentials:
    - Fill `input[name="email"]` with test email
    - Fill `input[name="password"]` with test password
@@ -707,7 +707,7 @@ select[name="project"]
 
 async function runE2EHierarchyTest() {
   // 11.1 - Login
-  await page.goto('http://localhost:3000');
+  await page.goto('http://localhost:3020');
   await login(email, password);
 
   // 11.2 - Create Project

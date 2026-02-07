@@ -50,7 +50,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS — configurable origins via env var
-_cors_origins = os.getenv("TASKYN_CORS_ORIGINS", "http://localhost:5173").split(",")
+_cors_origins = os.getenv("TASKYN_CORS_ORIGINS", "http://localhost:3020").split(",")
 
 app.add_middleware(
     CORSMiddleware,

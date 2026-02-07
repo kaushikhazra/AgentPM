@@ -366,7 +366,7 @@ As a developer, I need a FastAPI application that serves as a thin REST
 bridge to MCP tools.
 
 **Acceptance Criteria:**
-- FastAPI app with CORS configured for Vite dev server (localhost:5173)
+- FastAPI app with CORS configured for Vite dev server (localhost:3020)
 - API versioning at `/api/v1`
 - Router modules for each resource domain
 - Swagger docs at `/api/docs`

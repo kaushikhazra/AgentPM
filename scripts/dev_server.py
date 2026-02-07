@@ -62,7 +62,7 @@ def main():
         cwd=str(FRONTEND),
     )
     procs.append(frontend)
-    print("[dev] Vite started on http://localhost:5173")
+    print("[dev] Vite started on http://localhost:3020")
 
     print("[dev] Press Ctrl+C to stop both servers\n")
 

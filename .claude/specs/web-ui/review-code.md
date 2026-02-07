@@ -224,7 +224,7 @@ A `FilterBadge` molecule at `components/molecules/FilterBadge.tsx` encapsulates 
 | # | Issue | Location |
 |---|-------|----------|
 | 36 | CORS `allow_methods=["*"]` and `allow_headers=["*"]` unnecessarily broad | `main.py:32-33` |
-| 37 | CORS origin hardcoded to `localhost:5173` -- not configurable | `main.py:30` |
+| 37 | CORS origin hardcoded to `localhost:3020` -- not configurable | `main.py:30` |
 | 38 | Same JWT secret for both access and refresh tokens | `jwt.py:14-34` |
 | 39 | No `iat`/`jti` claims in JWT tokens -- cannot revoke individual tokens or enforce "issued after" policies | `jwt.py:17-22` |
 | 40 | `delete_cookie` does not mirror `set_cookie` attributes (`samesite`, `httponly`) -- may not clear cookie in all browsers | `routes/auth.py:54` |

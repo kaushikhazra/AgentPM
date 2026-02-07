@@ -90,7 +90,7 @@
   - [x] Base Python image
   - [x] Install taskyn[web] package
   - [x] Build frontend assets
-  - [x] Expose port 3000
+  - [x] Expose port 3020
   - [x] CMD: uvicorn
   _US-7_
 

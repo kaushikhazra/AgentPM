@@ -2,7 +2,7 @@
 
 **Test Date:** 2026-02-05
 **Tester:** Velasari (Claude) via Puppeteer MCP
-**Test Environment:** http://localhost:3000
+**Test Environment:** http://localhost:3020
 **Test User:** e2e-hierarchy@example.com (E2E Test User)
 
 ---
@@ -134,7 +134,7 @@ The MCP client connection issue is a backend infrastructure problem:
 
 | Step | Result | Evidence |
 |------|--------|----------|
-| Navigate to localhost:3000 | PASS | Login page displayed |
+| Navigate to localhost:3020 | PASS | Login page displayed |
 | Create new account | PASS | Registration form worked |
 | Login with credentials | PASS | Dashboard displayed with greeting |
 | Navigate to Projects | PASS | Projects page with 2 existing projects |

@@ -48,7 +48,7 @@ services:
 
     # Port mapping for web server
     ports:
-      - "3000:3000"
+      - "3020:3020"
 
     # Volume mount for persistent user database
     volumes:
@@ -59,7 +59,7 @@ services:
       - TASKYN_MCP_URL=http://taskyn-core:8000/mcp
       - TASKYN_DB=/data/users.db
       - TASKYN_JWT_SECRET=${TASKYN_JWT_SECRET:-dev-secret-change-in-production-min-32-chars}
-      - TASKYN_CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+      - TASKYN_CORS_ORIGINS=http://localhost:3020
       - TASKYN_RATE_LIMIT=true
 
     # Wait for MCP server to be healthy
@@ -72,7 +72,7 @@ services:
 
     # Health check configuration
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3020/health"]
       interval: 10s
       timeout: 5s
       retries: 3

@@ -358,7 +358,7 @@ docker-compose up -d
 
 This creates two services:
 - **taskyn-core**: MCP server on port 8000 (internal)
-- **taskyn-web**: Web UI + FastAPI backend on port 3000
+- **taskyn-web**: Web UI + FastAPI backend on port 3020
 
 The web backend connects to the MCP server via `TASKYN_MCP_URL`:
 
@@ -378,7 +378,7 @@ services:
     build:
       dockerfile: Dockerfile.web
     ports:
-      - "3000:3000"
+      - "3020:3020"
     environment:
       - TASKYN_MCP_URL=http://taskyn-core:8000/mcp
     depends_on:
@@ -386,7 +386,7 @@ services:
         condition: service_healthy
 ```
 
-Access the web UI at `http://localhost:3000`.
+Access the web UI at `http://localhost:3020`.
 
 ## Methodologies
 

@@ -28,7 +28,7 @@
   _US-12.1_
 
 - [x] Implement FastAPI app (`main.py`)
-  - [x] CORS middleware for localhost:5173
+  - [x] CORS middleware for localhost:3020
   - [x] Router registration with `/api/v1` prefix
   _US-12.1_
 

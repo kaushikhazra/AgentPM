@@ -80,6 +80,16 @@ pip install -e ".[dev]"
 taskyn [command]  # Main CLI (defined in pyproject.toml as entry point)
 ```
 
+## Standardized Ports
+
+| Service | Port |
+|---------|------|
+| MCP Server | 8000 |
+| Web UI | 3020 |
+| HTTPS (Caddy) | 8030 |
+
+All configuration files, Docker files, and documentation must use these ports. When adding or changing port references, grep the entire codebase to ensure consistency across: `docker-compose.yml`, `Dockerfile.web`, `vite.config.ts`, `main.py` CORS defaults, and all docs/specs.
+
 ## MCP Server
 
 ```bash

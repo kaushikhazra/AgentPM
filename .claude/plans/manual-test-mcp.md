@@ -9,7 +9,7 @@ pip install -e .
 set AGENTPM_DB=test_mcp.db
 fastmcp dev src/agentpm/mcp/server.py
 ```
-Opens browser UI at http://localhost:5173 for interactive testing.
+Opens browser UI at http://localhost:3020 for interactive testing.
 
 ## Setup Option 2: Claude Desktop
 Add to `~/.claude/claude_desktop_config.json`:
