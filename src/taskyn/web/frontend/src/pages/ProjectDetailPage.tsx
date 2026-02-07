@@ -4,12 +4,13 @@ import { useProject } from '@/hooks/queries/useProjects';
 import { useCompany } from '@/hooks/queries/useCompanies';
 import { useNodes } from '@/hooks/queries/useNodes';
 import { useCreateNode } from '@/hooks/mutations/useNodeMutations';
-import { useDeleteProject } from '@/hooks/mutations/useProjectMutations';
+import { useUpdateProject, useDeleteProject } from '@/hooks/mutations/useProjectMutations';
 import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
 import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel, getChildType } from '@/config/methodology-ui';
+import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType } from '@/types';
 import type { Node } from '@/types';
 
 function statusClass(status: string): string {
@@ -30,6 +31,7 @@ export function ProjectDetailPage() {
   const { data: nodes = [] } = useNodes(projectId ? { project_id: projectId } : undefined);
 
   const createNode = useCreateNode();
+  const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
 
   const [tab, setTab] = useState('all');
@@ -38,6 +40,12 @@ export function ProjectDetailPage() {
   const [createType, setCreateType] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [showDelete, setShowDelete] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editStatus, setEditStatus] = useState('');
+  const [editType, setEditType] = useState<EntityType>('discovery');
+  const [editMethodology, setEditMethodology] = useState('');
 
   if (!project || !project.methodology) {
     return (
@@ -106,6 +114,33 @@ export function ProjectDetailPage() {
     });
   };
 
+  const openEdit = () => {
+    if (!project) return;
+    setEditName(project.name);
+    setEditDesc(project.description ?? '');
+    setEditStatus(project.status);
+    setEditType(project.type ?? 'discovery');
+    setEditMethodology(project.methodology);
+    setShowEdit(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!projectId || !editName.trim()) return;
+    updateProject.mutate(
+      {
+        id: projectId,
+        data: {
+          name: editName.trim(),
+          description: editDesc.trim() || undefined,
+          status: editStatus,
+          type: editType,
+          ...(nodes.length === 0 ? { methodology: editMethodology } : {}),
+        },
+      },
+      { onSuccess: () => setShowEdit(false) },
+    );
+  };
+
   return (
     <DetailLayout
       breadcrumbs={breadcrumbs}
@@ -113,6 +148,12 @@ export function ProjectDetailPage() {
       subtitle={project.description ?? undefined}
       headerAction={
         <div className="header-actions">
+          <Button variant="secondary" onClick={openEdit}>
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Edit
+          </Button>
           <Button variant="secondary" onClick={() => setShowDelete(true)}>
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
               <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -259,6 +300,82 @@ export function ProjectDetailPage() {
           This will permanently delete all {nodes.length} work items and their time entries.
           This action cannot be undone.
         </p>
+      </Modal>
+      {/* Edit Project Modal */}
+      <Modal
+        open={showEdit}
+        onClose={() => setShowEdit(false)}
+        title="Edit Project"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowEdit(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleUpdate} disabled={updateProject.isPending}>
+              {updateProject.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </>
+        }
+      >
+        <div className="form-group">
+          <label className="form-label">Project Name</label>
+          <input
+            className="form-input"
+            placeholder="e.g., Website Redesign, Mobile App"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Status</label>
+          <select
+            className="form-select"
+            value={editStatus}
+            onChange={(e) => setEditStatus(e.target.value)}
+          >
+            <option value="active">Active</option>
+            <option value="on_hold">On Hold</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Methodology</label>
+          <select
+            className="form-select"
+            value={editMethodology}
+            onChange={(e) => setEditMethodology(e.target.value)}
+            disabled={nodes.length > 0}
+          >
+            <option value="classic_agile">Classic Agile</option>
+            <option value="spec_driven">Spec Driven</option>
+          </select>
+          {nodes.length > 0 && (
+            <p className="form-hint">Cannot change methodology: project has {nodes.length} existing node(s).</p>
+          )}
+        </div>
+        <div className="form-group">
+          <label className="form-label">Lifecycle Stage</label>
+          <div className="color-picker">
+            {ENTITY_TYPES.map((type) => (
+              <div
+                key={type}
+                className={`color-option${editType === type ? ' selected' : ''}`}
+                style={{ background: ENTITY_TYPE_COLORS[type] }}
+                onClick={() => setEditType(type)}
+                title={type.charAt(0).toUpperCase() + type.slice(1)}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Description</label>
+          <textarea
+            className="form-input"
+            placeholder="What is this project about?"
+            value={editDesc}
+            onChange={(e) => setEditDesc(e.target.value)}
+          />
+        </div>
       </Modal>
     </DetailLayout>
   );
