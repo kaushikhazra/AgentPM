@@ -11,5 +11,6 @@ export function useEdges(filters?: {
   return useQuery({
     queryKey: queryKeys.edges.list(filters),
     queryFn: () => edgesApi.list(filters),
+    refetchInterval: 30_000,
   });
 }
