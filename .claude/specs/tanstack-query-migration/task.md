@@ -123,56 +123,56 @@
 
 ## Page Migrations
 
-- [ ] Migrate DashboardPage
-  - [ ] Replace useState/useEffect with `useDashboard`, `useNodes`, `useActivity`, `useProjects`
-  - [ ] Add `refetchInterval: 60_000` to dashboard query
-  - [ ] Replace task completion with `useCompleteNode` mutation
-  - [ ] Preserve optimistic completion UI
-  - [ ] Remove manual `loadData` callback
+- [x] Migrate DashboardPage
+  - [x] Replace useState/useEffect with `useDashboard`, `useNodes`, `useActivity`, `useProjects`
+  - [x] Add `refetchInterval: 60_000` to dashboard query
+  - [x] Replace task completion with `useCompleteNode` mutation
+  - [x] Preserve optimistic completion UI
+  - [x] Remove manual `loadData` callback
   _US-3_
 
-- [ ] Migrate CompaniesPage
-  - [ ] Replace useState/useEffect with `useCompanies`, `useProjects`
-  - [ ] Replace CRUD with `useCreateCompany`, `useUpdateCompany`, `useDeleteCompany`
-  - [ ] Remove manual `loadData` callback and toast calls after mutations
+- [x] Migrate CompaniesPage
+  - [x] Replace useState/useEffect with `useCompanies`, `useProjects`
+  - [x] Replace CRUD with `useCreateCompany`, `useUpdateCompany`, `useDeleteCompany`
+  - [x] Remove manual `loadData` callback and toast calls after mutations
   _US-4_
 
-- [ ] Migrate ProjectsPage
-  - [ ] Replace useState/useEffect with `useCompanies`, `useProjects`
-  - [ ] Replace create with `useCreateProject`
-  - [ ] Keep filter `useState` as local UI state
-  - [ ] Remove manual `loadData` callback
+- [x] Migrate ProjectsPage
+  - [x] Replace useState/useEffect with `useCompanies`, `useProjects`
+  - [x] Replace create with `useCreateProject`
+  - [x] Keep filter `useState` as local UI state
+  - [x] Remove manual `loadData` callback
   _US-5_
 
-- [ ] Migrate ProjectDetailPage
-  - [ ] Replace useState/useEffect with `useProject`, `useNodes`, `useCompany`
-  - [ ] Replace mutations with `useCreateNode`, `useDeleteProject`
-  - [ ] Keep tab `useState` as local UI state
-  - [ ] Remove manual `loadData` callback
+- [x] Migrate ProjectDetailPage
+  - [x] Replace useState/useEffect with `useProject`, `useNodes`, `useCompany`
+  - [x] Replace mutations with `useCreateNode`, `useDeleteProject`
+  - [x] Keep tab `useState` as local UI state
+  - [x] Remove manual `loadData` callback
   _US-6_
 
-- [ ] Migrate NodeDetailPage
-  - [ ] Replace useState/useEffect with `useNode`, `useProject`, `useCompany`, `useNodeAncestors`, `useNodeDescendants`
-  - [ ] Replace mutations with `useStartNode`, `useCompleteNode`, `useCreateNode`, `useDeleteNode`
-  - [ ] Remove manual `loadData` callback
+- [x] Migrate NodeDetailPage
+  - [x] Replace useState/useEffect with `useNode`, `useProject`, `useCompany`, `useNodeAncestors`, `useNodeDescendants`
+  - [x] Replace mutations with `useStartNode`, `useCompleteNode`, `useCreateNode`, `useDeleteNode`
+  - [x] Remove manual `loadData` callback
   _US-7_
 
-- [ ] Migrate KanbanPage
-  - [ ] Replace useState/useEffect with `useProjects`, `useNodes`
-  - [ ] Implement optimistic drag-and-drop with `useUpdateNode` (`onMutate`/`onError`/`onSettled`)
-  - [ ] Remove manual state management for drag/drop
+- [x] Migrate KanbanPage
+  - [x] Replace useState/useEffect with `useProjects`, `useNodes`
+  - [x] Implement optimistic drag-and-drop with `useOptimisticUpdateNode` (`onMutate`/`onError`/`onSettled`)
+  - [x] Remove manual state management for drag/drop
   _US-8_
 
-- [ ] Migrate PlannerPage
-  - [ ] Replace useState/useEffect with `useProjects`, `useNodes`, `useEdges`
-  - [ ] Replace mutations with `useCreateNode`, `useStartNode`, `useCompleteNode`
-  - [ ] Keep `buildTree` as derived computation from query data
-  - [ ] Remove manual `loadData` callback
+- [x] Migrate PlannerPage
+  - [x] Replace useState/useEffect with `useProjects`, `useNodes`, `useEdges`
+  - [x] Replace mutations with `useCreateNode`, `useStartNode`, `useCompleteNode`
+  - [x] Keep `buildTree` as derived computation from query data
+  - [x] Remove manual `loadData` callback
   _US-9_
 
-- [ ] Migrate TrackerPage
-  - [ ] Replace useState/useEffect with `useNodes`
-  - [ ] Replace mutations with `useLogTime`, `useDeleteTimeEntry`
-  - [ ] Keep date filtering as derived state
-  - [ ] Remove manual `loadData` callback
+- [x] Migrate TrackerPage
+  - [x] Replace useState/useEffect with `useNodes`
+  - [x] Replace mutations with `useLogTime`, `useDeleteTimeEntry`
+  - [x] Keep date filtering as derived state
+  - [x] Remove manual `loadData` callback
   _US-10_
