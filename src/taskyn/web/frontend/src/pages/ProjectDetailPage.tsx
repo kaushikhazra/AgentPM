@@ -5,7 +5,7 @@ import { useCompany } from '@/hooks/queries/useCompanies';
 import { useNodes } from '@/hooks/queries/useNodes';
 import { useCreateNode } from '@/hooks/mutations/useNodeMutations';
 import { useUpdateProject, useDeleteProject } from '@/hooks/mutations/useProjectMutations';
-import { Button } from '@/components/atoms';
+import { Button, Icon } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
@@ -148,17 +148,14 @@ export function ProjectDetailPage() {
       subtitle={project.description ?? undefined}
       headerAction={
         <div className="header-actions">
+          <Button variant="ghost" onClick={() => setShowDelete(true)}>
+            <Icon name="trash" size={18} />
+          </Button>
           <Button variant="secondary" onClick={openEdit}>
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
             Edit
-          </Button>
-          <Button variant="secondary" onClick={() => setShowDelete(true)}>
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
-              <path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-            Delete
           </Button>
           <Button variant="primary" onClick={() => setShowCreate(true)}>
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
