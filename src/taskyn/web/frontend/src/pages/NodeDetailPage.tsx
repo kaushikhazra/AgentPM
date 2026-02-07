@@ -268,34 +268,40 @@ export function NodeDetailPage() {
               <Button variant="primary" onClick={() => setShowCreate(true)}>Add {childTypeUI.displayName}</Button>
             </div>
           ) : (
-            <div className="task-checklist">
+            <div className="work-item-list">
               {children.map((child) => {
                 const childDone = child.status === 'done' || child.status === 'approved';
-                const childTime = child.time_entries?.reduce(
-                  (sum, te) => sum + (te.duration_minutes ?? 0), 0
-                ) ?? 0;
+                const grandchildType = getChildType(methodology, child.node_type);
+                const grandchildTypeUI = grandchildType ? getNodeTypeUI(methodology, grandchildType) : null;
+                const grandchildCount = child.rollup?.total_children ?? 0;
+                const grandchildCompleted = child.rollup?.completed_children ?? 0;
+                const childPct = grandchildCount > 0
+                  ? Math.round((grandchildCompleted / grandchildCount) * 100)
+                  : 0;
                 return (
                   <div
                     key={child.id}
-                    className={`task-check-item${childDone ? ' completed' : ''}`}
+                    className={`work-item-card${childDone ? ' completed' : ''}`}
                     onClick={() => navigate(`/nodes/${child.id}`)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <div className="task-check-content">
-                      <div className="task-check-title">{child.title}</div>
-                      <div className="task-check-meta">
-                        {getStatusLabel(methodology, child.status)}
-                      </div>
+                    <div className="work-item-header">
+                      <span className="work-item-title">{child.title}</span>
+                      <span className="work-item-id">{child.id.slice(0, 8)}</span>
                     </div>
-                    <div className="task-check-right">
-                      {childTime > 0 && (
-                        <span className="task-time-badge">{formatTime(childTime)}</span>
+                    <div className="work-item-meta">
+                      {grandchildTypeUI && (
+                        <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
                       )}
-                      {!childDone && (
-                        <span className={`status-badge ${statusClass(child.status)}`}>
-                          {getStatusLabel(methodology, child.status)}
-                        </span>
-                      )}
+                      <div className="work-item-progress">
+                        <div className="work-item-progress-bar">
+                          <div className="work-item-progress-fill" style={{ width: `${childPct}%` }} />
+                        </div>
+                        <span>{childPct}%</span>
+                      </div>
+                      <span className={`status-badge ${statusClass(child.status)}`}>
+                        {getStatusLabel(methodology, child.status)}
+                      </span>
                     </div>
                   </div>
                 );

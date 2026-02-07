@@ -573,9 +573,9 @@ def pm_list_nodes(
         assignee: Filter by assignee
 
     Returns:
-        List of node objects
+        List of node objects with parent_id included
     """
-    from taskyn.graph import list_nodes
+    from taskyn.graph import list_nodes, list_edges
     from taskyn.core import get_project
 
     # Resolve short project_id to full ID
@@ -590,7 +590,21 @@ def pm_list_nodes(
         status=status,
         assignee=assignee
     )
-    return [n.model_dump() for n in nodes]
+
+    # Build parent_id map from edges
+    parent_map: dict[str, str] = {}
+    if project_id:
+        edges = list_edges(project_id=project_id, edge_type="parent")
+        for edge in edges:
+            # Edge source_id is the child, target_id is the parent
+            parent_map[edge.source_id] = edge.target_id
+
+    result = []
+    for n in nodes:
+        data = n.model_dump()
+        data["parent_id"] = parent_map.get(n.id)
+        result.append(data)
+    return result
 
 
 @mcp.tool()

@@ -208,3 +208,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Temp files
+**/temp/
+*temp.*
+*_temp.*
+
+# Claude local settings
+.claude/settings.local.json
+
+# Windows artifacts
+nul
+
+# Frontend build info
+tsconfig.tsbuildinfo

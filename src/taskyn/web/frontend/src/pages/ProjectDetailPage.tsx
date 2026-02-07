@@ -7,7 +7,7 @@ import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
-import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel } from '@/config/methodology-ui';
+import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel, getChildType } from '@/config/methodology-ui';
 import { useToast } from '@/hooks/useToast';
 import type { Project, Company, Node } from '@/types';
 
@@ -180,15 +180,13 @@ export function ProjectDetailPage() {
       {error && <p style={{ color: 'var(--status-blocked)', marginBottom: 16 }}>{error}</p>}
 
       <div className="stats-grid">
-        {nodeTypes.map((nt) => {
+        {nodeTypes.slice(0, 3).map((nt) => {
           const ui = getNodeTypeUI(methodology, nt);
           return (
             <StatCard key={nt} label={ui.plural} value={nodesByType[nt] ?? 0} />
           );
         })}
-        {nodeTypes.length < 4 && (
-          <StatCard label="Progress" value={`${pct}%`} />
-        )}
+        <StatCard label="Progress" value={`${pct}%`} />
       </div>
 
       <Section
@@ -237,6 +235,21 @@ export function ProjectDetailPage() {
               const childDone = nodeRollup?.completed_children ?? 0;
               const nodePct = childTotal > 0 ? Math.round((childDone / childTotal) * 100) : 0;
 
+              // Calculate descendant counts by type
+              const childType = getChildType(methodology, node.node_type);
+              const childTypeUI = childType ? getNodeTypeUI(methodology, childType) : null;
+              const grandchildType = childType ? getChildType(methodology, childType) : null;
+              const grandchildTypeUI = grandchildType ? getNodeTypeUI(methodology, grandchildType) : null;
+
+              // Count direct children (e.g., stories for epic)
+              const directChildren = nodes.filter(n => n.parent_id === node.id);
+              const childCount = directChildren.length;
+
+              // Count grandchildren (e.g., tasks for epic's stories)
+              const grandchildCount = grandchildType
+                ? nodes.filter(n => n.node_type === grandchildType && directChildren.some(c => c.id === n.parent_id)).length
+                : 0;
+
               return (
                 <div
                   key={node.id}
@@ -248,7 +261,12 @@ export function ProjectDetailPage() {
                     <span className="work-item-id">{node.id.slice(0, 8)}</span>
                   </div>
                   <div className="work-item-meta">
-                    {childTotal > 0 && <span>{childTotal} children</span>}
+                    {childTypeUI && (
+                      <span>{childCount} {childCount === 1 ? childTypeUI.displayName.toLowerCase() : childTypeUI.plural.toLowerCase()}</span>
+                    )}
+                    {grandchildTypeUI && (
+                      <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
+                    )}
                     <div className="work-item-progress">
                       <div className="work-item-progress-bar">
                         <div
