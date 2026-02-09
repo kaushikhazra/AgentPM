@@ -4,7 +4,7 @@ import { useNode, useNodeAncestors, useNodeDescendants } from '@/hooks/queries/u
 import { useProject } from '@/hooks/queries/useProjects';
 import { useCompany } from '@/hooks/queries/useCompanies';
 import { useCreateNode, useStartNode, useCompleteNode, useDeleteNode } from '@/hooks/mutations/useNodeMutations';
-import { Button } from '@/components/atoms';
+import { Button, MarkdownRenderer } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
@@ -156,7 +156,7 @@ export function NodeDetailPage() {
       {node.description && (
         <div className="story-description">
           <h3>{typeUI.displayName} Description</h3>
-          <p>{node.description}</p>
+          <MarkdownRenderer content={node.description} />
         </div>
       )}
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/queries/useCompanies';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useCreateProject } from '@/hooks/mutations/useProjectMutations';
-import { Button } from '@/components/atoms';
+import { Button, MarkdownRenderer } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
 import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType } from '@/types';
@@ -211,7 +211,7 @@ export function ProjectsPage() {
                   </div>
                 </div>
                 {project.description && (
-                  <p className="project-desc">{project.description}</p>
+                  <MarkdownRenderer content={project.description} className="project-desc" />
                 )}
                 <div className="project-stats">
                   {(['epic', 'story', 'task'] as const).map((type) => (

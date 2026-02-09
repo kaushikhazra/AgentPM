@@ -90,6 +90,10 @@ taskyn [command]  # Main CLI (defined in pyproject.toml as entry point)
 
 All configuration files, Docker files, and documentation must use these ports. When adding or changing port references, grep the entire codebase to ensure consistency across: `docker-compose.yml`, `Dockerfile.web`, `vite.config.ts`, `main.py` CORS defaults, and all docs/specs.
 
+## Browser Testing
+
+Use **Puppeteer MCP** (not Chrome extension) for browser automation and testing. Deploy via Docker (`docker compose up --build -d`) and test against `http://localhost:3020`.
+
 ## MCP Server
 
 ```bash

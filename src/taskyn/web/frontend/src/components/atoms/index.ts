@@ -6,4 +6,5 @@ export { Icon } from './Icon';
 export type { IconName } from './Icon';
 export { Input } from './Input';
 export { Kbd } from './Kbd';
+export { MarkdownRenderer } from './MarkdownRenderer';
 export { StatusDot } from './StatusDot';
