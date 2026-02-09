@@ -131,7 +131,7 @@ def list_nodes(
     status: str | None = None,
     assignee: str | None = None,
     milestone_id: str | None = None,
-    limit: int = 100,
+    limit: int | None = None,
     offset: int = 0,
 ) -> list[Node]:
     """List nodes with optional filters."""
@@ -158,8 +158,10 @@ def list_nodes(
         sql += " AND milestone_id = ?"
         params.append(milestone_id)
 
-    sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-    params.extend([limit, offset])
+    sql += " ORDER BY created_at DESC"
+    if limit is not None:
+        sql += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
 
     rows = fetchall(sql, tuple(params))
     return [_row_to_node(row) for row in rows]
