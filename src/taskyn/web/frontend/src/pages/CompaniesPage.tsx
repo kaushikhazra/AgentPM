@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/queries/useCompanies';
 import { useProjects } from '@/hooks/queries/useProjects';
 import { useCreateCompany, useUpdateCompany, useDeleteCompany } from '@/hooks/mutations/useCompanyMutations';
-import { Button, Icon } from '@/components/atoms';
+import { Button, Icon, MarkdownRenderer } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
 import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType, type Company } from '@/types';
@@ -127,7 +127,7 @@ export function CompaniesPage() {
                 <div className="company-info">
                   <h3 className="company-name">{company.name}</h3>
                   {company.description && (
-                    <p className="company-description">{company.description}</p>
+                    <MarkdownRenderer content={company.description} className="company-description" />
                   )}
                 </div>
               </div>
@@ -269,7 +269,7 @@ export function CompaniesPage() {
               </div>
               <div className="company-detail-info">
                 <h2>{showView.name}</h2>
-                {showView.description && <p>{showView.description}</p>}
+                {showView.description && <MarkdownRenderer content={showView.description} />}
               </div>
             </div>
 
