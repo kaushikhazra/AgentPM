@@ -2389,6 +2389,10 @@ textarea.form-input {
     font-size: 13px;
     color: var(--text-secondary);
 }
+.work-item-time {
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+}
 .work-item-progress {
     display: flex;
     align-items: center;

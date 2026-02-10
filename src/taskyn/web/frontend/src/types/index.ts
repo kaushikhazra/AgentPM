@@ -100,6 +100,7 @@ export interface Node {
   priority: string | null;
   milestone_id: string | null;
   properties: Record<string, unknown> | null;
+  actual_time: number;
   blocked_reason: string | null;
   completed_at: string | null;
   created_at: string;

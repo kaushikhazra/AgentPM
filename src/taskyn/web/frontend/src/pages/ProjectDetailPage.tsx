@@ -12,6 +12,7 @@ import { Section, Modal } from '@/components/organisms';
 import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel, getChildType } from '@/config/methodology-ui';
 import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType } from '@/types';
 import type { Node } from '@/types';
+import { formatDuration } from '@/utils/formatDuration';
 
 function statusClass(status: string): string {
   if (status === 'done' || status === 'approved') return 'done';
@@ -228,6 +229,9 @@ export function ProjectDetailPage() {
                     )}
                     {grandchildTypeUI && (
                       <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
+                    )}
+                    {node.actual_time > 0 && (
+                      <span className="work-item-time">{formatDuration(node.actual_time)}</span>
                     )}
                     <div className="work-item-progress">
                       <div className="work-item-progress-bar">

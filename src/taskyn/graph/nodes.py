@@ -318,6 +318,7 @@ def _row_to_node(row) -> Node:
         assignee=row["assignee"],
         estimated_minutes=row["estimated_minutes"],
         story_points=row["story_points"],
+        actual_time=row["actual_time"],
         priority=row["priority"] or "medium",
         blocked_reason=row["blocked_reason"],
         properties=properties,

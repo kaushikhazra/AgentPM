@@ -61,6 +61,7 @@ class Node(BaseModel):
     assignee: str | None = None
     estimated_minutes: int | None = None
     story_points: int | None = None
+    actual_time: int = 0
     priority: str = "medium"
     blocked_reason: str | None = None
     properties: dict[str, Any] | None = None
