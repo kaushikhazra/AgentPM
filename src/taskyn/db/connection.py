@@ -41,6 +41,86 @@ def _init_schema() -> None:
     _connection.executescript(schema_sql)
     _connection.commit()
 
+    _run_migrations()
+
+
+def _run_migrations() -> None:
+    """Run schema migrations for existing databases."""
+    global _connection
+
+    # Migration: add actual_time column to nodes
+    columns = [
+        row[1] for row in _connection.execute("PRAGMA table_info(nodes)").fetchall()
+    ]
+    if "actual_time" not in columns:
+        _connection.execute("ALTER TABLE nodes ADD COLUMN actual_time INTEGER DEFAULT 0")
+        _connection.commit()
+        _backfill_actual_time()
+
+
+def _backfill_actual_time() -> None:
+    """One-time backfill of actual_time for all existing nodes."""
+    global _connection
+
+    # Step 1: Calculate own time for all nodes from time_entries (seconds)
+    _connection.execute("""
+        UPDATE nodes SET actual_time = COALESCE((
+            SELECT SUM(
+                CASE
+                    WHEN te.started_at = te.ended_at THEN te.duration_minutes * 60
+                    WHEN te.ended_at IS NOT NULL THEN CAST((julianday(te.ended_at) - julianday(te.started_at)) * 86400 AS INTEGER)
+                    ELSE 0
+                END
+            )
+            FROM time_entries te
+            WHERE te.node_id = nodes.id AND te.ended_at IS NOT NULL
+        ), 0)
+    """)
+    _connection.commit()
+
+    # Step 2: Propagate bottom-up through parent edges
+    # Each pass recalculates parent = own_entries_time + sum(children.actual_time)
+    # Repeat until stable (handles multi-level hierarchies)
+    for _ in range(10):  # Max 10 levels deep (practically never more than 3-4)
+        prev_sum = _connection.execute(
+            "SELECT COALESCE(SUM(actual_time), 0) FROM nodes"
+        ).fetchone()[0]
+
+        _connection.execute("""
+            UPDATE nodes SET actual_time = (
+                COALESCE((
+                    SELECT SUM(
+                        CASE
+                            WHEN te.started_at = te.ended_at THEN te.duration_minutes * 60
+                            WHEN te.ended_at IS NOT NULL THEN CAST((julianday(te.ended_at) - julianday(te.started_at)) * 86400 AS INTEGER)
+                            ELSE 0
+                        END
+                    )
+                    FROM time_entries te
+                    WHERE te.node_id = nodes.id AND te.ended_at IS NOT NULL
+                ), 0)
+                +
+                COALESCE((
+                    SELECT SUM(child.actual_time)
+                    FROM nodes child
+                    JOIN edges e ON e.source_id = child.id
+                    WHERE e.target_id = nodes.id AND e.edge_type = 'parent'
+                ), 0)
+            )
+            WHERE id IN (
+                SELECT DISTINCT e.target_id
+                FROM edges e
+                WHERE e.edge_type = 'parent'
+            )
+        """)
+        _connection.commit()
+
+        new_sum = _connection.execute(
+            "SELECT COALESCE(SUM(actual_time), 0) FROM nodes"
+        ).fetchone()[0]
+        if new_sum == prev_sum:
+            break
+
 
 def close_connection() -> None:
     """Close the database connection."""

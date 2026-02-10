@@ -99,6 +99,11 @@ def create_edge(
 
     commit()
 
+    # Propagate actual_time when parent hierarchy changes
+    if edge_type == "parent":
+        from taskyn.core.time_entry import propagate_actual_time
+        propagate_actual_time(target_id)
+
     return Edge(
         id=edge_id,
         project_id=source.project_id,
@@ -166,6 +171,11 @@ def delete_edge(edge_id: str, actor: str | None = None) -> bool:
 
     execute("DELETE FROM edges WHERE id = ?", (edge_id,))
     commit()
+
+    # Propagate actual_time when parent hierarchy changes
+    if edge.edge_type == "parent":
+        from taskyn.core.time_entry import propagate_actual_time
+        propagate_actual_time(edge.target_id)
 
     return True
 

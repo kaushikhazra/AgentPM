@@ -9,6 +9,7 @@ import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
 import { getNodeTypeUI, getStatusLabel, getChildType, canHaveChildren } from '@/config/methodology-ui';
+import { formatDuration } from '@/utils/formatDuration';
 
 function statusClass(status: string): string {
   if (status === 'done' || status === 'approved') return 'done';
@@ -18,13 +19,6 @@ function statusClass(status: string): string {
   if (status === 'ready') return 'ready';
   if (status === 'review' || status === 'in_review') return 'review';
   return 'backlog';
-}
-
-function formatTime(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 export function NodeDetailPage() {
@@ -69,7 +63,6 @@ export function NodeDetailPage() {
   const rollup = node.rollup;
   const totalChildren = rollup?.total_children ?? children.length;
   const completedChildren = rollup?.completed_children ?? children.filter((c) => c.status === 'done' || c.status === 'approved').length;
-  const totalTime = rollup?.total_time_minutes ?? 0;
   const pct = totalChildren > 0 ? Math.round((completedChildren / totalChildren) * 100) : 0;
 
   const breadcrumbs = [
@@ -163,7 +156,7 @@ export function NodeDetailPage() {
       <div className="stats-grid">
         <StatCard label="Total Children" value={totalChildren} />
         <StatCard label="Completed" value={completedChildren} />
-        <StatCard label="Time Tracked" value={formatTime(totalTime)} />
+        <StatCard label="Time Tracked" value={formatDuration(node.actual_time) || '—'} />
         <StatCard label="Progress" value={`${pct}%`} />
       </div>
 
@@ -203,6 +196,9 @@ export function NodeDetailPage() {
                     <div className="work-item-meta">
                       {grandchildTypeUI && (
                         <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
+                      )}
+                      {child.actual_time > 0 && (
+                        <span className="work-item-time">{formatDuration(child.actual_time)}</span>
                       )}
                       <div className="work-item-progress">
                         <div className="work-item-progress-bar">

@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     -- Effort tracking (optional, depends on node_type)
     estimated_minutes INTEGER,
     story_points INTEGER,
+    actual_time INTEGER DEFAULT 0,
 
     -- Metadata
     priority TEXT DEFAULT 'medium',

@@ -33,6 +33,7 @@ from taskyn.core.time_entry import (
     get_time_total,
     get_time_entry,
     delete_time_entry,
+    propagate_actual_time,
 )
 from taskyn.core.tag import (
     create_tag,
@@ -123,6 +124,7 @@ __all__ = [
     "get_time_total",
     "get_time_entry",
     "delete_time_entry",
+    "propagate_actual_time",
     # Tag
     "create_tag",
     "get_tag",

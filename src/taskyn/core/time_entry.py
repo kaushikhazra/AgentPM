@@ -115,6 +115,8 @@ def stop_timer(
 
     commit()
 
+    propagate_actual_time(entry.node_id)
+
     return TimeEntry(
         id=entry.id,
         node_id=entry.node_id,
@@ -163,6 +165,8 @@ def log_time(
     )
 
     commit()
+
+    propagate_actual_time(node_id)
 
     return TimeEntry(
         id=entry_id,
@@ -261,6 +265,8 @@ def delete_time_entry(entry_id: str, actor: str | None = None) -> bool:
     if entry is None:
         return False
 
+    node_id = entry.node_id
+
     log_activity(
         entity_type="time_entry",
         entity_id=entry_id,
@@ -272,12 +278,74 @@ def delete_time_entry(entry_id: str, actor: str | None = None) -> bool:
     execute("DELETE FROM time_entries WHERE id = ?", (entry_id,))
     commit()
 
+    propagate_actual_time(node_id)
+
     return True
 
 
 def get_time_entry(entry_id: str) -> TimeEntry | None:
     """Get a time entry by ID (public API)."""
     return _get_time_entry(entry_id)
+
+
+def propagate_actual_time(node_id: str) -> None:
+    """Recalculate actual_time for a node and propagate up the parent chain.
+
+    - Leaf node: actual_time = sum of own time entries (in seconds)
+    - Parent node: actual_time = own entries time + sum of children's actual_time
+    - Walks up parent edges recursively until root
+    """
+    from taskyn.graph.nodes import get_node
+    from taskyn.graph.edges import list_edges
+
+    node = get_node(node_id)
+    if node is None:
+        return
+
+    node_id = node.id
+
+    # Calculate own time from completed time entries (seconds precision)
+    # For timed entries: use started_at/ended_at timestamps
+    # For manual entries (started_at == ended_at): use duration_minutes * 60
+    row = fetchone(
+        """
+        SELECT COALESCE(SUM(
+            CASE
+                WHEN started_at = ended_at THEN duration_minutes * 60
+                WHEN ended_at IS NOT NULL THEN CAST((julianday(ended_at) - julianday(started_at)) * 86400 AS INTEGER)
+                ELSE 0
+            END
+        ), 0) as total
+        FROM time_entries WHERE node_id = ? AND ended_at IS NOT NULL
+        """,
+        (node_id,),
+    )
+    own_time = row["total"] if row else 0
+
+    # Sum children's actual_time (children have parent edge: source=child, target=this node)
+    children_row = fetchone(
+        """
+        SELECT COALESCE(SUM(n.actual_time), 0) as total
+        FROM nodes n
+        JOIN edges e ON e.source_id = n.id
+        WHERE e.target_id = ? AND e.edge_type = 'parent'
+        """,
+        (node_id,),
+    )
+    children_time = children_row["total"] if children_row else 0
+
+    new_actual_time = own_time + children_time
+
+    execute(
+        "UPDATE nodes SET actual_time = ?, updated_at = ? WHERE id = ?",
+        (new_actual_time, _now(), node_id),
+    )
+    commit()
+
+    # Walk up: find this node's parent
+    parent_edges = list_edges(source_id=node_id, edge_type="parent")
+    for edge in parent_edges:
+        propagate_actual_time(edge.target_id)
 
 
 def _parse_datetime(value) -> datetime:
