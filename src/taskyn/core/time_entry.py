@@ -205,6 +205,52 @@ def list_time_entries(node_id: str) -> list[TimeEntry]:
     return [_row_to_time_entry(row) for row in rows]
 
 
+def list_all_time_entries(
+    project_id: str | None = None,
+    limit: int = 200,
+) -> list[dict]:
+    """List time entries across all nodes, with node title attached.
+
+    Args:
+        project_id: Optional filter by project.
+        limit: Max entries to return (default 200).
+
+    Returns:
+        List of dicts: time entry fields + node_title.
+    """
+    if project_id:
+        rows = fetchall(
+            """
+            SELECT te.*, n.title AS node_title
+            FROM time_entries te
+            JOIN nodes n ON te.node_id = n.id
+            WHERE n.project_id = ?
+            ORDER BY te.started_at DESC
+            LIMIT ?
+            """,
+            (project_id, limit),
+        )
+    else:
+        rows = fetchall(
+            """
+            SELECT te.*, n.title AS node_title
+            FROM time_entries te
+            JOIN nodes n ON te.node_id = n.id
+            ORDER BY te.started_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+
+    result = []
+    for row in rows:
+        entry = _row_to_time_entry(row)
+        d = entry.model_dump()
+        d["node_title"] = row["node_title"]
+        result.append(d)
+    return result
+
+
 def get_time_total(node_id: str) -> int:
     """Get total time tracked on a node in minutes (supports prefix matching)."""
     from taskyn.graph.nodes import get_node

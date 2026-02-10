@@ -9,6 +9,21 @@ from ..schemas.timer import TimeEntryCreate
 router = APIRouter(prefix="/time-entries", tags=["time-entries"])
 
 
+@router.get("")
+async def list_time_entries(
+    project_id: str | None = None,
+    limit: int = 200,
+    current_user: User = Depends(get_current_user),
+):
+    """List time entries across all nodes."""
+    args: dict = {}
+    if project_id:
+        args["project_id"] = project_id
+    if limit != 200:
+        args["limit"] = limit
+    return await call_mcp_tool("pm_list_time_entries", args)
+
+
 @router.post("", status_code=201)
 async def log_time(
     data: TimeEntryCreate,

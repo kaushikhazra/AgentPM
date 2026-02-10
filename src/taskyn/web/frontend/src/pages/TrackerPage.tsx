@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNodes } from '@/hooks/queries/useNodes';
+import { useTimeEntries } from '@/hooks/queries/useTimerQuery';
 import { useLogTime, useDeleteTimeEntry } from '@/hooks/mutations/useTimerMutations';
 import { Button } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
@@ -36,12 +37,9 @@ function isYesterday(iso: string): boolean {
   return d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate();
 }
 
-interface TimeEntryWithNode extends TimeEntry {
-  nodeTitle?: string;
-}
-
 export function TrackerPage() {
   const { data: allNodes = [] } = useNodes();
+  const { data: entries = [] } = useTimeEntries();
   const logTime = useLogTime();
   const deleteTimeEntry = useDeleteTimeEntry();
 
@@ -52,17 +50,6 @@ export function TrackerPage() {
   const [manualNotes, setManualNotes] = useState('');
   const [showDelete, setShowDelete] = useState(false);
   const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
-
-  // Collect all time entries from all nodes
-  const entries: TimeEntryWithNode[] = [];
-  for (const node of allNodes) {
-    if (node.time_entries && node.time_entries.length > 0) {
-      node.time_entries.forEach((te: TimeEntry) => {
-        entries.push({ ...te, nodeTitle: node.title });
-      });
-    }
-  }
-  entries.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
 
   const handleManualEntry = async () => {
     if (!manualNodeId || !manualDuration) return;
@@ -92,9 +79,9 @@ export function TrackerPage() {
   const weekMinutes = entries.filter((e) => new Date(e.started_at) >= weekAgo).reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0);
   const totalMinutes = entries.reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0);
 
-  const dayGroups: { label: string; entries: TimeEntryWithNode[] }[] = [];
+  const dayGroups: { label: string; entries: TimeEntry[] }[] = [];
   if (tab === 'weekly') {
-    const grouped = new Map<string, TimeEntryWithNode[]>();
+    const grouped = new Map<string, TimeEntry[]>();
     filteredEntries.forEach((e) => { const key = formatDate(e.started_at); const arr = grouped.get(key) ?? []; arr.push(e); grouped.set(key, arr); });
     grouped.forEach((ents, label) => { dayGroups.push({ label, entries: ents }); });
   }
@@ -134,13 +121,13 @@ export function TrackerPage() {
                 <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>No time entries {tab === 'today' ? 'today' : 'yesterday'}</div>
               ) : filteredEntries.map((entry) => {
                 const dur = entry.duration_minutes ?? 0;
-                const isRunning = !entry.stopped_at;
+                const isRunning = !entry.ended_at;
                 return (
                   <div key={entry.id} className={`time-entry-item${isRunning ? ' time-entry-active' : ''}`}>
                     <div className={`time-entry-dot${isRunning ? ' active' : ''}`} />
                     <div className="time-entry-content">
-                      <div className="time-entry-title">{entry.nodeTitle ?? entry.node_id.slice(0, 8)}</div>
-                      <div className="time-entry-meta">{formatTime(entry.started_at)}{entry.stopped_at ? ` - ${formatTime(entry.stopped_at)}` : ' - Running'}{entry.notes ? ` • ${entry.notes}` : ''}</div>
+                      <div className="time-entry-title">{entry.node_title ?? entry.node_id.slice(0, 8)}</div>
+                      <div className="time-entry-meta">{formatTime(entry.started_at)}{entry.ended_at ? ` - ${formatTime(entry.ended_at)}` : ' - Running'}{entry.notes ? ` • ${entry.notes}` : ''}</div>
                     </div>
                     <div className={`time-entry-duration${isRunning ? ' active' : ''}`}>{formatDuration(dur)}</div>
                     {!isRunning && (
@@ -157,12 +144,12 @@ export function TrackerPage() {
               <div key={group.label} className="time-entry-day-group">
                 <div className="time-entry-day-header">{group.label}</div>
                 {group.entries.map((entry) => {
-                  const isRunning = !entry.stopped_at;
+                  const isRunning = !entry.ended_at;
                   return (
                     <div key={entry.id} className="time-entry-item">
                       <div className="time-entry-dot" />
                       <div className="time-entry-content">
-                        <div className="time-entry-title">{entry.nodeTitle ?? entry.node_id.slice(0, 8)}</div>
+                        <div className="time-entry-title">{entry.node_title ?? entry.node_id.slice(0, 8)}</div>
                         <div className="time-entry-meta">{entry.notes ?? ''}</div>
                       </div>
                       <div className="time-entry-duration">{formatDuration(entry.duration_minutes ?? 0)}</div>

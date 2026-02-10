@@ -1018,6 +1018,25 @@ def pm_log_time(
 
 
 @mcp.tool()
+def pm_list_time_entries(
+    project_id: str | None = None,
+    limit: int = 200,
+) -> list[dict]:
+    """
+    List time entries across all nodes, with node title.
+
+    Args:
+        project_id: Optional filter by project
+        limit: Max entries (default 200)
+
+    Returns:
+        List of time entry objects with node_title field
+    """
+    from taskyn.core import list_all_time_entries
+    return list_all_time_entries(project_id=project_id, limit=limit)
+
+
+@mcp.tool()
 def pm_get_active_timer() -> dict | None:
     """
     Get the currently active timer.

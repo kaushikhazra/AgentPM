@@ -222,7 +222,8 @@ export interface TimeEntry {
   duration_minutes: number | null;
   notes: string | null;
   started_at: string;
-  stopped_at: string | null;
+  ended_at: string | null;
+  node_title?: string;
 }
 
 export interface TimeEntryCreate {

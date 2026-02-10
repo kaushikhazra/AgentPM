@@ -11,6 +11,14 @@ export function useTimerCurrent(options?: { enabled?: boolean; refetchInterval?:
   });
 }
 
+export function useTimeEntries(projectId?: string) {
+  return useQuery({
+    queryKey: queryKeys.timer.list(projectId),
+    queryFn: () => timerApi.listTimeEntries(projectId),
+    refetchInterval: 10_000,
+  });
+}
+
 export function useTimeEntry(id: string | undefined) {
   return useQuery({
     queryKey: queryKeys.timer.entry(id!),
