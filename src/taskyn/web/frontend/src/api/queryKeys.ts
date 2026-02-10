@@ -70,6 +70,8 @@ export const queryKeys = {
   timer: {
     all: () => ['timer'] as const,
     current: () => [...queryKeys.timer.all(), 'current'] as const,
+    list: (projectId?: string) =>
+      [...queryKeys.timer.all(), 'list', projectId] as const,
     entry: (id: string) =>
       [...queryKeys.timer.all(), 'entry', id] as const,
   },
