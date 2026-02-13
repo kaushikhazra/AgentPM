@@ -22,7 +22,7 @@ export function TimerWidget() {
       </div>
       {activeTimer && (
         <>
-          <div className="timer-task">{activeTimer.node_id}</div>
+          <div className="timer-task">{activeTimer.node_title ?? activeTimer.node_id.slice(0, 8)}</div>
           <div className="timer-controls">
             <button
               className="timer-btn timer-btn-stop"

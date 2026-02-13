@@ -235,6 +235,7 @@ export interface TimeEntryCreate {
 export interface ActiveTimer {
   id: string;
   node_id: string;
+  node_title?: string;
   notes: string | null;
   started_at: string;
 }

@@ -1054,6 +1054,7 @@ def pm_get_active_timer() -> dict | None:
     node = get_node(entry.node_id)
     return {
         **entry.model_dump(),
+        "node_title": node.title if node else None,
         "node": node.model_dump() if node else None
     }
 
