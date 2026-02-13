@@ -269,11 +269,19 @@ def update_node(
     params.append(now)
     params.append(node_id)
 
+    old_status = node.status
+    new_status_value = status if (status is not None and status != node.status) else None
+
     execute(
         f"UPDATE nodes SET {', '.join(updates)} WHERE id = ?",
         tuple(params),
     )
     commit()
+
+    # Post-transition hook: verification failure cascade
+    if new_status_value is not None:
+        from taskyn.core.cascade import on_status_changed
+        on_status_changed(node_id, node.node_type, old_status, new_status_value)
 
     return get_node(node_id)
 

@@ -408,6 +408,7 @@ def pm_get_methodology_info(project_id: str) -> dict:
                 "initial_status": nt.initial_status,
                 "terminal_statuses": list(nt.terminal_statuses),
                 "allowed_transitions": nt.allowed_transitions,
+                "can_track_time": nt.can_track_time,
             }
             for name, nt in methodology.node_types.items()
         },
@@ -420,6 +421,7 @@ def pm_get_methodology_info(project_id: str) -> dict:
             }
             for name, et in methodology.edge_types.items()
         },
+        "valid_parent_pairs": methodology.valid_parent_pairs,
     }
 
 
