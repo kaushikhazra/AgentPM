@@ -6,12 +6,32 @@ from uuid import uuid4
 from taskyn.db.connection import execute, fetchone, fetchall, commit
 from taskyn.db.models import TimeEntry
 from taskyn.core.activity import log_activity
-from taskyn.exceptions import NotFoundError
+from taskyn.exceptions import NotFoundError, ValidationError
 
 
 def _now() -> datetime:
     """Get current UTC time."""
     return datetime.now(timezone.utc)
+
+
+def _enforce_time_tracking(node) -> None:
+    """Raise ValidationError if the node's methodology disallows time tracking."""
+    from taskyn.core.project import get_project
+    from taskyn.methodologies import get_methodology
+
+    project = get_project(node.project_id)
+    if project is None:
+        return  # Can't validate without project
+
+    methodology = get_methodology(project.methodology)
+    if methodology is None:
+        return
+
+    node_type_def = methodology.get_node_type(node.node_type)
+    if node_type_def is not None and not node_type_def.can_track_time:
+        raise ValidationError(
+            f"Time tracking is not allowed on '{node.node_type}' nodes"
+        )
 
 
 def start_timer(
@@ -31,6 +51,9 @@ def start_timer(
     if node is None:
         raise NotFoundError("node", node_id)
     node_id = node.id  # Use full ID
+
+    # Enforce can_track_time
+    _enforce_time_tracking(node)
 
     # Stop any active timer first
     active = get_active_timer()
@@ -143,6 +166,9 @@ def log_time(
     if node is None:
         raise NotFoundError("node", node_id)
     node_id = node.id  # Use full ID
+
+    # Enforce can_track_time
+    _enforce_time_tracking(node)
 
     entry_id = uuid4().hex
     now = _now()

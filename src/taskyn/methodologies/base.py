@@ -104,6 +104,15 @@ class BaseMethodology(ABC):
             return False
         return status in nt.terminal_statuses
 
+    @property
+    def valid_parent_pairs(self) -> dict[str, list[str]]:
+        """Map of child_type -> allowed_parent_types for parent edges.
+
+        Override in subclass to enforce strict hierarchy.
+        Empty dict means no pair-level restriction (only source/target lists).
+        """
+        return {}
+
     def validate_edge(
         self, edge_type: str, source_type: str, target_type: str
     ) -> list[str]:
@@ -128,6 +137,16 @@ class BaseMethodology(ABC):
             errors.append(
                 f"Node type '{target_type}' cannot be a target for edge type '{edge_type}'"
             )
+
+        # Pair-level validation for parent edges
+        pairs = self.valid_parent_pairs
+        if edge_type == "parent" and pairs:
+            allowed_parents = pairs.get(source_type)
+            if allowed_parents is not None and target_type not in allowed_parents:
+                errors.append(
+                    f"Node type '{source_type}' can only parent under "
+                    f"{allowed_parents}, not '{target_type}'"
+                )
 
         return errors
 
