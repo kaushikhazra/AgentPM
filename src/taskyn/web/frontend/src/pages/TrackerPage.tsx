@@ -8,10 +8,20 @@ import { Section, Modal } from '@/components/organisms';
 import { TimerWidget } from '@/components/organisms/TimerWidget';
 import type { Node, TimeEntry } from '@/types';
 
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${h}h ${m.toString().padStart(2, '0')}m`;
+function formatDuration(totalSeconds: number): string {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  if (h > 0) return `${h}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
+  if (m > 0) return `${m}m ${s.toString().padStart(2, '0')}s`;
+  return `${s}s`;
+}
+
+function entryDurationSeconds(entry: TimeEntry): number {
+  if (entry.started_at && entry.ended_at) {
+    return Math.max(0, Math.round((new Date(entry.ended_at).getTime() - new Date(entry.started_at).getTime()) / 1000));
+  }
+  return (entry.duration_minutes ?? 0) * 60;
 }
 
 function formatTime(iso: string): string {
@@ -74,10 +84,10 @@ export function TrackerPage() {
     return true;
   });
 
-  const todayMinutes = entries.filter((e) => isToday(e.started_at)).reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0);
+  const todaySeconds = entries.filter((e) => isToday(e.started_at)).reduce((sum, e) => sum + entryDurationSeconds(e), 0);
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekMinutes = entries.filter((e) => new Date(e.started_at) >= weekAgo).reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0);
-  const totalMinutes = entries.reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0);
+  const weekSeconds = entries.filter((e) => new Date(e.started_at) >= weekAgo).reduce((sum, e) => sum + entryDurationSeconds(e), 0);
+  const totalSeconds = entries.reduce((sum, e) => sum + entryDurationSeconds(e), 0);
 
   const dayGroups: { label: string; entries: TimeEntry[] }[] = [];
   if (tab === 'weekly') {
@@ -100,9 +110,9 @@ export function TrackerPage() {
       </div>
 
       <div className="stats-grid">
-        <StatCard label="Today" value={formatDuration(todayMinutes)} />
-        <StatCard label="This Week" value={formatDuration(weekMinutes)} />
-        <StatCard label="Total" value={formatDuration(totalMinutes)} />
+        <StatCard label="Today" value={formatDuration(todaySeconds)} />
+        <StatCard label="This Week" value={formatDuration(weekSeconds)} />
+        <StatCard label="Total" value={formatDuration(totalSeconds)} />
         <StatCard label="Entries" value={entries.length} />
       </div>
 
@@ -120,7 +130,6 @@ export function TrackerPage() {
               filteredEntries.length === 0 ? (
                 <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)' }}>No time entries {tab === 'today' ? 'today' : 'yesterday'}</div>
               ) : filteredEntries.map((entry) => {
-                const dur = entry.duration_minutes ?? 0;
                 const isRunning = !entry.ended_at;
                 return (
                   <div key={entry.id} className={`time-entry-item${isRunning ? ' time-entry-active' : ''}`}>
@@ -129,7 +138,7 @@ export function TrackerPage() {
                       <div className="time-entry-title">{entry.node_title ?? entry.node_id.slice(0, 8)}</div>
                       <div className="time-entry-meta">{formatTime(entry.started_at)}{entry.ended_at ? ` - ${formatTime(entry.ended_at)}` : ' - Running'}{entry.notes ? ` • ${entry.notes}` : ''}</div>
                     </div>
-                    <div className={`time-entry-duration${isRunning ? ' active' : ''}`}>{formatDuration(dur)}</div>
+                    <div className={`time-entry-duration${isRunning ? ' active' : ''}`}>{formatDuration(entryDurationSeconds(entry))}</div>
                     {!isRunning && (
                       <button className="time-entry-delete" onClick={() => openDeleteConfirm(entry.id)} aria-label="Delete time entry">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
@@ -152,7 +161,7 @@ export function TrackerPage() {
                         <div className="time-entry-title">{entry.node_title ?? entry.node_id.slice(0, 8)}</div>
                         <div className="time-entry-meta">{entry.notes ?? ''}</div>
                       </div>
-                      <div className="time-entry-duration">{formatDuration(entry.duration_minutes ?? 0)}</div>
+                      <div className="time-entry-duration">{formatDuration(entryDurationSeconds(entry))}</div>
                       {!isRunning && (
                         <button className="time-entry-delete" onClick={() => openDeleteConfirm(entry.id)} aria-label="Delete time entry">
                           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2"><path d="M3 6h18" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
@@ -170,15 +179,15 @@ export function TrackerPage() {
           <Section title="Summary">
             <div style={{ padding: '8px 0', color: 'var(--text-secondary)', fontSize: 13 }}>
               <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Today</span><span style={{ fontWeight: 600 }}>{formatDuration(todayMinutes)}</span></div>
-                <div className="project-time-bar"><div className="project-time-fill" style={{ width: `${Math.min(100, (todayMinutes / 480) * 100)}%` }} /></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Today</span><span style={{ fontWeight: 600 }}>{formatDuration(todaySeconds)}</span></div>
+                <div className="project-time-bar"><div className="project-time-fill" style={{ width: `${Math.min(100, (todaySeconds / 28800) * 100)}%` }} /></div>
               </div>
               <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>This Week</span><span style={{ fontWeight: 600 }}>{formatDuration(weekMinutes)}</span></div>
-                <div className="project-time-bar"><div className="project-time-fill" style={{ width: `${Math.min(100, (weekMinutes / 2400) * 100)}%` }} /></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>This Week</span><span style={{ fontWeight: 600 }}>{formatDuration(weekSeconds)}</span></div>
+                <div className="project-time-bar"><div className="project-time-fill" style={{ width: `${Math.min(100, (weekSeconds / 144000) * 100)}%` }} /></div>
               </div>
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Total</span><span style={{ fontWeight: 600 }}>{formatDuration(totalMinutes)}</span></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span>Total</span><span style={{ fontWeight: 600 }}>{formatDuration(totalSeconds)}</span></div>
                 <div className="project-time-bar"><div className="project-time-fill" style={{ width: '100%' }} /></div>
               </div>
             </div>
