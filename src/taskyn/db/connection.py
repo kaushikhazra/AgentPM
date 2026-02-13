@@ -48,6 +48,22 @@ def _run_migrations() -> None:
     """Run schema migrations for existing databases."""
     global _connection
 
+    # Migration: add type column to companies
+    company_cols = [
+        row[1] for row in _connection.execute("PRAGMA table_info(companies)").fetchall()
+    ]
+    if "type" not in company_cols:
+        _connection.execute("ALTER TABLE companies ADD COLUMN type TEXT DEFAULT 'discovery'")
+        _connection.commit()
+
+    # Migration: add type column to projects
+    project_cols = [
+        row[1] for row in _connection.execute("PRAGMA table_info(projects)").fetchall()
+    ]
+    if "type" not in project_cols:
+        _connection.execute("ALTER TABLE projects ADD COLUMN type TEXT DEFAULT 'discovery'")
+        _connection.commit()
+
     # Migration: add actual_time column to nodes
     columns = [
         row[1] for row in _connection.execute("PRAGMA table_info(nodes)").fetchall()
