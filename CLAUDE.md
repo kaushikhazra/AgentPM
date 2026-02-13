@@ -65,6 +65,16 @@ pip install -e ".[dev]"
 - **Edge**: Relationship between nodes (parent, blocks, depends_on)
 - **UNSET sentinel**: Used in update functions to distinguish "not provided" from "set to None"
 
+## Task Time Tracking (Mandatory)
+
+When implementing work that has Taskyn PM nodes:
+1. **Start the timer** (`pm_start_timer`) on the node **before** you begin coding it
+2. **Stop the timer** (`pm_stop_timer`) when the task is done or you switch to a different task
+3. **Mark the node** status transitions as you go (`pm_start_node` → `pm_complete_node`)
+4. Never leave a timer running on a completed task — stop it first, then mark done
+
+This ensures accurate time tracking across all work.
+
 ## Coding Principles
 
 - **Enum over string**: Always prefer enums over raw strings for fixed-value fields (e.g., methodology, entity type, status). Enums prevent typos, provide discoverability, and serve as a single source of truth. Define enums in `src/taskyn/db/enums.py`.
