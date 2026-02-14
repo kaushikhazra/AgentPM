@@ -24,9 +24,11 @@ export const METHODOLOGY_HIERARCHY: Record<string, Record<string, string>> = {
     // task and bug are leaf nodes - they cannot have children per edge validation
   },
   spec_driven: {
-    spec: 'design',           // Spec's child is Design
-    design: 'implementation', // Design's child is Implementation
-    // implementation and validation are leaf nodes
+    spec: 'requirement',              // Spec's child is Requirement
+    requirement: 'design',            // Requirement's child is Design
+    design: 'implementation',         // Design's child is Implementation
+    implementation: 'task',           // Implementation's child is Task
+    // task and verification nodes are leaf nodes
   },
 };
 
@@ -78,31 +80,62 @@ export const METHODOLOGY_UI: Record<string, MethodologyUI> = {
         icon: 'SP',
         color: 'var(--accent-lavender)',
       },
+      requirement: {
+        displayName: 'Requirement',
+        plural: 'Requirements',
+        icon: 'R',
+        color: 'var(--accent-peach)',
+      },
       design: {
         displayName: 'Design',
         plural: 'Designs',
         icon: 'D',
-        color: 'var(--accent-peach)',
+        color: 'var(--accent-sky)',
       },
       implementation: {
         displayName: 'Implementation',
         plural: 'Implementations',
         icon: 'I',
-        color: 'var(--accent-sky)',
+        color: 'var(--accent-mint)',
       },
-      validation: {
-        displayName: 'Validation',
-        plural: 'Validations',
-        icon: 'V',
+      task: {
+        displayName: 'Task',
+        plural: 'Tasks',
+        icon: 'T',
+        color: 'var(--accent-blush)',
+      },
+      e2e_verification: {
+        displayName: 'E2E Verification',
+        plural: 'E2E Verifications',
+        icon: 'EV',
+        color: 'var(--accent-mint)',
+      },
+      functional_verification: {
+        displayName: 'Functional Verification',
+        plural: 'Functional Verifications',
+        icon: 'FV',
+        color: 'var(--accent-mint)',
+      },
+      unit_verification: {
+        displayName: 'Unit Verification',
+        plural: 'Unit Verifications',
+        icon: 'UV',
         color: 'var(--accent-mint)',
       },
     },
     statusLabels: {
       draft: 'Draft',
-      in_progress: 'In Progress',
-      review: 'Review',
       approved: 'Approved',
+      in_progress: 'In Progress',
+      done: 'Done',
+      cancelled: 'Cancelled',
+      rework: 'Rework',
+      in_review: 'In Review',
       rejected: 'Rejected',
+      todo: 'To Do',
+      pending: 'Pending',
+      passed: 'Passed',
+      failed: 'Failed',
       blocked: 'Blocked',
     },
   },
