@@ -202,6 +202,14 @@ export function NodeDetailPage() {
                       <span className="work-item-id">{child.id.slice(0, 8)}</span>
                     </div>
                     <div className="work-item-meta">
+                      {!hasSingleChildType && (() => {
+                        const childTypeUI = getNodeTypeUI(methodology, child.node_type);
+                        return (
+                          <span className="type-badge" style={{ color: childTypeUI.color }}>
+                            {childTypeUI.displayName}
+                          </span>
+                        );
+                      })()}
                       {grandchildTypeUI && (
                         <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
                       )}
