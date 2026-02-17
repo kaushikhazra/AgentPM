@@ -1,59 +1,49 @@
-"""Verification failure cascade logic.
+"""Phase gating logic for spec-driven v3 methodology.
 
-When a verification node transitions to 'failed', the parent node is
-automatically cascaded back to a rework/draft state. Re-verification
-is gated: the verification node cannot retry (failed → pending) until
-the parent is back in its terminal state.
+Strict gating enforces sequential phase flow:
+- Requirement can go active when parent Spec is active or done
+- Design can go active when ALL sibling Requirements under same Spec are done
+- Task can go active when ALL sibling Designs under same Spec are done
+- Todo can start (in_progress) when parent phase is active or done
 """
 
-from taskyn.exceptions import ValidationError
-
-# Verification type → rework status for parent
-_CASCADE_STATUS: dict[str, str] = {
-    "unit_verification": "rework",          # implementation → rework
-    "functional_verification": "rejected",  # design → rejected (then auto → draft)
-    "e2e_verification": "rework",           # requirement → rework
+# Phase gating: node_type → required sibling type that must all be done
+_PHASE_GATE: dict[str, str] = {
+    "design": "requirement",
+    "task": "design",
 }
 
-VERIFICATION_TYPES = frozenset(_CASCADE_STATUS.keys())
+# Parent must be active/done for these node types to activate
+_PARENT_ACTIVE_GATE: set[str] = {"requirement", "design", "task", "todo"}
 
 
-def on_status_changed(
-    node_id: str,
-    node_type: str,
-    old_status: str,
-    new_status: str,
-) -> None:
-    """Post-transition hook. Cascade parent on verification failure."""
-    if node_type not in VERIFICATION_TYPES:
-        return
-    if new_status != "failed":
-        return
-
-    _cascade_parent(node_id, node_type)
-
-
-def validate_reverification(
+def validate_phase_gate(
     node_id: str,
     node_type: str,
     old_status: str,
     new_status: str,
 ) -> list[str]:
-    """Pre-transition check: block failed → pending unless parent is terminal."""
-    if node_type not in VERIFICATION_TYPES:
-        return []
-    if old_status != "failed" or new_status != "pending":
+    """Pre-transition check: enforce strict phase gating for spec_driven v3.
+
+    Returns a list of validation errors (empty if valid).
+    Only applies to spec_driven methodology nodes.
+    """
+    # Only gate transitions TO active (phases) or TO in_progress (todos)
+    is_activating_phase = node_type in _PARENT_ACTIVE_GATE and new_status == "active"
+    is_starting_todo = node_type == "todo" and new_status == "in_progress"
+
+    if not is_activating_phase and not is_starting_todo:
         return []
 
     from taskyn.graph.edges import list_edges
-    from taskyn.graph.nodes import get_node
+    from taskyn.graph.nodes import get_node, list_nodes
     from taskyn.core.project import get_project
     from taskyn.methodologies import get_methodology
 
-    # Find parent via parent edge (source=this node, target=parent)
+    # Find parent via parent edge
     parent_edges = list_edges(source_id=node_id, edge_type="parent")
     if not parent_edges:
-        return []  # No parent — allow retry
+        return []  # No parent — allow (top-level spec has no parent)
 
     parent = get_node(parent_edges[0].target_id)
     if parent is None:
@@ -62,37 +52,66 @@ def validate_reverification(
     project = get_project(parent.project_id)
     methodology = get_methodology(project.methodology)
 
-    if not methodology.is_terminal_status(parent.node_type, parent.status):
-        done_status = methodology.get_done_status(parent.node_type)
-        return [
-            f"Cannot re-verify: parent '{parent.title}' must be in "
-            f"terminal state ('{done_status}'), currently '{parent.status}'"
-        ]
+    # Only apply gating for spec_driven methodology
+    if methodology.name != "spec_driven":
+        return []
 
-    return []
+    errors = []
+
+    # Gate 1: Parent must be active or done
+    if parent.status not in ("active", "done"):
+        errors.append(
+            f"Cannot activate '{node_type}': parent '{parent.title}' "
+            f"must be active or done, currently '{parent.status}'"
+        )
+        return errors  # No point checking sibling gates if parent isn't ready
+
+    # Gate 2: For design and task, check sibling prerequisites
+    required_sibling_type = _PHASE_GATE.get(node_type)
+    if required_sibling_type is not None:
+        # Find the spec (parent of this node's parent, or direct parent if parent is spec)
+        spec_id = None
+        if parent.node_type == "spec":
+            spec_id = parent.id
+        else:
+            # Walk up to find spec
+            spec_edges = list_edges(source_id=parent.id, edge_type="parent")
+            if spec_edges:
+                spec = get_node(spec_edges[0].target_id)
+                if spec and spec.node_type == "spec":
+                    spec_id = spec.id
+
+        if spec_id is not None:
+            # Find all sibling nodes of the required type under the same spec
+            all_nodes = list_nodes(project_id=parent.project_id, node_type=required_sibling_type)
+            siblings = []
+            for n in all_nodes:
+                n_parent_edges = list_edges(source_id=n.id, edge_type="parent")
+                for e in n_parent_edges:
+                    if e.target_id == spec_id:
+                        siblings.append(n)
+                        break
+
+            if siblings:
+                incomplete = [
+                    s for s in siblings
+                    if not methodology.is_terminal_status(s.node_type, s.status)
+                ]
+                if incomplete:
+                    names = ", ".join(f"'{s.title}'" for s in incomplete)
+                    errors.append(
+                        f"Cannot activate '{node_type}': all {required_sibling_type}s "
+                        f"must be done first. Incomplete: {names}"
+                    )
+
+    return errors
 
 
-def _cascade_parent(node_id: str, node_type: str) -> None:
-    """Push the parent node back to rework/draft state."""
-    from taskyn.graph.edges import list_edges
-    from taskyn.graph.nodes import get_node, update_node
-
-    # Find parent
-    parent_edges = list_edges(source_id=node_id, edge_type="parent")
-    if not parent_edges:
-        return
-
-    parent = get_node(parent_edges[0].target_id)
-    if parent is None:
-        return
-
-    cascade_status = _CASCADE_STATUS.get(node_type)
-    if cascade_status is None:
-        return
-
-    # Cascade to rework/rejected status
-    update_node(parent.id, status=cascade_status, actor="system:cascade")
-
-    # For design: rejected → draft is a two-step cascade
-    if node_type == "functional_verification" and cascade_status == "rejected":
-        update_node(parent.id, status="draft", actor="system:cascade")
+def on_status_changed(
+    node_id: str,
+    node_type: str,
+    old_status: str,
+    new_status: str,
+) -> None:
+    """Post-transition hook. No cascading in v3 — kept for interface compatibility."""
+    pass

@@ -1,12 +1,11 @@
-"""Tests for spec-driven methodology v2.
+"""Tests for spec-driven methodology v3.
 
 Tests cover:
-- 8 node types and their status workflows
-- Parent pair validation (strict hierarchy)
-- Verification cascade on failure
-- Re-verification gating
-- Time tracking enforcement
-- Rollup through 5-level hierarchy
+- 5 node types and their status workflows
+- Parent pair validation (3-level hierarchy)
+- Strict phase gating (requirement → design → task)
+- Time tracking enforcement (only on todos)
+- Helper methods
 """
 
 import pytest
@@ -46,178 +45,177 @@ def test_spec_driven_in_list():
 
 
 def test_spec_driven_node_types():
-    """Test spec_driven has all 8 node types."""
+    """Test spec_driven v3 has exactly 5 node types."""
     methodology = get_methodology("spec_driven")
     node_types = methodology.node_types
 
-    expected = [
-        "spec", "requirement", "design", "implementation", "task",
-        "e2e_verification", "functional_verification", "unit_verification",
-    ]
+    expected = ["spec", "requirement", "design", "task", "todo"]
     for nt in expected:
         assert nt in node_types, f"Missing node type: {nt}"
-    assert len(node_types) == 8
+    assert len(node_types) == 5
 
 
 def test_spec_driven_edge_types():
-    """Test spec_driven has correct edge types (no gates/validates)."""
+    """Test spec_driven has correct edge types."""
     methodology = get_methodology("spec_driven")
     edge_types = methodology.edge_types
 
     assert "parent" in edge_types
     assert "depends_on" in edge_types
     assert "blocks" in edge_types
-    # Removed in v2
-    assert "gates" not in edge_types
-    assert "validates" not in edge_types
+    assert len(edge_types) == 3
 
 
 # ============================================================
-# Status Workflows
+# Status Workflows — Phase Nodes
 # ============================================================
 
 
 def test_spec_workflow(temp_db):
-    """Test spec: draft → approved → in_progress → done."""
+    """Test spec: draft → active → done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
     spec = create_node(project.id, "spec", "Feature X")
     assert spec.status == "draft"
 
-    spec = update_node(spec.id, status="approved")
-    assert spec.status == "approved"
-
-    spec = update_node(spec.id, status="in_progress")
-    assert spec.status == "in_progress"
+    spec = update_node(spec.id, status="active")
+    assert spec.status == "active"
 
     spec = update_node(spec.id, status="done")
     assert spec.status == "done"
 
 
+def test_spec_cancelled(temp_db):
+    """Test spec can be cancelled from draft or active."""
+    company = create_company("Test Co")
+    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
+
+    # Cancel from draft
+    spec1 = create_node(project.id, "spec", "Cancel Draft")
+    spec1 = update_node(spec1.id, status="cancelled")
+    assert spec1.status == "cancelled"
+
+    # Cancel from active
+    spec2 = create_node(project.id, "spec", "Cancel Active")
+    spec2 = update_node(spec2.id, status="active")
+    spec2 = update_node(spec2.id, status="cancelled")
+    assert spec2.status == "cancelled"
+
+
 def test_requirement_workflow(temp_db):
-    """Test requirement: draft → approved → in_progress → done."""
+    """Test requirement: draft → active → done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
     req = create_node(project.id, "requirement", "User can login")
     assert req.status == "draft"
 
-    req = update_node(req.id, status="approved")
-    req = update_node(req.id, status="in_progress")
-    req = update_node(req.id, status="done")
-    assert req.status == "done"
+    # No parent, so no gating — can go active directly
+    req = update_node(req.id, status="active")
+    assert req.status == "active"
 
-
-def test_requirement_rework(temp_db):
-    """Test requirement rework loop: in_progress → rework → in_progress."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    req = create_node(project.id, "requirement", "User can login")
-    req = update_node(req.id, status="approved")
-    req = update_node(req.id, status="in_progress")
-    req = update_node(req.id, status="rework")
-    assert req.status == "rework"
-
-    req = update_node(req.id, status="in_progress")
     req = update_node(req.id, status="done")
     assert req.status == "done"
 
 
 def test_design_workflow(temp_db):
-    """Test design: draft → in_review → approved."""
+    """Test design: draft → active → done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    design = create_node(project.id, "design", "Auth Design")
+    design = create_node(project.id, "design", "Auth Architecture")
     assert design.status == "draft"
 
-    design = update_node(design.id, status="in_review")
-    design = update_node(design.id, status="approved")
-    assert design.status == "approved"
+    # No parent, so no gating
+    design = update_node(design.id, status="active")
+    assert design.status == "active"
 
-
-def test_design_rejection_workflow(temp_db):
-    """Test design rejection and revision."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    design = create_node(project.id, "design", "Auth Design")
-    design = update_node(design.id, status="in_review")
-    design = update_node(design.id, status="rejected")
-    assert design.status == "rejected"
-
-    design = update_node(design.id, status="draft")
-    assert design.status == "draft"
-
-
-def test_implementation_workflow(temp_db):
-    """Test implementation: todo → in_progress → in_review → done, with rework."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    impl = create_node(project.id, "implementation", "Implement Auth")
-    assert impl.status == "todo"
-
-    impl = update_node(impl.id, status="in_progress")
-    impl = update_node(impl.id, status="in_review")
-    impl = update_node(impl.id, status="rework")
-    impl = update_node(impl.id, status="in_progress")
-    impl = update_node(impl.id, status="in_review")
-    impl = update_node(impl.id, status="done")
-    assert impl.status == "done"
+    design = update_node(design.id, status="done")
+    assert design.status == "done"
 
 
 def test_task_workflow(temp_db):
-    """Test task: todo → in_progress → done."""
+    """Test task: draft → active → done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    task = create_node(project.id, "task", "Write login handler")
-    assert task.status == "todo"
+    task = create_node(project.id, "task", "Frontend Auth")
+    assert task.status == "draft"
 
-    task = update_node(task.id, status="in_progress")
+    # No parent, so no gating
+    task = update_node(task.id, status="active")
+    assert task.status == "active"
+
     task = update_node(task.id, status="done")
     assert task.status == "done"
 
 
-def test_verification_workflow(temp_db):
-    """Test verification: pending → in_progress → passed."""
+def test_phase_invalid_transitions(temp_db):
+    """Test that invalid transitions are rejected for phase nodes."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    for vtype in ["e2e_verification", "functional_verification", "unit_verification"]:
-        v = create_node(project.id, vtype, f"Test {vtype}")
-        assert v.status == "pending"
+    spec = create_node(project.id, "spec", "Feature")
 
-        v = update_node(v.id, status="in_progress")
-        v = update_node(v.id, status="passed")
-        assert v.status == "passed"
+    # Can't go from draft directly to done
+    with pytest.raises(ValidationError, match="Invalid transition"):
+        update_node(spec.id, status="done")
+
+    # Can't go backwards from done
+    spec = update_node(spec.id, status="active")
+    spec = update_node(spec.id, status="done")
+    with pytest.raises(ValidationError, match="Invalid transition"):
+        update_node(spec.id, status="draft")
 
 
-def test_verification_failure(temp_db):
-    """Test verification failure: pending → in_progress → failed."""
+# ============================================================
+# Status Workflows — Todo Nodes
+# ============================================================
+
+
+def test_todo_workflow(temp_db):
+    """Test todo: todo → in_progress → done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    v = create_node(project.id, "unit_verification", "Unit tests")
-    v = update_node(v.id, status="in_progress")
-    v = update_node(v.id, status="failed")
-    assert v.status == "failed"
+    todo = create_node(project.id, "todo", "Write user stories")
+    assert todo.status == "todo"
+
+    todo = update_node(todo.id, status="in_progress")
+    assert todo.status == "in_progress"
+
+    todo = update_node(todo.id, status="done")
+    assert todo.status == "done"
 
 
-def test_invalid_transition_rejected(temp_db):
-    """Test that invalid transitions are rejected."""
+def test_todo_cancelled(temp_db):
+    """Test todo can be cancelled from todo or in_progress."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    task = create_node(project.id, "task", "Write tests")
-    assert task.status == "todo"
+    # Cancel from todo
+    t1 = create_node(project.id, "todo", "Cancel Todo")
+    t1 = update_node(t1.id, status="cancelled")
+    assert t1.status == "cancelled"
 
-    # Cannot go directly from todo to done
-    with pytest.raises(ValidationError):
-        update_node(task.id, status="done")
+    # Cancel from in_progress
+    t2 = create_node(project.id, "todo", "Cancel InProgress")
+    t2 = update_node(t2.id, status="in_progress")
+    t2 = update_node(t2.id, status="cancelled")
+    assert t2.status == "cancelled"
+
+
+def test_todo_invalid_transitions(temp_db):
+    """Test invalid transitions for todo nodes."""
+    company = create_company("Test Co")
+    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
+
+    todo = create_node(project.id, "todo", "A task")
+
+    # Can't go from todo directly to done
+    with pytest.raises(ValidationError, match="Invalid transition"):
+        update_node(todo.id, status="done")
 
 
 # ============================================================
@@ -225,236 +223,208 @@ def test_invalid_transition_rejected(temp_db):
 # ============================================================
 
 
-def test_valid_parent_pairs():
-    """Test valid_parent_pairs property."""
-    methodology = get_methodology("spec_driven")
-    pairs = methodology.valid_parent_pairs
-
-    assert pairs["requirement"] == ["spec"]
-    assert pairs["design"] == ["requirement"]
-    assert pairs["implementation"] == ["design"]
-    assert pairs["task"] == ["implementation"]
-    assert pairs["e2e_verification"] == ["requirement"]
-    assert pairs["functional_verification"] == ["design"]
-    assert pairs["unit_verification"] == ["implementation"]
-
-
-def test_parent_edge_valid(temp_db):
-    """Test creating valid parent edges through the hierarchy."""
+def test_valid_parent_pairs(temp_db):
+    """Test that valid parent-child relationships are accepted."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    spec = create_node(project.id, "spec", "Feature X")
-    req = create_node(project.id, "requirement", "User can login")
-    design = create_node(project.id, "design", "Auth Design")
-    impl = create_node(project.id, "implementation", "Implement Auth")
-    task = create_node(project.id, "task", "Write handler")
+    spec = create_node(project.id, "spec", "Feature")
+    req = create_node(project.id, "requirement", "Req")
+    design = create_node(project.id, "design", "Design")
+    task = create_node(project.id, "task", "Task")
+    todo1 = create_node(project.id, "todo", "Todo under Req")
+    todo2 = create_node(project.id, "todo", "Todo under Design")
+    todo3 = create_node(project.id, "todo", "Todo under Task")
 
-    # Build the hierarchy
-    edge1 = create_edge(req.id, spec.id, "parent")
-    assert edge1.edge_type == "parent"
-
-    edge2 = create_edge(design.id, req.id, "parent")
-    assert edge2.edge_type == "parent"
-
-    edge3 = create_edge(impl.id, design.id, "parent")
-    assert edge3.edge_type == "parent"
-
-    edge4 = create_edge(task.id, impl.id, "parent")
-    assert edge4.edge_type == "parent"
+    # All valid parent relationships
+    create_edge(req.id, spec.id, "parent")      # requirement → spec
+    create_edge(design.id, spec.id, "parent")    # design → spec
+    create_edge(task.id, spec.id, "parent")      # task → spec
+    create_edge(todo1.id, req.id, "parent")      # todo → requirement
+    create_edge(todo2.id, design.id, "parent")   # todo → design
+    create_edge(todo3.id, task.id, "parent")     # todo → task
 
 
-def test_verification_parent_edges(temp_db):
-    """Test verification nodes parent under correct levels."""
+def test_invalid_parent_pairs(temp_db):
+    """Test that invalid parent-child relationships are rejected."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    req = create_node(project.id, "requirement", "User can login")
-    design = create_node(project.id, "design", "Auth Design")
-    impl = create_node(project.id, "implementation", "Implement Auth")
+    spec = create_node(project.id, "spec", "Feature")
+    req = create_node(project.id, "requirement", "Req")
+    design = create_node(project.id, "design", "Design")
+    task = create_node(project.id, "task", "Task")
+    todo = create_node(project.id, "todo", "Todo")
 
-    e2e = create_node(project.id, "e2e_verification", "E2E tests")
-    func = create_node(project.id, "functional_verification", "Functional tests")
-    unit = create_node(project.id, "unit_verification", "Unit tests")
-
-    # Valid parents
-    create_edge(e2e.id, req.id, "parent")
-    create_edge(func.id, design.id, "parent")
-    create_edge(unit.id, impl.id, "parent")
-
-
-def test_invalid_parent_pair_rejected(temp_db):
-    """Test that misplaced parent edges are rejected."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    spec = create_node(project.id, "spec", "Feature X")
-    task = create_node(project.id, "task", "Write handler")
-
-    # task cannot parent under spec (must be under implementation)
+    # requirement can only parent under spec, not under design or task
     with pytest.raises(ValidationError):
-        create_edge(task.id, spec.id, "parent")
+        create_edge(req.id, design.id, "parent")
 
-
-def test_verification_wrong_parent_rejected(temp_db):
-    """Test that verification nodes under wrong parent are rejected."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    spec = create_node(project.id, "spec", "Feature X")
-    unit = create_node(project.id, "unit_verification", "Unit tests")
-
-    # unit_verification cannot parent under spec (must be under implementation)
+    # design can only parent under spec, not under requirement
     with pytest.raises(ValidationError):
-        create_edge(unit.id, spec.id, "parent")
+        create_edge(design.id, req.id, "parent")
 
-
-def test_design_cannot_parent_under_spec(temp_db):
-    """Test that design cannot parent directly under spec."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    spec = create_node(project.id, "spec", "Feature X")
-    design = create_node(project.id, "design", "Auth Design")
-
-    # design must parent under requirement, not spec
+    # task can only parent under spec, not under requirement
     with pytest.raises(ValidationError):
-        create_edge(design.id, spec.id, "parent")
+        create_edge(task.id, req.id, "parent")
+
+    # todo can only parent under requirement/design/task, not under spec
+    with pytest.raises(ValidationError):
+        create_edge(todo.id, spec.id, "parent")
+
+
+def test_invalid_node_types_rejected(temp_db):
+    """Test that v2 node types are no longer valid."""
+    company = create_company("Test Co")
+    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
+
+    for invalid_type in ["implementation", "e2e_verification", "functional_verification", "unit_verification"]:
+        with pytest.raises(ValidationError, match="Invalid node type"):
+            create_node(project.id, invalid_type, f"Invalid {invalid_type}")
 
 
 # ============================================================
-# Verification Cascade
+# Strict Phase Gating
 # ============================================================
 
 
-def test_unit_verification_cascades_implementation(temp_db):
-    """Test: unit_verification fails → implementation cascades to rework."""
+def test_gating_requirement_needs_active_spec(temp_db):
+    """Test: requirement can go active only when parent spec is active."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    impl = create_node(project.id, "implementation", "Implement Auth")
-    unit = create_node(project.id, "unit_verification", "Unit tests")
-    create_edge(unit.id, impl.id, "parent")
+    spec = create_node(project.id, "spec", "Feature")
+    req = create_node(project.id, "requirement", "Req")
+    create_edge(req.id, spec.id, "parent")
 
-    # Get implementation to done
-    impl = update_node(impl.id, status="in_progress")
-    impl = update_node(impl.id, status="in_review")
-    impl = update_node(impl.id, status="done")
-    assert impl.status == "done"
+    # Spec is draft — requirement cannot activate
+    with pytest.raises(ValidationError, match="must be active or done"):
+        update_node(req.id, status="active")
 
-    # Verification fails → implementation should cascade to rework
-    unit = update_node(unit.id, status="in_progress")
-    unit = update_node(unit.id, status="failed")
-
-    from taskyn.graph.nodes import get_node
-    impl = get_node(impl.id)
-    assert impl.status == "rework"
+    # Activate spec — now requirement can activate
+    update_node(spec.id, status="active")
+    req = update_node(req.id, status="active")
+    assert req.status == "active"
 
 
-def test_functional_verification_cascades_design(temp_db):
-    """Test: functional_verification fails → design cascades to draft."""
+def test_gating_design_needs_done_requirements(temp_db):
+    """Test: design can go active only when ALL sibling requirements are done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    design = create_node(project.id, "design", "Auth Design")
-    func = create_node(project.id, "functional_verification", "Functional tests")
-    create_edge(func.id, design.id, "parent")
+    spec = create_node(project.id, "spec", "Feature")
+    update_node(spec.id, status="active")
 
-    # Get design to approved
-    design = update_node(design.id, status="in_review")
-    design = update_node(design.id, status="approved")
-    assert design.status == "approved"
+    req1 = create_node(project.id, "requirement", "Req 1")
+    req2 = create_node(project.id, "requirement", "Req 2")
+    design = create_node(project.id, "design", "Design")
 
-    # Verification fails → design should cascade to draft (via rejected)
-    func = update_node(func.id, status="in_progress")
-    func = update_node(func.id, status="failed")
+    create_edge(req1.id, spec.id, "parent")
+    create_edge(req2.id, spec.id, "parent")
+    create_edge(design.id, spec.id, "parent")
 
-    from taskyn.graph.nodes import get_node
-    design = get_node(design.id)
-    assert design.status == "draft"
+    # Requirements not done — design cannot activate
+    update_node(req1.id, status="active")
+    with pytest.raises(ValidationError, match="all requirements must be done"):
+        update_node(design.id, status="active")
+
+    # Complete req1 but not req2 — still blocked
+    update_node(req1.id, status="done")
+    update_node(req2.id, status="active")
+    with pytest.raises(ValidationError, match="all requirements must be done"):
+        update_node(design.id, status="active")
+
+    # Complete req2 — now design can activate
+    update_node(req2.id, status="done")
+    design = update_node(design.id, status="active")
+    assert design.status == "active"
 
 
-def test_e2e_verification_cascades_requirement(temp_db):
-    """Test: e2e_verification fails → requirement cascades to rework."""
+def test_gating_task_needs_done_designs(temp_db):
+    """Test: task can go active only when ALL sibling designs are done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    req = create_node(project.id, "requirement", "User can login")
-    e2e = create_node(project.id, "e2e_verification", "E2E tests")
-    create_edge(e2e.id, req.id, "parent")
+    spec = create_node(project.id, "spec", "Feature")
+    update_node(spec.id, status="active")
 
-    # Get requirement to in_progress
-    req = update_node(req.id, status="approved")
-    req = update_node(req.id, status="in_progress")
-    assert req.status == "in_progress"
+    req = create_node(project.id, "requirement", "Req")
+    create_edge(req.id, spec.id, "parent")
+    update_node(req.id, status="active")
+    update_node(req.id, status="done")
 
-    # Verification fails → requirement should cascade to rework
-    e2e = update_node(e2e.id, status="in_progress")
-    e2e = update_node(e2e.id, status="failed")
+    design = create_node(project.id, "design", "Design")
+    task = create_node(project.id, "task", "Frontend")
 
-    from taskyn.graph.nodes import get_node
-    req = get_node(req.id)
-    assert req.status == "rework"
+    create_edge(design.id, spec.id, "parent")
+    create_edge(task.id, spec.id, "parent")
+
+    # Design not done — task cannot activate
+    with pytest.raises(ValidationError, match="all designs must be done"):
+        update_node(task.id, status="active")
+
+    # Complete design — now task can activate
+    update_node(design.id, status="active")
+    update_node(design.id, status="done")
+
+    task = update_node(task.id, status="active")
+    assert task.status == "active"
 
 
-# ============================================================
-# Re-verification Gating
-# ============================================================
-
-
-def test_reverification_blocked_when_parent_not_terminal(temp_db):
-    """Test: cannot retry verification when parent is in rework state."""
+def test_gating_todo_needs_active_parent(temp_db):
+    """Test: todo can start only when parent phase is active or done."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    impl = create_node(project.id, "implementation", "Implement Auth")
-    unit = create_node(project.id, "unit_verification", "Unit tests")
-    create_edge(unit.id, impl.id, "parent")
+    req = create_node(project.id, "requirement", "Req")
+    todo = create_node(project.id, "todo", "Write stories")
+    create_edge(todo.id, req.id, "parent")
 
-    # Get implementation to done
-    impl = update_node(impl.id, status="in_progress")
-    impl = update_node(impl.id, status="in_review")
-    impl = update_node(impl.id, status="done")
+    # Requirement is draft — todo cannot start
+    with pytest.raises(ValidationError, match="must be active or done"):
+        update_node(todo.id, status="in_progress")
 
-    # Fail verification → cascades implementation to rework
-    unit = update_node(unit.id, status="in_progress")
-    unit = update_node(unit.id, status="failed")
-
-    # Cannot retry while implementation is in rework
-    with pytest.raises(ValidationError, match="terminal state"):
-        update_node(unit.id, status="pending")
+    # Activate requirement — now todo can start
+    update_node(req.id, status="active")
+    todo = update_node(todo.id, status="in_progress")
+    assert todo.status == "in_progress"
 
 
-def test_reverification_allowed_after_parent_fixed(temp_db):
-    """Test: can retry verification after parent is back to terminal state."""
+def test_gating_no_parent_allows_activation(temp_db):
+    """Test: nodes without parents can activate freely (no gating)."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    impl = create_node(project.id, "implementation", "Implement Auth")
-    unit = create_node(project.id, "unit_verification", "Unit tests")
-    create_edge(unit.id, impl.id, "parent")
+    # Standalone nodes with no parent — should activate without issues
+    req = create_node(project.id, "requirement", "Standalone Req")
+    req = update_node(req.id, status="active")
+    assert req.status == "active"
 
-    # Get implementation to done
-    impl = update_node(impl.id, status="in_progress")
-    impl = update_node(impl.id, status="in_review")
-    impl = update_node(impl.id, status="done")
+    design = create_node(project.id, "design", "Standalone Design")
+    design = update_node(design.id, status="active")
+    assert design.status == "active"
 
-    # Fail → cascades to rework
-    unit = update_node(unit.id, status="in_progress")
-    unit = update_node(unit.id, status="failed")
 
-    # Fix implementation: rework → in_progress → in_review → done
-    impl = update_node(impl.id, status="in_progress")
-    impl = update_node(impl.id, status="in_review")
-    impl = update_node(impl.id, status="done")
+def test_gating_cancelled_requirements_count_as_done(temp_db):
+    """Test: cancelled requirements are terminal, so design can proceed."""
+    company = create_company("Test Co")
+    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    # Now retry should work
-    unit = update_node(unit.id, status="pending")
-    assert unit.status == "pending"
+    spec = create_node(project.id, "spec", "Feature")
+    update_node(spec.id, status="active")
 
-    unit = update_node(unit.id, status="in_progress")
-    unit = update_node(unit.id, status="passed")
-    assert unit.status == "passed"
+    req = create_node(project.id, "requirement", "Cancelled Req")
+    design = create_node(project.id, "design", "Design")
+
+    create_edge(req.id, spec.id, "parent")
+    create_edge(design.id, spec.id, "parent")
+
+    # Cancel requirement (terminal status)
+    update_node(req.id, status="cancelled")
+
+    # Design should be able to activate
+    design = update_node(design.id, status="active")
+    assert design.status == "active"
 
 
 # ============================================================
@@ -462,68 +432,47 @@ def test_reverification_allowed_after_parent_fixed(temp_db):
 # ============================================================
 
 
-def test_time_tracking_allowed_on_task(temp_db):
-    """Test that time tracking works on task nodes."""
+def test_time_tracking_allowed_on_todo(temp_db):
+    """Test that time tracking is allowed on todo nodes."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    task = create_node(project.id, "task", "Write handler")
-    entry = start_timer(task.id)
+    todo = create_node(project.id, "todo", "Work item")
+    entry = start_timer(todo.id)
     assert entry is not None
+    stopped = stop_timer()
+    assert stopped is not None
 
-    stopped = stop_timer(entry_id=entry.id)
-    assert stopped.ended_at is not None
 
-
-def test_time_tracking_allowed_on_verification(temp_db):
-    """Test that time tracking works on verification nodes."""
+def test_time_tracking_blocked_on_phase_nodes(temp_db):
+    """Test that time tracking is blocked on all phase nodes."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    unit = create_node(project.id, "unit_verification", "Unit tests")
-    entry = log_time(unit.id, duration_minutes=30)
-    assert entry is not None
-    assert entry.duration_minutes == 30
+    for node_type in ["spec", "requirement", "design", "task"]:
+        node = create_node(project.id, node_type, f"Phase {node_type}")
+        with pytest.raises(ValidationError, match="Time tracking"):
+            start_timer(node.id)
 
 
-def test_time_tracking_rejected_on_spec(temp_db):
-    """Test that time tracking is rejected on spec nodes."""
+def test_log_time_on_todo(temp_db):
+    """Test manual time logging on todo nodes."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    spec = create_node(project.id, "spec", "Feature X")
-    with pytest.raises(ValidationError, match="not allowed"):
-        start_timer(spec.id)
+    todo = create_node(project.id, "todo", "Research")
+    entry = log_time(todo.id, 45, notes="Research session")
+    assert entry.duration_minutes == 45
 
 
-def test_time_tracking_rejected_on_requirement(temp_db):
-    """Test that time tracking is rejected on requirement nodes."""
+def test_log_time_blocked_on_phase(temp_db):
+    """Test manual time logging is blocked on phase nodes."""
     company = create_company("Test Co")
     project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    req = create_node(project.id, "requirement", "User can login")
-    with pytest.raises(ValidationError, match="not allowed"):
-        log_time(req.id, duration_minutes=60)
-
-
-def test_time_tracking_rejected_on_design(temp_db):
-    """Test that time tracking is rejected on design nodes."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    design = create_node(project.id, "design", "Auth Design")
-    with pytest.raises(ValidationError, match="not allowed"):
-        start_timer(design.id)
-
-
-def test_time_tracking_rejected_on_implementation(temp_db):
-    """Test that time tracking is rejected on implementation nodes."""
-    company = create_company("Test Co")
-    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
-
-    impl = create_node(project.id, "implementation", "Implement Auth")
-    with pytest.raises(ValidationError, match="not allowed"):
-        log_time(impl.id, duration_minutes=30)
+    spec = create_node(project.id, "spec", "Feature")
+    with pytest.raises(ValidationError, match="Time tracking"):
+        log_time(spec.id, 30)
 
 
 # ============================================================
@@ -531,63 +480,112 @@ def test_time_tracking_rejected_on_implementation(temp_db):
 # ============================================================
 
 
-def test_get_story_type():
-    """Test get_story_type returns spec."""
+def test_helper_get_story_type():
+    """Test get_story_type returns 'spec'."""
     methodology = get_methodology("spec_driven")
     assert methodology.get_story_type() == "spec"
 
 
-def test_get_task_type():
-    """Test get_task_type returns task."""
+def test_helper_get_task_type():
+    """Test get_task_type returns 'todo'."""
     methodology = get_methodology("spec_driven")
-    assert methodology.get_task_type() == "task"
+    assert methodology.get_task_type() == "todo"
 
 
-def test_get_in_progress_status():
+def test_helper_get_in_progress_status():
     """Test get_in_progress_status for all node types."""
     methodology = get_methodology("spec_driven")
-
-    assert methodology.get_in_progress_status("spec") == "in_progress"
-    assert methodology.get_in_progress_status("requirement") == "in_progress"
-    assert methodology.get_in_progress_status("design") == "in_review"
-    assert methodology.get_in_progress_status("implementation") == "in_progress"
-    assert methodology.get_in_progress_status("task") == "in_progress"
-    assert methodology.get_in_progress_status("e2e_verification") == "in_progress"
-    assert methodology.get_in_progress_status("functional_verification") == "in_progress"
-    assert methodology.get_in_progress_status("unit_verification") == "in_progress"
+    # Phase nodes use 'active'
+    assert methodology.get_in_progress_status("spec") == "active"
+    assert methodology.get_in_progress_status("requirement") == "active"
+    assert methodology.get_in_progress_status("design") == "active"
+    assert methodology.get_in_progress_status("task") == "active"
+    # Todo uses 'in_progress'
+    assert methodology.get_in_progress_status("todo") == "in_progress"
 
 
-def test_get_done_status():
-    """Test get_done_status for all node types."""
+def test_helper_get_done_status():
+    """Test get_done_status returns 'done' for all types."""
     methodology = get_methodology("spec_driven")
+    for nt in ["spec", "requirement", "design", "task", "todo"]:
+        assert methodology.get_done_status(nt) == "done"
 
-    assert methodology.get_done_status("spec") == "done"
-    assert methodology.get_done_status("requirement") == "done"
-    assert methodology.get_done_status("design") == "approved"
-    assert methodology.get_done_status("implementation") == "done"
-    assert methodology.get_done_status("task") == "done"
-    assert methodology.get_done_status("e2e_verification") == "passed"
-    assert methodology.get_done_status("functional_verification") == "passed"
-    assert methodology.get_done_status("unit_verification") == "passed"
+
+def test_helper_can_track_time():
+    """Test can_track_time flags."""
+    methodology = get_methodology("spec_driven")
+    # Only todo can track time
+    assert methodology.get_node_type("todo").can_track_time is True
+    for nt in ["spec", "requirement", "design", "task"]:
+        assert methodology.get_node_type(nt).can_track_time is False
 
 
 # ============================================================
-# can_track_time flag
+# Full Workflow Integration
 # ============================================================
 
 
-def test_can_track_time_flags():
-    """Test can_track_time is correctly set for all node types."""
-    methodology = get_methodology("spec_driven")
+def test_full_workflow(temp_db):
+    """Test complete spec-driven v3 workflow with gating."""
+    company = create_company("Test Co")
+    project = create_project(company.id, "P", Methodology.SPEC_DRIVEN)
 
-    # Not trackable
-    assert methodology.get_node_type("spec").can_track_time is False
-    assert methodology.get_node_type("requirement").can_track_time is False
-    assert methodology.get_node_type("design").can_track_time is False
-    assert methodology.get_node_type("implementation").can_track_time is False
+    # Create spec and activate
+    spec = create_node(project.id, "spec", "User Auth")
+    update_node(spec.id, status="active")
 
-    # Trackable
-    assert methodology.get_node_type("task").can_track_time is True
-    assert methodology.get_node_type("e2e_verification").can_track_time is True
-    assert methodology.get_node_type("functional_verification").can_track_time is True
-    assert methodology.get_node_type("unit_verification").can_track_time is True
+    # Create requirement under spec
+    req = create_node(project.id, "requirement", "OAuth2 Login")
+    create_edge(req.id, spec.id, "parent")
+
+    # Create todo under requirement
+    req_todo = create_node(project.id, "todo", "Write user stories")
+    create_edge(req_todo.id, req.id, "parent")
+
+    # Activate requirement, work on todo
+    update_node(req.id, status="active")
+    update_node(req_todo.id, status="in_progress")
+    entry = start_timer(req_todo.id)
+    stop_timer()
+    update_node(req_todo.id, status="done")
+    update_node(req.id, status="done")
+
+    # Create design — should now be allowed to activate
+    design = create_node(project.id, "design", "Auth Architecture")
+    create_edge(design.id, spec.id, "parent")
+
+    design_todo = create_node(project.id, "todo", "Draw diagrams")
+    create_edge(design_todo.id, design.id, "parent")
+
+    update_node(design.id, status="active")
+    update_node(design_todo.id, status="in_progress")
+    update_node(design_todo.id, status="done")
+    update_node(design.id, status="done")
+
+    # Create task — should now be allowed to activate
+    task = create_node(project.id, "task", "Frontend Auth Flow")
+    create_edge(task.id, spec.id, "parent")
+
+    task_todo1 = create_node(project.id, "todo", "Login form")
+    task_todo2 = create_node(project.id, "todo", "Write tests")
+    create_edge(task_todo1.id, task.id, "parent")
+    create_edge(task_todo2.id, task.id, "parent")
+
+    update_node(task.id, status="active")
+
+    # Work on todos
+    update_node(task_todo1.id, status="in_progress")
+    update_node(task_todo1.id, status="done")
+    update_node(task_todo2.id, status="in_progress")
+    update_node(task_todo2.id, status="done")
+
+    # Complete task and spec
+    update_node(task.id, status="done")
+    update_node(spec.id, status="done")
+
+    # Verify final states
+    from taskyn.graph import get_node
+    assert get_node(spec.id).status == "done"
+    assert get_node(req.id).status == "done"
+    assert get_node(design.id).status == "done"
+    assert get_node(task.id).status == "done"

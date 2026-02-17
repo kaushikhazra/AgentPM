@@ -9,16 +9,17 @@ import { Button, Icon } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
-import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel, getChildType } from '@/config/methodology-ui';
+import { METHODOLOGY_UI, getNodeTypeUI, getStatusLabel, getChildTypes } from '@/config/methodology-ui';
 import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType } from '@/types';
 import type { Node } from '@/types';
 import { formatDuration } from '@/utils/formatDuration';
 
 function statusClass(status: string): string {
-  if (status === 'done' || status === 'approved') return 'done';
-  if (status === 'in_progress') return 'progress';
+  if (status === 'done') return 'done';
+  if (status === 'in_progress' || status === 'active') return 'progress';
   if (status === 'blocked') return 'blocked';
-  if (status === 'backlog' || status === 'draft') return 'backlog';
+  if (status === 'cancelled') return 'blocked';
+  if (status === 'backlog' || status === 'draft' || status === 'todo') return 'backlog';
   if (status === 'ready') return 'ready';
   if (status === 'review' || status === 'in_review') return 'review';
   return 'backlog';
@@ -73,13 +74,13 @@ export function ProjectDetailPage() {
     ? rootNodes
     : tab === 'progress'
       ? rootNodes.filter((n: Node) => n.status === 'in_progress')
-      : rootNodes.filter((n: Node) => n.status === 'done' || n.status === 'approved');
+      : rootNodes.filter((n: Node) => n.status === 'done');
 
   const nodesByType: Record<string, number> = {};
   nodes.forEach((n: Node) => {
     nodesByType[n.node_type] = (nodesByType[n.node_type] ?? 0) + 1;
   });
-  const totalDone = nodes.filter((n: Node) => n.status === 'done' || n.status === 'approved').length;
+  const totalDone = nodes.filter((n: Node) => n.status === 'done').length;
   const pct = nodes.length > 0 ? Math.round((totalDone / nodes.length) * 100) : 0;
 
   const breadcrumbs = [
@@ -207,15 +208,22 @@ export function ProjectDetailPage() {
               const childTotal = nodeRollup?.total_children ?? 0;
               const childDone = nodeRollup?.completed_children ?? 0;
               const nodePct = childTotal > 0 ? Math.round((childDone / childTotal) * 100) : 0;
-              const childType = getChildType(methodology, node.node_type);
-              const childTypeUI = childType ? getNodeTypeUI(methodology, childType) : null;
-              const grandchildType = childType ? getChildType(methodology, childType) : null;
-              const grandchildTypeUI = grandchildType ? getNodeTypeUI(methodology, grandchildType) : null;
+              const childTypeList = getChildTypes(methodology, node.node_type);
               const directChildren = nodes.filter((n: Node) => n.parent_id === node.id);
-              const childCount = directChildren.length;
-              const grandchildCount = grandchildType
-                ? nodes.filter((n: Node) => n.node_type === grandchildType && directChildren.some((c: Node) => c.id === n.parent_id)).length
+              // Per-type counts for direct children
+              const childCounts = childTypeList.map((ct) => {
+                const count = directChildren.filter((c: Node) => c.node_type === ct).length;
+                const ui = getNodeTypeUI(methodology, ct);
+                return { type: ct, count, label: count === 1 ? ui.displayName.toLowerCase() : ui.plural.toLowerCase() };
+              });
+              // Grandchild: find todo-level types (children of any child type)
+              const grandchildTypes = new Set(childTypeList.flatMap((ct) => getChildTypes(methodology, ct)));
+              const grandchildCount = grandchildTypes.size > 0
+                ? nodes.filter((n: Node) => grandchildTypes.has(n.node_type) && directChildren.some((c: Node) => c.id === n.parent_id)).length
                 : 0;
+              const grandchildTypeUI = grandchildTypes.size > 0
+                ? getNodeTypeUI(methodology, [...grandchildTypes][0]!)
+                : null;
 
               return (
                 <div key={node.id} className="work-item-card" onClick={() => navigate(`/nodes/${node.id}`)}>
@@ -224,9 +232,9 @@ export function ProjectDetailPage() {
                     <span className="work-item-id">{node.id.slice(0, 8)}</span>
                   </div>
                   <div className="work-item-meta">
-                    {childTypeUI && (
-                      <span>{childCount} {childCount === 1 ? childTypeUI.displayName.toLowerCase() : childTypeUI.plural.toLowerCase()}</span>
-                    )}
+                    {childCounts.map((cc) => (
+                      <span key={cc.type}>{cc.count} {cc.label}</span>
+                    ))}
                     {grandchildTypeUI && (
                       <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
                     )}

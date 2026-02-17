@@ -22,10 +22,11 @@ interface TreeNode {
 }
 
 function statusClass(status: string): string {
-  if (status === 'done' || status === 'approved') return 'done';
-  if (status === 'in_progress') return 'progress';
+  if (status === 'done') return 'done';
+  if (status === 'in_progress' || status === 'active') return 'progress';
   if (status === 'blocked') return 'blocked';
-  if (status === 'backlog' || status === 'draft') return 'backlog';
+  if (status === 'cancelled') return 'blocked';
+  if (status === 'backlog' || status === 'draft' || status === 'todo') return 'backlog';
   if (status === 'ready') return 'ready';
   if (status === 'review' || status === 'in_review') return 'review';
   return 'backlog';
@@ -130,7 +131,7 @@ export function PlannerPage() {
   };
 
   const handleToggleStatus = async (node: Node) => {
-    if (node.status === 'done' || node.status === 'approved') return;
+    if (node.status === 'done') return;
     if (node.status === 'in_progress') completeNodeMutation.mutate(node.id);
     else startNodeMutation.mutate(node.id);
   };
@@ -146,9 +147,9 @@ export function PlannerPage() {
     const hasChildren = children.length > 0;
     const rollup = node.rollup;
     const totalChildren = rollup?.total_children ?? children.length;
-    const completedChildren = rollup?.completed_children ?? children.filter((c) => c.node.status === 'done' || c.node.status === 'approved').length;
+    const completedChildren = rollup?.completed_children ?? children.filter((c) => c.node.status === 'done').length;
     const pct = totalChildren > 0 ? Math.round((completedChildren / totalChildren) * 100) : 0;
-    const isDone = node.status === 'done' || node.status === 'approved';
+    const isDone = node.status === 'done';
 
     if (depth === 0) {
       return (

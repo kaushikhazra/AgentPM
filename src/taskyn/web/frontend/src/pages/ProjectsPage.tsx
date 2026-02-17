@@ -6,6 +6,7 @@ import { useCreateProject } from '@/hooks/mutations/useProjectMutations';
 import { Button, MarkdownRenderer } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { Modal } from '@/components/organisms';
+import { METHODOLOGY_UI } from '@/config/methodology-ui';
 import { ENTITY_TYPES, ENTITY_TYPE_COLORS, type EntityType } from '@/types';
 
 function getTypeColor(type: EntityType | undefined): string {
@@ -214,7 +215,7 @@ export function ProjectsPage() {
                   <MarkdownRenderer content={project.description} className="project-desc" />
                 )}
                 <div className="project-stats">
-                  {(['epic', 'story', 'task'] as const).map((type) => (
+                  {(Object.keys(METHODOLOGY_UI[project.methodology]?.nodeTypes ?? {}).slice(0, 3)).map((type) => (
                     <span key={type} className="project-stat">
                       {pluralize(type, nodesByType[type] ?? 0)}
                     </span>

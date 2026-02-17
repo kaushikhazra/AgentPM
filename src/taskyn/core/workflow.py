@@ -34,8 +34,10 @@ def start_node(node_id: str, actor: str | None = None) -> Node:
     # Update status
     node = update_node(node_id, status=in_progress_status, actor=actor)
 
-    # Start timer
-    start_timer(node_id, actor=actor)
+    # Start timer only if this node type supports time tracking
+    node_type_def = methodology.get_node_type(node.node_type)
+    if node_type_def and node_type_def.can_track_time:
+        start_timer(node_id, actor=actor)
 
     return node
 
