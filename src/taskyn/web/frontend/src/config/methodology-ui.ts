@@ -16,19 +16,20 @@ export interface MethodologyUI {
 /** Defines the parent → child hierarchy for each methodology.
  * Only node types that can be parents are listed.
  * If a node type is not listed, it cannot have children (leaf node).
+ * Values can be a single string or an array of strings for parents with multiple child types.
  */
-export const METHODOLOGY_HIERARCHY: Record<string, Record<string, string>> = {
+export const METHODOLOGY_HIERARCHY: Record<string, Record<string, string | string[]>> = {
   classic_agile: {
     epic: 'story',    // Epic's child is Story
     story: 'task',    // Story's child is Task
     // task and bug are leaf nodes - they cannot have children per edge validation
   },
   spec_driven: {
-    spec: 'requirement',              // Spec's child is Requirement
-    requirement: 'design',            // Requirement's child is Design
-    design: 'implementation',         // Design's child is Implementation
-    implementation: 'task',           // Implementation's child is Task
-    // task and verification nodes are leaf nodes
+    spec: ['requirement', 'design', 'task'],  // Spec can have Requirement, Design, or Task children
+    requirement: 'todo',                       // Requirement's child is Todo
+    design: 'todo',                            // Design's child is Todo
+    task: 'todo',                              // Task's child is Todo
+    // todo is a leaf node
   },
 };
 
@@ -92,51 +93,26 @@ export const METHODOLOGY_UI: Record<string, MethodologyUI> = {
         icon: 'D',
         color: 'var(--accent-sky)',
       },
-      implementation: {
-        displayName: 'Implementation',
-        plural: 'Implementations',
-        icon: 'I',
-        color: 'var(--accent-mint)',
-      },
       task: {
         displayName: 'Task',
         plural: 'Tasks',
         icon: 'T',
+        color: 'var(--accent-mint)',
+      },
+      todo: {
+        displayName: 'Todo',
+        plural: 'Todos',
+        icon: 'TD',
         color: 'var(--accent-blush)',
-      },
-      e2e_verification: {
-        displayName: 'E2E Verification',
-        plural: 'E2E Verifications',
-        icon: 'EV',
-        color: 'var(--accent-mint)',
-      },
-      functional_verification: {
-        displayName: 'Functional Verification',
-        plural: 'Functional Verifications',
-        icon: 'FV',
-        color: 'var(--accent-mint)',
-      },
-      unit_verification: {
-        displayName: 'Unit Verification',
-        plural: 'Unit Verifications',
-        icon: 'UV',
-        color: 'var(--accent-mint)',
       },
     },
     statusLabels: {
       draft: 'Draft',
-      approved: 'Approved',
+      active: 'Active',
+      todo: 'To Do',
       in_progress: 'In Progress',
       done: 'Done',
       cancelled: 'Cancelled',
-      rework: 'Rework',
-      in_review: 'In Review',
-      rejected: 'Rejected',
-      todo: 'To Do',
-      pending: 'Pending',
-      passed: 'Passed',
-      failed: 'Failed',
-      blocked: 'Blocked',
     },
   },
 };
@@ -161,11 +137,22 @@ export function getStatusLabel(methodology: string, status: string): string {
   return METHODOLOGY_UI[methodology]?.statusLabels[status] ?? status;
 }
 
-/** Get the appropriate child type for a parent node type.
+/** Get all valid child types for a parent node type.
+ * Returns an empty array if the parent node type cannot have children.
+ */
+export function getChildTypes(methodology: string, parentNodeType: string): string[] {
+  const entry = METHODOLOGY_HIERARCHY[methodology]?.[parentNodeType];
+  if (!entry) return [];
+  return Array.isArray(entry) ? entry : [entry];
+}
+
+/** Get the primary child type for a parent node type.
  * Returns null if the parent node type cannot have children.
+ * When multiple child types exist, returns the first one.
  */
 export function getChildType(methodology: string, parentNodeType: string): string | null {
-  return METHODOLOGY_HIERARCHY[methodology]?.[parentNodeType] ?? null;
+  const types = getChildTypes(methodology, parentNodeType);
+  return types[0] ?? null;
 }
 
 /** Check if a node type can have children. */

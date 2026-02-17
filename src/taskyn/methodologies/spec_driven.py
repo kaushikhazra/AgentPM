@@ -1,18 +1,24 @@
-"""Spec-Driven methodology v2.
+"""Spec-Driven methodology v3.
 
-Hierarchy (all levels mandatory):
-    spec
-    ├── requirement
-    │   ├── e2e_verification
-    │   └── design
-    │       ├── functional_verification
-    │       └── implementation
-    │           ├── unit_verification
-    │           └── task
+Hierarchy (3 levels, 5 node types):
+    spec (Level 1 — container)
+    ├── requirement (Level 2 — what) → todos
+    ├── design (Level 2 — how) → todos
+    └── task (Level 2 — implementation grouping) → todos
 
-Verification nodes are scoped to specific hierarchy levels and cascade
-parent status on failure. Time tracking is only allowed on task and
-verification nodes; actual_time rolls up through the hierarchy.
+Phase nodes (spec, requirement, design, task) use universal statuses:
+    draft → active → done | cancelled
+
+Todo nodes (leaf work units) support start/stop timer:
+    todo → in_progress → done | cancelled
+
+Strict gating enforces sequential phase flow:
+    requirement can activate when spec is active/done
+    design can activate when ALL sibling requirements are done
+    task can activate when ALL sibling designs are done
+    todos can start when parent phase is active/done
+
+Time tracking is only allowed on todo nodes.
 """
 
 from taskyn.methodologies.base import (
@@ -21,43 +27,29 @@ from taskyn.methodologies.base import (
     EdgeTypeDefinition,
 )
 
-_ALL_TYPES = [
-    "spec",
-    "requirement",
-    "design",
-    "implementation",
-    "task",
-    "e2e_verification",
-    "functional_verification",
-    "unit_verification",
-]
-
-_VERIFICATION_TYPES = [
-    "e2e_verification",
-    "functional_verification",
-    "unit_verification",
-]
+_PHASE_TYPES = ["spec", "requirement", "design", "task"]
+_ALL_TYPES = ["spec", "requirement", "design", "task", "todo"]
 
 
-def _verification_node(name: str) -> NodeTypeDefinition:
-    """Shared definition for all verification node types."""
+def _phase_node(name: str) -> NodeTypeDefinition:
+    """Shared definition for phase nodes (spec, requirement, design, task)."""
     return NodeTypeDefinition(
         name=name,
-        valid_statuses=["pending", "in_progress", "passed", "failed"],
-        initial_status="pending",
-        terminal_statuses={"passed"},
+        valid_statuses=["draft", "active", "done", "cancelled"],
+        initial_status="draft",
+        terminal_statuses={"done", "cancelled"},
         allowed_transitions={
-            "pending": ["in_progress"],
-            "in_progress": ["passed", "failed"],
-            "passed": [],
-            "failed": ["pending"],  # Gated: only when parent is back to terminal
+            "draft": ["active", "cancelled"],
+            "active": ["done", "cancelled"],
+            "done": [],
+            "cancelled": [],
         },
-        can_track_time=True,
+        can_track_time=False,
     )
 
 
 class SpecDrivenMethodology(BaseMethodology):
-    """Spec-Driven methodology with 5-level hierarchy and scoped verification."""
+    """Spec-Driven methodology v3 with 3-level hierarchy."""
 
     @property
     def name(self) -> str:
@@ -70,79 +62,23 @@ class SpecDrivenMethodology(BaseMethodology):
     @property
     def node_types(self) -> dict[str, NodeTypeDefinition]:
         return {
-            "spec": NodeTypeDefinition(
-                name="spec",
-                valid_statuses=["draft", "approved", "in_progress", "done", "cancelled"],
-                initial_status="draft",
+            "spec": _phase_node("spec"),
+            "requirement": _phase_node("requirement"),
+            "design": _phase_node("design"),
+            "task": _phase_node("task"),
+            "todo": NodeTypeDefinition(
+                name="todo",
+                valid_statuses=["todo", "in_progress", "done", "cancelled"],
+                initial_status="todo",
                 terminal_statuses={"done", "cancelled"},
                 allowed_transitions={
-                    "draft": ["approved", "cancelled"],
-                    "approved": ["in_progress", "draft", "cancelled"],
+                    "todo": ["in_progress", "cancelled"],
                     "in_progress": ["done", "cancelled"],
                     "done": [],
                     "cancelled": [],
                 },
-                can_track_time=False,
-                optional_properties=["acceptance_criteria", "approver"],
-            ),
-            "requirement": NodeTypeDefinition(
-                name="requirement",
-                valid_statuses=["draft", "approved", "in_progress", "rework", "done"],
-                initial_status="draft",
-                terminal_statuses={"done"},
-                allowed_transitions={
-                    "draft": ["approved"],
-                    "approved": ["in_progress", "draft"],
-                    "in_progress": ["done", "rework"],
-                    "rework": ["in_progress"],
-                    "done": [],
-                },
-                can_track_time=False,
-            ),
-            "design": NodeTypeDefinition(
-                name="design",
-                valid_statuses=["draft", "in_review", "approved", "rejected"],
-                initial_status="draft",
-                terminal_statuses={"approved"},
-                allowed_transitions={
-                    "draft": ["in_review"],
-                    "in_review": ["approved", "rejected"],
-                    "approved": ["rejected"],  # Cascade from functional_verification
-                    "rejected": ["draft"],
-                },
-                can_track_time=False,
-                optional_properties=["design_doc", "reviewer"],
-            ),
-            "implementation": NodeTypeDefinition(
-                name="implementation",
-                valid_statuses=["todo", "in_progress", "in_review", "done", "rework"],
-                initial_status="todo",
-                terminal_statuses={"done"},
-                allowed_transitions={
-                    "todo": ["in_progress"],
-                    "in_progress": ["in_review", "rework"],
-                    "in_review": ["done", "rework"],
-                    "done": ["rework"],  # Cascade from unit_verification
-                    "rework": ["in_progress"],
-                },
-                can_track_time=False,
-                optional_properties=["implementation_notes", "reviewer"],
-            ),
-            "task": NodeTypeDefinition(
-                name="task",
-                valid_statuses=["todo", "in_progress", "done"],
-                initial_status="todo",
-                terminal_statuses={"done"},
-                allowed_transitions={
-                    "todo": ["in_progress"],
-                    "in_progress": ["done"],
-                    "done": [],
-                },
                 can_track_time=True,
             ),
-            "e2e_verification": _verification_node("e2e_verification"),
-            "functional_verification": _verification_node("functional_verification"),
-            "unit_verification": _verification_node("unit_verification"),
         }
 
     @property
@@ -150,16 +86,8 @@ class SpecDrivenMethodology(BaseMethodology):
         return {
             "parent": EdgeTypeDefinition(
                 name="parent",
-                source_types=[
-                    "requirement",
-                    "design",
-                    "implementation",
-                    "task",
-                    "e2e_verification",
-                    "functional_verification",
-                    "unit_verification",
-                ],
-                target_types=["spec", "requirement", "design", "implementation"],
+                source_types=["requirement", "design", "task", "todo"],
+                target_types=["spec", "requirement", "design", "task"],
                 max_per_source=1,
                 allows_cycles=False,
             ),
@@ -181,42 +109,21 @@ class SpecDrivenMethodology(BaseMethodology):
     def valid_parent_pairs(self) -> dict[str, list[str]]:
         return {
             "requirement": ["spec"],
-            "design": ["requirement"],
-            "implementation": ["design"],
-            "task": ["implementation"],
-            "e2e_verification": ["requirement"],
-            "functional_verification": ["design"],
-            "unit_verification": ["implementation"],
+            "design": ["spec"],
+            "task": ["spec"],
+            "todo": ["requirement", "design", "task"],
         }
 
     def get_story_type(self) -> str:
         return "spec"
 
     def get_task_type(self) -> str:
-        return "task"
+        return "todo"
 
     def get_in_progress_status(self, node_type: str) -> str:
-        status_map = {
-            "spec": "in_progress",
-            "requirement": "in_progress",
-            "design": "in_review",
-            "implementation": "in_progress",
-            "task": "in_progress",
-            "e2e_verification": "in_progress",
-            "functional_verification": "in_progress",
-            "unit_verification": "in_progress",
-        }
-        return status_map.get(node_type, "in_progress")
+        if node_type == "todo":
+            return "in_progress"
+        return "active"
 
     def get_done_status(self, node_type: str) -> str:
-        status_map = {
-            "spec": "done",
-            "requirement": "done",
-            "design": "approved",
-            "implementation": "done",
-            "task": "done",
-            "e2e_verification": "passed",
-            "functional_verification": "passed",
-            "unit_verification": "passed",
-        }
-        return status_map.get(node_type, "done")
+        return "done"

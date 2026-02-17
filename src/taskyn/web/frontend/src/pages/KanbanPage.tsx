@@ -71,10 +71,12 @@ export function KanbanPage() {
 
   const statusColors: Record<string, string> = {
     backlog: 'var(--status-backlog)', draft: 'var(--status-backlog)',
-    ready: 'var(--status-ready)', in_progress: 'var(--status-progress)',
+    todo: 'var(--status-backlog)',
+    ready: 'var(--status-ready)',
+    active: 'var(--status-progress)', in_progress: 'var(--status-progress)',
     in_review: 'var(--status-review)', review: 'var(--status-review)',
-    done: 'var(--status-done)', approved: 'var(--status-done)',
-    blocked: 'var(--status-blocked)',
+    done: 'var(--status-done)',
+    cancelled: 'var(--status-blocked)', blocked: 'var(--status-blocked)',
   };
 
   const columns = statuses.map((status) => ({

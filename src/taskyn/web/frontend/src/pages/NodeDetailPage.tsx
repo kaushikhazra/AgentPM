@@ -8,14 +8,15 @@ import { Button, MarkdownRenderer } from '@/components/atoms';
 import { StatCard } from '@/components/molecules';
 import { DetailLayout } from '@/components/templates/DetailLayout';
 import { Section, Modal } from '@/components/organisms';
-import { getNodeTypeUI, getStatusLabel, getChildType, canHaveChildren } from '@/config/methodology-ui';
+import { getNodeTypeUI, getStatusLabel, getChildTypes, getChildType } from '@/config/methodology-ui';
 import { formatDuration } from '@/utils/formatDuration';
 
 function statusClass(status: string): string {
-  if (status === 'done' || status === 'approved') return 'done';
-  if (status === 'in_progress') return 'progress';
+  if (status === 'done') return 'done';
+  if (status === 'in_progress' || status === 'active') return 'progress';
   if (status === 'blocked') return 'blocked';
-  if (status === 'backlog' || status === 'draft') return 'backlog';
+  if (status === 'cancelled') return 'blocked';
+  if (status === 'backlog' || status === 'draft' || status === 'todo') return 'backlog';
   if (status === 'ready') return 'ready';
   if (status === 'review' || status === 'in_review') return 'review';
   return 'backlog';
@@ -39,6 +40,7 @@ export function NodeDetailPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
   const [createDesc, setCreateDesc] = useState('');
+  const [createChildType, setCreateChildType] = useState('');
   const [showDelete, setShowDelete] = useState(false);
 
   if (!node || !project) {
@@ -51,18 +53,19 @@ export function NodeDetailPage() {
 
   const methodology = project.methodology;
   const typeUI = getNodeTypeUI(methodology, node.node_type);
-  const childNodeType = getChildType(methodology, node.node_type);
-  const allowsChildren = canHaveChildren(methodology, node.node_type);
-  const childTypeUI = childNodeType ? getNodeTypeUI(methodology, childNodeType) : null;
+  const childTypes = getChildTypes(methodology, node.node_type);
+  const allowsChildren = childTypes.length > 0;
+  const hasSingleChildType = childTypes.length === 1;
+  const singleChildTypeUI = hasSingleChildType ? getNodeTypeUI(methodology, childTypes[0]!) : null;
 
-  // Filter descendants to direct children of the expected type
-  const children = childNodeType
-    ? allDescendants.filter(d => d.node_type === childNodeType)
+  // Filter descendants to direct children of any valid child type
+  const children = childTypes.length > 0
+    ? allDescendants.filter(d => childTypes.includes(d.node_type))
     : [];
 
   const rollup = node.rollup;
   const totalChildren = rollup?.total_children ?? children.length;
-  const completedChildren = rollup?.completed_children ?? children.filter((c) => c.status === 'done' || c.status === 'approved').length;
+  const completedChildren = rollup?.completed_children ?? children.filter((c) => c.status === 'done').length;
   const pct = totalChildren > 0 ? Math.round((completedChildren / totalChildren) * 100) : 0;
 
   const breadcrumbs = [
@@ -73,20 +76,25 @@ export function NodeDetailPage() {
   ];
 
   const statusLabel = getStatusLabel(methodology, node.status);
-  const isInProgress = node.status === 'in_progress';
-  const canStart = node.status === 'backlog' || node.status === 'ready' || node.status === 'draft';
+  const isInProgress = node.status === 'in_progress' || node.status === 'active';
+  const canStart = node.status === 'backlog' || node.status === 'ready' || node.status === 'draft' || node.status === 'todo';
 
   const handleStatusAction = async () => {
     if (canStart) startNode.mutate(node.id);
     else if (isInProgress) completeNode.mutate(node.id);
   };
 
+  const openCreateChild = () => {
+    setCreateChildType(childTypes[0] ?? '');
+    setShowCreate(true);
+  };
+
   const handleCreateChild = async () => {
-    if (!createTitle.trim() || !childNodeType) return;
+    if (!createTitle.trim() || !createChildType) return;
     createNode.mutate(
       {
         project_id: project.id,
-        node_type: childNodeType,
+        node_type: createChildType,
         title: createTitle.trim(),
         description: createDesc.trim() || undefined,
         parent_id: node.id,
@@ -135,12 +143,12 @@ export function NodeDetailPage() {
           {isInProgress && (
             <Button variant="secondary" onClick={handleStatusAction}>Complete</Button>
           )}
-          {allowsChildren && childTypeUI && (
-            <Button variant="primary" onClick={() => setShowCreate(true)}>
+          {allowsChildren && (
+            <Button variant="primary" onClick={openCreateChild}>
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="2">
                 <path d="M12 5v14" /><path d="M5 12h14" />
               </svg>
-              New {childTypeUI.displayName}
+              {singleChildTypeUI ? `New ${singleChildTypeUI.displayName}` : 'Add Child'}
             </Button>
           )}
         </div>
@@ -160,12 +168,12 @@ export function NodeDetailPage() {
         <StatCard label="Progress" value={`${pct}%`} />
       </div>
 
-      {allowsChildren && childTypeUI && (
+      {allowsChildren && (
         <Section
-          title={childTypeUI.plural}
+          title={singleChildTypeUI?.plural ?? 'Children'}
           action={
-            <span className="section-action" style={{ cursor: 'pointer' }} onClick={() => setShowCreate(true)}>
-              + Add {childTypeUI.displayName}
+            <span className="section-action" style={{ cursor: 'pointer' }} onClick={openCreateChild}>
+              + {singleChildTypeUI ? `Add ${singleChildTypeUI.displayName}` : 'Add Child'}
             </span>
           }
         >
@@ -174,14 +182,14 @@ export function NodeDetailPage() {
               <div className="empty-state-icon">
                 <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>
               </div>
-              <div className="empty-state-title">No {childTypeUI.plural.toLowerCase()} yet</div>
-              <div className="empty-state-text">Break this {typeUI.displayName.toLowerCase()} into {childTypeUI.plural.toLowerCase()}</div>
-              <Button variant="primary" onClick={() => setShowCreate(true)}>Add {childTypeUI.displayName}</Button>
+              <div className="empty-state-title">No {(singleChildTypeUI?.plural ?? 'children').toLowerCase()} yet</div>
+              <div className="empty-state-text">Break this {typeUI.displayName.toLowerCase()} into {(singleChildTypeUI?.plural ?? 'children').toLowerCase()}</div>
+              <Button variant="primary" onClick={openCreateChild}>{singleChildTypeUI ? `Add ${singleChildTypeUI.displayName}` : 'Add Child'}</Button>
             </div>
           ) : (
             <div className="work-item-list">
               {children.map((child) => {
-                const childDone = child.status === 'done' || child.status === 'approved';
+                const childDone = child.status === 'done';
                 const grandchildType = getChildType(methodology, child.node_type);
                 const grandchildTypeUI = grandchildType ? getNodeTypeUI(methodology, grandchildType) : null;
                 const grandchildCount = child.rollup?.total_children ?? 0;
@@ -218,10 +226,20 @@ export function NodeDetailPage() {
         </Section>
       )}
 
-      {allowsChildren && childTypeUI && (
-        <Modal open={showCreate} onClose={() => setShowCreate(false)} title={`New ${childTypeUI.displayName}`}
+      {allowsChildren && (
+        <Modal open={showCreate} onClose={() => setShowCreate(false)} title={`New ${createChildType ? getNodeTypeUI(methodology, createChildType).displayName : 'Child'}`}
           footer={<><Button variant="secondary" onClick={() => setShowCreate(false)}>Cancel</Button><Button variant="primary" onClick={handleCreateChild} disabled={createNode.isPending}>{createNode.isPending ? 'Creating...' : 'Create'}</Button></>}
         >
+          {!hasSingleChildType && (
+            <div className="form-group">
+              <label className="form-label">Type</label>
+              <select className="form-select" value={createChildType} onChange={(e) => setCreateChildType(e.target.value)}>
+                {childTypes.map((ct) => (
+                  <option key={ct} value={ct}>{getNodeTypeUI(methodology, ct).displayName}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="form-group"><label className="form-label">Title</label><input className="form-input" placeholder="Title for the new work item" value={createTitle} onChange={(e) => setCreateTitle(e.target.value)} autoFocus /></div>
           <div className="form-group"><label className="form-label">Description</label><textarea className="form-input" placeholder="Describe the work item..." value={createDesc} onChange={(e) => setCreateDesc(e.target.value)} /></div>
         </Modal>

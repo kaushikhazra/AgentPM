@@ -75,9 +75,9 @@ def validate_node_update(
         if new_status == "blocked" and not blocked_reason and not node.blocked_reason:
             errors.append("Blocked status requires a blocked_reason")
 
-        # Gate re-verification: failed → pending only when parent is terminal
-        from taskyn.core.cascade import validate_reverification
-        errors.extend(validate_reverification(node.id, node.node_type, node.status, new_status))
+        # Phase gating: enforce sequential phase flow for spec_driven
+        from taskyn.core.cascade import validate_phase_gate
+        errors.extend(validate_phase_gate(node.id, node.node_type, node.status, new_status))
 
     return errors
 
