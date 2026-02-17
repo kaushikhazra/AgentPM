@@ -213,11 +213,11 @@ Add to `~/.claude/settings.json` or use `claude mcp add`:
 Run the MCP server with HTTP transport:
 
 ```bash
-# Start server on port 8000
-python -m taskyn.mcp --transport streamable-http --port 8000
+# Start server on port 8020
+python -m taskyn.mcp --transport streamable-http --port 8020
 
 # Or with custom host binding
-python -m taskyn.mcp --transport streamable-http --host 0.0.0.0 --port 8000
+python -m taskyn.mcp --transport streamable-http --host 0.0.0.0 --port 8020
 ```
 
 ### Connecting to Remote MCP Server
@@ -229,7 +229,7 @@ For clients that natively support streamable-http:
   "mcpServers": {
     "taskyn": {
       "transport": "streamable-http",
-      "url": "http://localhost:8000/mcp"
+      "url": "http://localhost:8020/mcp"
     }
   }
 }
@@ -251,7 +251,7 @@ Configure Claude Desktop to use mcp-proxy:
   "mcpServers": {
     "taskyn": {
       "command": "mcp-proxy",
-      "args": ["http://localhost:8000/mcp"]
+      "args": ["http://localhost:8020/mcp"]
     }
   }
 }
@@ -285,7 +285,7 @@ docker compose up -d
 That's it. Docker pulls the images from Docker Hub automatically.
 
 - **Web UI**: http://localhost:3020
-- **MCP Server**: http://localhost:8000/mcp
+- **MCP Server**: http://localhost:8020/mcp
 
 ### Managing Taskyn
 
@@ -303,7 +303,7 @@ docker compose pull     # Update to latest images
 | `TASKYN_DB` | `/data/taskyn.db` | Database path inside container |
 | `TASKYN_ACTOR` | `mcp` | Actor ID for activity logs |
 | `TASKYN_MCP_HOST` | `0.0.0.0` | Bind address |
-| `TASKYN_MCP_PORT` | `8000` | MCP server port |
+| `TASKYN_MCP_PORT` | `8020` | MCP server port |
 | `TASKYN_JWT_SECRET` | (dev default) | JWT signing secret — change in production |
 
 ### Data Persistence
@@ -351,7 +351,7 @@ taskyn project create <company_id> "Project" -m spec_driven
 |----------|-------------|---------|
 | `TASKYN_DB` | Database file path | `~/.taskyn/taskyn.db` |
 | `TASKYN_ACTOR` | Actor ID for activity logs | `mcp` |
-| `TASKYN_MCP_PORT` | MCP HTTP server port | `8000` |
+| `TASKYN_MCP_PORT` | MCP HTTP server port | `8020` |
 | `TASKYN_MCP_HOST` | MCP HTTP server host | `127.0.0.1` |
 | `TASKYN_MCP_URL` | MCP server URL (for web backend) | Required for web UI |
 | `TASKYN_MCP_TIMEOUT` | MCP client timeout in seconds | `30` |
@@ -365,7 +365,7 @@ taskyn project create <company_id> "Project" -m spec_driven
 1. Ensure the MCP server is running:
    ```bash
    # For HTTP transport
-   curl http://localhost:8000/mcp
+   curl http://localhost:8020/mcp
    ```
 
 2. For stdio transport, verify Python is in PATH:
@@ -411,7 +411,7 @@ docker-compose logs taskyn
 
 Verify the MCP server is responding:
 ```bash
-curl http://localhost:8000/mcp
+curl http://localhost:8020/mcp
 ```
 
 **Port already in use**
@@ -419,7 +419,7 @@ curl http://localhost:8000/mcp
 Change the port mapping in `docker-compose.yml`:
 ```yaml
 ports:
-  - "8001:8000"  # Use port 8001 instead
+  - "8021:8020"  # Use port 8021 instead
 ```
 
 ## Development

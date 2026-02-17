@@ -17,8 +17,8 @@ def main():
     parser.add_argument(
         "--port",
         type=int,
-        default=int(os.getenv("TASKYN_MCP_PORT", "8000")),
-        help="Port for HTTP transport (default: 8000)"
+        default=int(os.getenv("TASKYN_MCP_PORT", "8020")),
+        help="Port for HTTP transport (default: 8020)"
     )
     parser.add_argument(
         "--host",

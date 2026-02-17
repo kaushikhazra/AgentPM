@@ -8,7 +8,7 @@ from pathlib import Path
 os.environ.setdefault("TASKYN_JWT_SECRET", "test-secret-key-for-pytest-minimum-32-chars")
 os.environ.setdefault("TASKYN_RATE_LIMIT", "false")
 # Set a dummy MCP URL for tests (will be overridden by in-memory transport)
-os.environ.setdefault("TASKYN_MCP_URL", "http://test-mcp:8000/mcp")
+os.environ.setdefault("TASKYN_MCP_URL", "http://test-mcp:8020/mcp")
 
 import pytest
 

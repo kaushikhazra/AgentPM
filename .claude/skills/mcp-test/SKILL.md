@@ -29,19 +29,19 @@ Parse the arguments to determine:
 python scripts/mcp_test_client.py stdio "python -m agentpm.mcp" --list-tools
 
 # List tools from a remote MCP server (HTTP)
-python scripts/mcp_test_client.py http "http://localhost:8000" --list-tools
+python scripts/mcp_test_client.py http "http://localhost:8020" --list-tools
 
 # Call a specific tool
 python scripts/mcp_test_client.py stdio "python -m agentpm.mcp" --call pm_list_companies
 
 # Call a tool with arguments
-python scripts/mcp_test_client.py http "http://example.com:8000" --call pm_create_company '{"name": "Test"}'
+python scripts/mcp_test_client.py http "http://example.com:8020" --call pm_create_company '{"name": "Test"}'
 
 # List resources
 python scripts/mcp_test_client.py stdio "python -m agentpm.mcp" --list-resources
 
 # Read a resource
-python scripts/mcp_test_client.py http "http://localhost:8000" --read "pm://dashboard"
+python scripts/mcp_test_client.py http "http://localhost:8020" --read "pm://dashboard"
 
 # Interactive mode
 python scripts/mcp_test_client.py stdio "python -m agentpm.mcp" --interactive

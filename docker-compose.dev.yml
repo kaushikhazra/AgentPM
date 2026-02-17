@@ -14,7 +14,7 @@ services:
 
     # Port mapping for MCP server
     ports:
-      - "8000:8000"
+      - "8020:8020"
 
     # Volume mount for persistent database storage
     volumes:
@@ -25,14 +25,14 @@ services:
       - TASKYN_DB=/data/taskyn.db
       - TASKYN_ACTOR=mcp
       - TASKYN_MCP_HOST=0.0.0.0
-      - TASKYN_MCP_PORT=8000
+      - TASKYN_MCP_PORT=8020
 
     # Restart policy
     restart: unless-stopped
 
     # Health check configuration - TCP check for MCP protocol
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8000)); s.close()"]
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -56,7 +56,7 @@ services:
 
     # Environment configuration
     environment:
-      - TASKYN_MCP_URL=http://taskyn-core:8000/mcp
+      - TASKYN_MCP_URL=http://taskyn-core:8020/mcp
       - TASKYN_DB=/data/users.db
       - TASKYN_JWT_SECRET=${TASKYN_JWT_SECRET:-dev-secret-change-in-production-min-32-chars}
       - TASKYN_CORS_ORIGINS=http://localhost:3020

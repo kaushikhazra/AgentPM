@@ -9,17 +9,17 @@ services:
     image: kaushikhazra/taskyn-core:latest
     container_name: taskyn-core
     ports:
-      - "8000:8000"
+      - "8020:8020"
     volumes:
       - taskyn-data:/data
     environment:
       - TASKYN_DB=/data/taskyn.db
       - TASKYN_ACTOR=mcp
       - TASKYN_MCP_HOST=0.0.0.0
-      - TASKYN_MCP_PORT=8000
+      - TASKYN_MCP_PORT=8020
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8000)); s.close()"]
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -34,7 +34,7 @@ services:
     volumes:
       - taskyn-web-data:/data
     environment:
-      - TASKYN_MCP_URL=http://taskyn-core:8000/mcp
+      - TASKYN_MCP_URL=http://taskyn-core:8020/mcp
       - TASKYN_DB=/data/users.db
       - TASKYN_JWT_SECRET=${TASKYN_JWT_SECRET:-change-me-in-production-min-32-chars}
       - TASKYN_CORS_ORIGINS=http://localhost:3020
