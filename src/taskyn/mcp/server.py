@@ -946,11 +946,28 @@ def pm_get_descendants(node_id: str, edge_type: str | None = None) -> list[dict]
         edge_type: Optional edge type filter
 
     Returns:
-        List of descendant nodes
+        List of descendant nodes with parent_id included
     """
-    from taskyn.graph import get_descendants
-    nodes = get_descendants(node_id, edge_type=edge_type)
-    return [n.model_dump() for n in nodes]
+    from taskyn.graph import get_descendants, list_edges, get_node
+
+    root = get_node(node_id)
+    if root is None:
+        return []
+
+    nodes = get_descendants(root.id, edge_type=edge_type)
+
+    # Build parent_id map from edges (same pattern as pm_list_nodes)
+    parent_map: dict[str, str] = {}
+    edges = list_edges(project_id=root.project_id, edge_type="parent")
+    for e in edges:
+        parent_map[e.source_id] = e.target_id
+
+    result = []
+    for n in nodes:
+        data = n.model_dump()
+        data["parent_id"] = parent_map.get(n.id)
+        result.append(data)
+    return result
 
 
 # ============================================================

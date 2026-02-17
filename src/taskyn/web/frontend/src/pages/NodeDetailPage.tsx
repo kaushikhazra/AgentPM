@@ -192,8 +192,11 @@ export function NodeDetailPage() {
                 const childDone = child.status === 'done';
                 const grandchildType = getChildType(methodology, child.node_type);
                 const grandchildTypeUI = grandchildType ? getNodeTypeUI(methodology, grandchildType) : null;
-                const grandchildCount = child.rollup?.total_children ?? 0;
-                const grandchildCompleted = child.rollup?.completed_children ?? 0;
+                const grandchildren = grandchildType
+                  ? allDescendants.filter(d => d.parent_id === child.id && d.node_type === grandchildType)
+                  : [];
+                const grandchildCount = grandchildren.length;
+                const grandchildCompleted = grandchildren.filter(d => d.status === 'done').length;
                 const childPct = grandchildCount > 0 ? Math.round((grandchildCompleted / grandchildCount) * 100) : 0;
                 return (
                   <div key={child.id} className={`work-item-card${childDone ? ' completed' : ''}`} onClick={() => navigate(`/nodes/${child.id}`)} style={{ cursor: 'pointer' }}>
@@ -210,21 +213,23 @@ export function NodeDetailPage() {
                           </span>
                         );
                       })()}
+                      <span className={`status-badge ${statusClass(child.status)}`}>
+                        {getStatusLabel(methodology, child.status)}
+                      </span>
+                      {grandchildCount > 0 && (
+                        <div className="work-item-progress">
+                          <div className="work-item-progress-bar">
+                            <div className="work-item-progress-fill" style={{ width: `${childPct}%` }} />
+                          </div>
+                          <span>{childPct}%</span>
+                        </div>
+                      )}
                       {grandchildTypeUI && (
                         <span>{grandchildCount} {grandchildCount === 1 ? grandchildTypeUI.displayName.toLowerCase() : grandchildTypeUI.plural.toLowerCase()}</span>
                       )}
                       {child.actual_time > 0 && (
                         <span className="work-item-time">{formatDuration(child.actual_time)}</span>
                       )}
-                      <div className="work-item-progress">
-                        <div className="work-item-progress-bar">
-                          <div className="work-item-progress-fill" style={{ width: `${childPct}%` }} />
-                        </div>
-                        <span>{childPct}%</span>
-                      </div>
-                      <span className={`status-badge ${statusClass(child.status)}`}>
-                        {getStatusLabel(methodology, child.status)}
-                      </span>
                     </div>
                   </div>
                 );
