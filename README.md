@@ -1,187 +1,74 @@
 # Taskyn
 
-AI-first personal project management system designed for both human and AI interaction.
+AI-first project management system designed for both human and AI interaction. Manage projects, track time, and orchestrate work through MCP (Model Context Protocol) or a browser-based Web UI.
 
-## Table of Contents
+![Taskyn Dashboard](docs/assets/dashboard-page.png)
 
-- [Features](#features)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [CLI Reference](#cli-reference)
-- [MCP Server Setup](#mcp-server-setup)
-- [Docker Deployment](#docker-deployment)
-- [Methodologies](#methodologies)
-- [Environment Variables](#environment-variables)
-- [Troubleshooting](#troubleshooting)
-- [Development](#development)
+---
 
-## Features
+## Screenshots
 
-- **Graph-based work tracking**: Nodes (stories, tasks) connected by edges (parent, depends_on)
-- **Methodology system**: Classic Agile, Spec-Driven (Kiro-style), or create your own
-- **Time tracking**: Timer-based or manual time logging
-- **MCP Server**: Full Model Context Protocol support for AI assistants
-- **CLI**: Rich command-line interface with JSON output support
+### Project Overview
+Track specs, stories, and tasks across multiple projects with real-time status updates.
 
-## Installation
+![Project Overview](docs/assets/project-page.png)
 
-### Requirements
+### Node Detail View
+Drill into any work item — see description, status, time logged, child nodes, and relationships.
 
-- Python 3.11 or higher
+![Node Detail](docs/assets/planner-page.png)
 
-### From PyPI
+---
 
-```bash
-pip install taskyn
-```
+## Highlights
 
-### From Source (Development)
+| Feature | Description |
+|---------|-------------|
+| **AI-Native** | Full MCP server — Claude, GPT, and other AI assistants manage your projects directly |
+| **Graph-Based Tracking** | Nodes (specs, stories, tasks) connected by edges (parent, blocks, depends_on) |
+| **Methodology System** | Classic Agile or Spec-Driven (gated workflow) — or define your own |
+| **Time Tracking** | Timer-based or manual time logging with per-node rollups |
+| **Web UI** | Browser-based interface for visual project management |
+| **Zero Config** | Single `docker compose up` — no database setup, no config files |
 
-```bash
-git clone https://github.com/kaushikhazra/Taskyn.git
-cd taskyn
-pip install -e ".[dev]"
-```
-
-### Verify Installation
-
-```bash
-# Check CLI is available
-taskyn --help
-
-# Check version
-taskyn --version
-```
+---
 
 ## Quick Start
 
 ```bash
-# Create a company
-taskyn company create "ACME Corp"
-
-# Create a project (default: classic_agile methodology)
-taskyn project create <company_id> "Website Redesign"
-
-# Create a story
-taskyn story create <project_id> "User Authentication"
-
-# Create tasks under the story
-taskyn task create <story_id> "Design login form"
-taskyn task create <story_id> "Implement backend"
-
-# Start working on a task (starts timer)
-taskyn task start <task_id>
-
-# Complete the task (stops timer)
-taskyn task done <task_id>
-
-# View dashboard
-taskyn dashboard
-
-# Search across all entities
-taskyn search "login"
+curl -O https://raw.githubusercontent.com/kaushikhazra/Taskyn/develop/docker-compose.yml
+docker compose up -d
 ```
 
-## CLI Reference
+That's it. Docker pulls the images automatically.
 
-### Company Management
+| Service | URL |
+|---------|-----|
+| Web UI | http://localhost:3020 |
+| MCP Server | http://localhost:8020/mcp |
 
-```bash
-taskyn company list                    # List all companies
-taskyn company create "Name"           # Create company
-taskyn company show <id>               # Show company details
-taskyn company delete <id>             # Delete company
-```
-
-### Project Management
-
-```bash
-taskyn project list                    # List all projects
-taskyn project create <company_id> "Name" [-m methodology]
-taskyn project show <id>               # Show project with stats
-taskyn project update <id> [options]   # Update project
-```
-
-### Story/Task Shortcuts
-
-```bash
-taskyn story create <project_id> "Title"
-taskyn story list [--project <id>]
-taskyn story show <id>
-
-taskyn task create <parent_id> "Title"
-taskyn task start <id>                 # Start work (sets status + timer)
-taskyn task done <id>                  # Complete (stops timer)
-taskyn task block <id> --reason "..."  # Block with reason
-```
-
-### Time Tracking
-
-```bash
-taskyn timer start <node_id>           # Start timer
-taskyn timer stop                      # Stop active timer
-taskyn timer status                    # Show active timer
-taskyn timer log <node_id> <minutes>   # Log time manually
-```
-
-### Tags
-
-```bash
-taskyn tag list                        # List all tags
-taskyn tag create "bug" --color red    # Create tag
-taskyn tag add <node_id> "bug"         # Tag a node
-taskyn tag remove <node_id> "bug"      # Remove tag
-```
-
-### Backup & Export
-
-```bash
-taskyn backup create                   # Create database backup
-taskyn backup list                     # List backups
-taskyn backup restore <file>           # Restore from backup
-
-taskyn export json                     # Export all data as JSON
-taskyn export json --project <id>      # Export single project
-```
-
-### Other Commands
-
-```bash
-taskyn dashboard                       # Current work summary
-taskyn stats <project_id>              # Project statistics
-taskyn search "query"                  # Search all entities
-taskyn activity                        # Recent activity log
-```
+---
 
 ## MCP Server Setup
 
-Taskyn provides an MCP (Model Context Protocol) server that allows AI assistants to manage projects directly.
+Taskyn speaks MCP natively. Connect any MCP-compatible AI assistant to your running Taskyn server.
 
-### Transport Options
+### Claude Desktop
 
-| Transport | Use Case | Command |
-|-----------|----------|---------|
-| **stdio** | Local AI clients (Claude Desktop, Claude Code) | `python -m taskyn.mcp` |
-| **streamable-http** | Remote access, Docker, multiple clients | `python -m taskyn.mcp --transport streamable-http` |
+Add to your config file:
 
-### Claude Desktop (Local - Recommended)
-
-Add to your Claude Desktop config file:
-
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Linux**: `~/.config/Claude/claude_desktop_config.json`
+| OS | Config Path |
+|----|------------|
+| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Linux | `~/.config/Claude/claude_desktop_config.json` |
 
 ```json
 {
   "mcpServers": {
     "taskyn": {
-      "command": "python",
-      "args": ["-m", "taskyn.mcp"],
-      "env": {
-        "TASKYN_DB": "~/.taskyn/taskyn.db",
-        "TASKYN_ACTOR": "claude"
-      }
+      "transport": "streamable-http",
+      "url": "http://localhost:8020/mcp"
     }
   }
 }
@@ -189,40 +76,9 @@ Add to your Claude Desktop config file:
 
 After saving, **fully quit Claude Desktop** (check system tray) and restart.
 
-### Claude Code (Local)
+### Claude Code
 
 Add to `~/.claude/settings.json` or use `claude mcp add`:
-
-```json
-{
-  "mcpServers": {
-    "taskyn": {
-      "command": "python",
-      "args": ["-m", "taskyn.mcp"],
-      "env": {
-        "TASKYN_DB": "~/.taskyn/taskyn.db",
-        "TASKYN_ACTOR": "claude_code"
-      }
-    }
-  }
-}
-```
-
-### Remote HTTP Server
-
-Run the MCP server with HTTP transport:
-
-```bash
-# Start server on port 8020
-python -m taskyn.mcp --transport streamable-http --port 8020
-
-# Or with custom host binding
-python -m taskyn.mcp --transport streamable-http --host 0.0.0.0 --port 8020
-```
-
-### Connecting to Remote MCP Server
-
-For clients that natively support streamable-http:
 
 ```json
 {
@@ -237,14 +93,7 @@ For clients that natively support streamable-http:
 
 ### Using mcp-proxy
 
-For clients that don't support streamable-http directly, use [mcp-proxy](https://github.com/punkpeye/mcp-proxy):
-
-```bash
-# Install mcp-proxy
-pip install mcp-proxy
-```
-
-Configure Claude Desktop to use mcp-proxy:
+For clients that don't support streamable-http, use [mcp-proxy](https://github.com/punkpeye/mcp-proxy):
 
 ```json
 {
@@ -257,35 +106,100 @@ Configure Claude Desktop to use mcp-proxy:
 }
 ```
 
-### MCP Tools Reference
+---
+
+## MCP Tools Reference
 
 | Category | Tools |
 |----------|-------|
-| Company | `pm_list_companies`, `pm_create_company`, `pm_get_company` |
-| Project | `pm_list_projects`, `pm_create_project`, `pm_get_project`, `pm_update_project`, `pm_get_methodology_info` |
-| Milestone | `pm_list_milestones`, `pm_create_milestone`, `pm_complete_milestone` |
-| Node | `pm_list_nodes`, `pm_create_node`, `pm_get_node`, `pm_update_node`, `pm_start_node`, `pm_complete_node`, `pm_block_node` |
+| Company | `pm_list_companies`, `pm_create_company`, `pm_get_company`, `pm_update_company`, `pm_delete_company` |
+| Project | `pm_list_projects`, `pm_create_project`, `pm_get_project`, `pm_update_project`, `pm_delete_project`, `pm_get_methodology_info` |
+| Milestone | `pm_list_milestones`, `pm_create_milestone`, `pm_complete_milestone`, `pm_update_milestone`, `pm_delete_milestone` |
+| Node | `pm_list_nodes`, `pm_create_node`, `pm_get_node`, `pm_update_node`, `pm_start_node`, `pm_complete_node`, `pm_block_node`, `pm_delete_node` |
 | Edge | `pm_list_edges`, `pm_create_edge`, `pm_delete_edge`, `pm_get_ancestors`, `pm_get_descendants` |
-| Timer | `pm_start_timer`, `pm_stop_timer`, `pm_log_time`, `pm_get_active_timer` |
-| Reporting | `pm_get_dashboard`, `pm_get_project_stats`, `pm_search`, `pm_get_recent_activity`, `pm_get_rollup` |
-| Tag | `pm_list_tags`, `pm_create_tag`, `pm_tag_node`, `pm_untag_node` |
+| Timer | `pm_start_timer`, `pm_stop_timer`, `pm_log_time`, `pm_get_active_timer`, `pm_list_time_entries` |
+| Reporting | `pm_get_dashboard`, `pm_get_project_stats`, `pm_get_company_stats`, `pm_search`, `pm_get_recent_activity`, `pm_get_rollup` |
+| Tag | `pm_list_tags`, `pm_create_tag`, `pm_tag_node`, `pm_untag_node`, `pm_delete_tag` |
 
-## Docker Deployment
+---
 
-Taskyn runs as two containers: an MCP server (`taskyn-core`) and a web UI (`taskyn-web`).
+## Methodologies
 
-### Quick Start
+### Classic Agile (default)
 
-```bash
-# Download the compose file and start Taskyn
-curl -O https://raw.githubusercontent.com/kaushikhazra/Taskyn/develop/docker-compose.yml
-docker compose up -d
+| Aspect | Details |
+|--------|---------|
+| Node types | `story`, `task` |
+| Edge types | `parent` (task -> story), `depends_on` |
+| Story statuses | backlog -> ready -> in_progress -> done |
+| Task statuses | todo -> in_progress -> done |
+
+### Spec-Driven
+
+A gated workflow where each phase must complete before the next begins.
+
+| Phase | Statuses | Purpose |
+|-------|----------|---------|
+| Spec | draft -> approved -> done | Define requirements |
+| Design | draft -> in_review -> approved | Architecture decisions |
+| Implementation | todo -> in_progress -> in_review -> done | Build it |
+| Validation | pending -> in_progress -> passed / failed | Verify it works |
+
+---
+
+## Architecture
+
+### High-Level Overview
+
+```
+┌──────────────────────────────────────────────────────┐
+│                   USER / AI CLIENT                    │
+│         (Browser, Claude Desktop, Claude Code)        │
+└────────────┬─────────────────────────┬───────────────┘
+             │ HTTP :3020              │ MCP :8020
+             ▼                         ▼
+┌────────────────────────┐  ┌─────────────────────────┐
+│      taskyn-web        │  │      taskyn-core         │
+│  FastAPI + React UI    │──│  MCP Server (FastMCP)    │
+│  REST API, JWT Auth    │  │  Graph Engine, SQLite    │
+│  Port 3020             │  │  Port 8020               │
+└────────────────────────┘  └─────────────────────────┘
 ```
 
-That's it. Docker pulls the images from Docker Hub automatically.
+### Tech Stack
 
-- **Web UI**: http://localhost:3020
-- **MCP Server**: http://localhost:8020/mcp
+| Layer | Technology |
+|-------|-----------|
+| **MCP Server** | Python 3.12, FastMCP, Pydantic |
+| **Web Backend** | FastAPI, Uvicorn, python-jose (JWT) |
+| **Web Frontend** | React, TypeScript, Vite |
+| **Database** | SQLite (zero config, file-based) |
+| **Containerization** | Docker, multi-stage builds |
+| **CI/CD** | GitHub Actions, Docker Hub |
+
+### Project Structure
+
+```
+src/taskyn/
+├── db/                 # Database layer (SQLite, Pydantic models)
+├── graph/              # Graph engine (nodes, edges, traversal)
+├── core/               # Business logic (workflow, time tracking, tags)
+├── methodologies/      # Pluggable PM methodologies
+├── mcp/                # MCP server (FastMCP tools & resources)
+├── web/
+│   ├── backend/        # FastAPI REST API + JWT auth
+│   └── frontend/       # React + TypeScript UI
+└── cli/                # Typer CLI (development use)
+```
+
+---
+
+## Docker Images
+
+| Image | Description |
+|-------|-------------|
+| [`kaushikhazra/taskyn-core`](https://hub.docker.com/r/kaushikhazra/taskyn-core) | MCP server — all data operations |
+| [`kaushikhazra/taskyn-web`](https://hub.docker.com/r/kaushikhazra/taskyn-web) | Web UI + FastAPI backend |
 
 ### Managing Taskyn
 
@@ -296,148 +210,61 @@ docker compose down     # Stop
 docker compose pull     # Update to latest images
 ```
 
-### Docker Environment Variables
+### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TASKYN_DB` | `/data/taskyn.db` | Database path inside container |
+| `TASKYN_DB` | `/data/taskyn.db` | Database path |
 | `TASKYN_ACTOR` | `mcp` | Actor ID for activity logs |
-| `TASKYN_MCP_HOST` | `0.0.0.0` | Bind address |
 | `TASKYN_MCP_PORT` | `8020` | MCP server port |
+| `TASKYN_MCP_HOST` | `0.0.0.0` | MCP bind address |
+| `TASKYN_MCP_URL` | `http://taskyn-core:8020/mcp` | MCP server URL (web backend) |
 | `TASKYN_JWT_SECRET` | (dev default) | JWT signing secret — change in production |
 
 ### Data Persistence
 
 Data is stored in Docker named volumes (`taskyn-data` and `taskyn-web-data`). These persist across container restarts and updates.
 
-### Building from Source
-
-For development, use `docker-compose.dev.yml` which builds locally instead of pulling from Docker Hub:
-
-```bash
-docker compose -f docker-compose.dev.yml up -d --build
-```
-
-## Methodologies
-
-### Classic Agile (default)
-
-Node types: `story`, `task`
-Edge types: `parent` (task → story), `depends_on`
-
-Status workflow:
-- Story: backlog → ready → in_progress → done
-- Task: todo → in_progress → done
-
-### Spec-Driven (Kiro-style)
-
-Node types: `spec`, `design`, `implementation`, `validation`
-Edge types: `gates`, `validates`, `depends_on`
-
-Gated workflow:
-1. Spec (draft → approved → done)
-2. Design (draft → in_review → approved)
-3. Implementation (todo → in_progress → in_review → done)
-4. Validation (pending → in_progress → passed/failed)
-
-Use with:
-```bash
-taskyn project create <company_id> "Project" -m spec_driven
-```
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `TASKYN_DB` | Database file path | `~/.taskyn/taskyn.db` |
-| `TASKYN_ACTOR` | Actor ID for activity logs | `mcp` |
-| `TASKYN_MCP_PORT` | MCP HTTP server port | `8020` |
-| `TASKYN_MCP_HOST` | MCP HTTP server host | `127.0.0.1` |
-| `TASKYN_MCP_URL` | MCP server URL (for web backend) | Required for web UI |
-| `TASKYN_MCP_TIMEOUT` | MCP client timeout in seconds | `30` |
+---
 
 ## Troubleshooting
 
 ### MCP Connection Issues
 
-**"Server disconnected" in Claude Desktop**
-
-1. Ensure the MCP server is running:
-   ```bash
-   # For HTTP transport
-   curl http://localhost:8020/mcp
-   ```
-
-2. For stdio transport, verify Python is in PATH:
-   ```bash
-   python -m taskyn.mcp --help
-   ```
-
-3. Fully quit Claude Desktop (check system tray) and restart.
-
-**"Not Acceptable" error with mcp-proxy**
-
-The server uses streamable-http which requires SSE support. Try updating mcp-proxy:
-```bash
-pip install --upgrade mcp-proxy
-```
-
-Or use stdio transport instead (recommended for local use).
-
-### Database Issues
-
-**"Permission denied" on database**
-
-Ensure the database directory exists and is writable:
-```bash
-mkdir -p ~/.taskyn
-chmod 755 ~/.taskyn
-```
-
-For Docker, the container runs as user `taskyn` (UID 1000):
-```bash
-mkdir -p data
-chmod 755 data
-```
+| Problem | Solution |
+|---------|----------|
+| "Server disconnected" in Claude Desktop | Run `docker compose ps` to verify Taskyn is running, then fully quit and restart Claude Desktop |
+| "Not Acceptable" with mcp-proxy | Update mcp-proxy: `pip install --upgrade mcp-proxy` |
+| MCP server not responding | `curl http://localhost:8020/mcp` — if no response, check `docker compose logs taskyn-core` |
 
 ### Docker Issues
 
-**Container shows unhealthy**
+| Problem | Solution |
+|---------|----------|
+| Container unhealthy | `docker compose logs taskyn-core` or `docker compose logs taskyn-web` |
+| Port already in use | Change mapping in `docker-compose.yml`: `"8021:8020"` |
 
-Check container logs:
-```bash
-docker-compose logs taskyn
-```
-
-Verify the MCP server is responding:
-```bash
-curl http://localhost:8020/mcp
-```
-
-**Port already in use**
-
-Change the port mapping in `docker-compose.yml`:
-```yaml
-ports:
-  - "8021:8020"  # Use port 8021 instead
-```
+---
 
 ## Development
 
+For contributors building from source:
+
 ```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Run with coverage
-pytest --cov=taskyn
-
-# Run specific test file
-pytest tests/test_nodes.py -v
+git clone https://github.com/kaushikhazra/Taskyn.git
+cd Taskyn
+pip install -e ".[dev,web]"
 ```
+
+| Command | Purpose |
+|---------|---------|
+| `pytest` | Run all tests |
+| `pytest --cov=taskyn` | Run with coverage |
+| `docker compose -f docker-compose.dev.yml up -d --build` | Local Docker build |
+| `python scripts/dev_server.py` | Run backend + frontend dev servers |
+
+---
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE)
