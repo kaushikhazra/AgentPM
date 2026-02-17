@@ -37,10 +37,12 @@
 
 ## 5. Backend: Database Migration
 
-- [ ] Write migration for existing spec_driven projects
-  - [ ] Map v2 node types to v3: implementation → task, task(v2) → todo, verification nodes → todo
-  - [ ] Map v2 statuses to v3 universal statuses
-  - [ ] Handle edge/parent relationships that change due to hierarchy flattening
+- [x] Write migration for existing spec_driven projects
+  - [x] Map v2 node types to v3: implementation → task, task(v2) → todo, verification nodes → todo
+  - [x] Map v2 statuses to v3 universal statuses
+  - [x] Handle edge/parent relationships that change due to hierarchy flattening (re-parent design→spec, implementation→spec)
+  - [x] Idempotent guard clause (checks for v2 node types, skips if none found)
+  - [x] Verified with in-memory database test: all assertions pass + idempotency check
   _Requirement: key requirement #1, #2_
 
 ## 6. Backend: Unit Tests
