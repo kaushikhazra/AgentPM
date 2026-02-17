@@ -10,13 +10,13 @@ Usage:
     python mcp_test_client.py stdio "python -m taskyn.mcp" --list-tools
 
     # HTTP transport - List all tools
-    python mcp_test_client.py http "http://localhost:8000" --list-tools
+    python mcp_test_client.py http "http://localhost:8020" --list-tools
 
     # Call a tool
     python mcp_test_client.py stdio "python -m taskyn.mcp" --call tool_name '{"param": "value"}'
 
     # Interactive mode
-    python mcp_test_client.py http "http://localhost:8000" --interactive
+    python mcp_test_client.py http "http://localhost:8020" --interactive
 """
 
 import argparse
@@ -428,7 +428,7 @@ def create_stdio_parser(subparsers):
 def create_http_parser(subparsers):
     """Create the http subcommand parser."""
     parser = subparsers.add_parser("http", help="Connect via streamable HTTP")
-    parser.add_argument("url", help="Base URL of the MCP server (e.g., http://localhost:8000)")
+    parser.add_argument("url", help="Base URL of the MCP server (e.g., http://localhost:8020)")
     parser.add_argument("--header", "-H", action="append", metavar="KEY:VALUE", help="HTTP headers")
     return parser
 
@@ -457,9 +457,9 @@ Examples:
   python mcp_test_client.py stdio "python -m taskyn.mcp" -i
 
   # HTTP transport (streamable-http)
-  python mcp_test_client.py http "http://localhost:8000" --list-tools
-  python mcp_test_client.py http "http://localhost:8000" --call pm_get_dashboard
-  python mcp_test_client.py http "http://localhost:8000" -H "Authorization:Bearer token" -l
+  python mcp_test_client.py http "http://localhost:8020" --list-tools
+  python mcp_test_client.py http "http://localhost:8020" --call pm_get_dashboard
+  python mcp_test_client.py http "http://localhost:8020" -H "Authorization:Bearer token" -l
 
   # With environment variables (stdio only)
   python mcp_test_client.py stdio "python -m taskyn.mcp" --env TASKYN_DB=test.db -l

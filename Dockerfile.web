@@ -42,7 +42,7 @@ FROM backend AS final
 COPY --from=frontend /app/frontend/dist /usr/local/lib/python3.12/site-packages/taskyn/web/frontend/dist
 
 # Environment variables
-ENV TASKYN_MCP_URL=http://mcp:8000/mcp
+ENV TASKYN_MCP_URL=http://mcp:8020/mcp
 ENV TASKYN_JWT_SECRET=change-me-in-production
 ENV TASKYN_CORS_ORIGINS=http://localhost:3020
 

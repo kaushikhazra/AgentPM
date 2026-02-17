@@ -38,7 +38,7 @@ pip install taskyn
 ### From Source (Development)
 
 ```bash
-git clone https://github.com/yourusername/taskyn.git
+git clone https://github.com/kaushikhazra/Taskyn.git
 cd taskyn
 pip install -e ".[dev]"
 ```
@@ -213,11 +213,11 @@ Add to `~/.claude/settings.json` or use `claude mcp add`:
 Run the MCP server with HTTP transport:
 
 ```bash
-# Start server on port 8000
-python -m taskyn.mcp --transport streamable-http --port 8000
+# Start server on port 8020
+python -m taskyn.mcp --transport streamable-http --port 8020
 
 # Or with custom host binding
-python -m taskyn.mcp --transport streamable-http --host 0.0.0.0 --port 8000
+python -m taskyn.mcp --transport streamable-http --host 0.0.0.0 --port 8020
 ```
 
 ### Connecting to Remote MCP Server
@@ -272,56 +272,28 @@ Configure Claude Desktop to use mcp-proxy:
 
 ## Docker Deployment
 
-Deploy Taskyn as a remote MCP server using Docker.
+Taskyn runs as two containers: an MCP server (`taskyn-core`) and a web UI (`taskyn-web`).
 
-### Quick Start (HTTP)
+### Quick Start
 
 ```bash
-# Clone and navigate to project
-git clone https://github.com/yourusername/taskyn.git
-cd taskyn
-
-# Build and start
-docker-compose up -d
-
-# Check status
-docker-compose ps
-
-# View logs
-docker-compose logs -f
-
-# Stop
-docker-compose down
+# Download the compose file and start Taskyn
+curl -O https://raw.githubusercontent.com/kaushikhazra/Taskyn/develop/docker-compose.yml
+docker compose up -d
 ```
 
-The MCP server will be available at `http://localhost:8020/mcp`.
+That's it. Docker pulls the images from Docker Hub automatically.
 
-### Quick Start (HTTPS)
+- **Web UI**: http://localhost:3020
+- **MCP Server**: http://localhost:8020/mcp
 
-For secure remote access with automatic TLS:
-
-```bash
-# Local development (self-signed certificate)
-docker-compose -f docker-compose.https.yml up -d
-
-# Production (Let's Encrypt certificate)
-DOMAIN=mcp.example.com docker-compose -f docker-compose.https.yml up -d
-```
-
-The HTTPS server will be available at `https://localhost:8030/mcp` (local) or `https://mcp.example.com:8030/mcp` (production).
-
-### Manual Docker Run
+### Managing Taskyn
 
 ```bash
-# Build the image
-docker build -t taskyn .
-
-# Run with volume mount for persistent storage
-docker run -d \
-  --name taskyn \
-  -p 8020:8020 \
-  -v $(pwd)/data:/data \
-  taskyn
+docker compose ps       # Check status
+docker compose logs -f  # View logs
+docker compose down     # Stop
+docker compose pull     # Update to latest images
 ```
 
 ### Docker Environment Variables
@@ -331,62 +303,20 @@ docker run -d \
 | `TASKYN_DB` | `/data/taskyn.db` | Database path inside container |
 | `TASKYN_ACTOR` | `mcp` | Actor ID for activity logs |
 | `TASKYN_MCP_HOST` | `0.0.0.0` | Bind address |
-| `TASKYN_MCP_PORT` | `8020` | HTTP server port |
-| `DOMAIN` | `localhost` | Domain for HTTPS (Caddy) |
+| `TASKYN_MCP_PORT` | `8020` | MCP server port |
+| `TASKYN_JWT_SECRET` | (dev default) | JWT signing secret — change in production |
 
 ### Data Persistence
 
-The SQLite database is stored at `/data/taskyn.db` inside the container. Mount a volume to persist data:
+Data is stored in Docker named volumes (`taskyn-data` and `taskyn-web-data`). These persist across container restarts and updates.
 
-```yaml
-volumes:
-  - ./data:/data
-```
+### Building from Source
 
-### Two-Container Deployment (Web UI + MCP)
-
-For running the web UI with a separate MCP server:
+For development, use `docker-compose.dev.yml` which builds locally instead of pulling from Docker Hub:
 
 ```bash
-# Build both containers
-docker build -f Dockerfile.mcp -t taskyn-core .
-docker build -f Dockerfile.web -t taskyn-web .
-
-# Or use docker-compose
-docker-compose up -d
+docker compose -f docker-compose.dev.yml up -d --build
 ```
-
-This creates two services:
-- **taskyn-core**: MCP server on port 8000 (internal)
-- **taskyn-web**: Web UI + FastAPI backend on port 3020
-
-The web backend connects to the MCP server via `TASKYN_MCP_URL`:
-
-```yaml
-services:
-  taskyn-core:
-    build:
-      dockerfile: Dockerfile.mcp
-    expose:
-      - "8000"
-    volumes:
-      - taskyn-data:/data
-    healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost',8000)); s.close()"]
-
-  taskyn-web:
-    build:
-      dockerfile: Dockerfile.web
-    ports:
-      - "3020:3020"
-    environment:
-      - TASKYN_MCP_URL=http://taskyn-core:8000/mcp
-    depends_on:
-      taskyn-core:
-        condition: service_healthy
-```
-
-Access the web UI at `http://localhost:3020`.
 
 ## Methodologies
 
@@ -421,7 +351,7 @@ taskyn project create <company_id> "Project" -m spec_driven
 |----------|-------------|---------|
 | `TASKYN_DB` | Database file path | `~/.taskyn/taskyn.db` |
 | `TASKYN_ACTOR` | Actor ID for activity logs | `mcp` |
-| `TASKYN_MCP_PORT` | MCP HTTP server port | `8000` |
+| `TASKYN_MCP_PORT` | MCP HTTP server port | `8020` |
 | `TASKYN_MCP_HOST` | MCP HTTP server host | `127.0.0.1` |
 | `TASKYN_MCP_URL` | MCP server URL (for web backend) | Required for web UI |
 | `TASKYN_MCP_TIMEOUT` | MCP client timeout in seconds | `30` |

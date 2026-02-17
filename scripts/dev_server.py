@@ -46,14 +46,14 @@ def main():
             sys.executable, "-m", "uvicorn",
             "taskyn.web.backend.main:app",
             "--host", "0.0.0.0",
-            "--port", "8000",
+            "--port", "8020",
             "--reload",
         ],
         cwd=str(ROOT),
         env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
     )
     procs.append(backend)
-    print("[dev] FastAPI started on http://localhost:8000")
+    print("[dev] FastAPI started on http://localhost:8020")
 
     # Start Vite frontend
     npm_cmd = "npm.cmd" if sys.platform == "win32" else "npm"

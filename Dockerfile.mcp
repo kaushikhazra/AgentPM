@@ -23,14 +23,14 @@ RUN mkdir -p /data
 # Environment variables with defaults
 ENV TASKYN_DB=/data/taskyn.db
 ENV TASKYN_MCP_HOST=0.0.0.0
-ENV TASKYN_MCP_PORT=8000
+ENV TASKYN_MCP_PORT=8020
 
 # Expose MCP server port
-EXPOSE 8000
+EXPOSE 8020
 
 # Health check - verify MCP server is listening on port
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-    CMD python -c "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8000)); s.close()" || exit 1
+    CMD python -c "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()" || exit 1
 
 # Run MCP server with streamable-http transport
 CMD ["python", "-m", "taskyn.mcp", "--transport", "streamable-http"]

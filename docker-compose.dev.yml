@@ -1,23 +1,36 @@
 # =============================================================================
-# Taskyn Docker Compose — Production
-# Pull and run: docker compose up -d
+# Taskyn Docker Compose Configuration
+# Two-container deployment: MCP Server + Web Server
 # =============================================================================
 
 services:
   # MCP Server - handles all data operations via MCP protocol
   taskyn-core:
-    image: kaushikhazra/taskyn-core:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    image: taskyn-core:latest
     container_name: taskyn-core
+
+    # Port mapping for MCP server
     ports:
       - "8020:8020"
+
+    # Volume mount for persistent database storage
     volumes:
       - taskyn-data:/data
+
+    # Environment configuration
     environment:
       - TASKYN_DB=/data/taskyn.db
       - TASKYN_ACTOR=mcp
       - TASKYN_MCP_HOST=0.0.0.0
       - TASKYN_MCP_PORT=8020
+
+    # Restart policy
     restart: unless-stopped
+
+    # Health check configuration - TCP check for MCP protocol
     healthcheck:
       test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(5); s.connect(('localhost',8020)); s.close()"]
       interval: 10s
@@ -27,22 +40,37 @@ services:
 
   # Web Server - REST API bridge + Frontend assets
   taskyn-web:
-    image: kaushikhazra/taskyn-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: taskyn-web:latest
     container_name: taskyn-web
+
+    # Port mapping for web server
     ports:
       - "3020:3020"
+
+    # Volume mount for persistent user database
     volumes:
       - taskyn-web-data:/data
+
+    # Environment configuration
     environment:
       - TASKYN_MCP_URL=http://taskyn-core:8020/mcp
       - TASKYN_DB=/data/users.db
-      - TASKYN_JWT_SECRET=${TASKYN_JWT_SECRET:-change-me-in-production-min-32-chars}
+      - TASKYN_JWT_SECRET=${TASKYN_JWT_SECRET:-dev-secret-change-in-production-min-32-chars}
       - TASKYN_CORS_ORIGINS=http://localhost:3020
       - TASKYN_RATE_LIMIT=true
+
+    # Wait for MCP server to be healthy
     depends_on:
       taskyn-core:
         condition: service_healthy
+
+    # Restart policy
     restart: unless-stopped
+
+    # Health check configuration
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3020/health"]
       interval: 10s
