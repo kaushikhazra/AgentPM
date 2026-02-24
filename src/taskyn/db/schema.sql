@@ -167,7 +167,7 @@ CREATE INDEX IF NOT EXISTS idx_edges_project ON edges(project_id);
 -- Tracking layer
 CREATE INDEX IF NOT EXISTS idx_time_entries_node ON time_entries(node_id);
 CREATE INDEX IF NOT EXISTS idx_time_entries_started ON time_entries(started_at);
-CREATE INDEX IF NOT EXISTS idx_time_entries_actor_active ON time_entries(actor, ended_at);
+-- idx_time_entries_actor_active created in connection.py migration (after actor column exists)
 CREATE INDEX IF NOT EXISTS idx_activity_log_entity ON activity_log(entity_type, entity_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_node_type ON activity_log(node_type);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);

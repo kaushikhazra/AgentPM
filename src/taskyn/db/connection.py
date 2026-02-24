@@ -81,6 +81,13 @@ def _run_migrations() -> None:
         _connection.execute("ALTER TABLE time_entries ADD COLUMN actor TEXT")
         _connection.commit()
 
+    # Ensure actor index exists (whether fresh DB or migrated)
+    _connection.execute(
+        "CREATE INDEX IF NOT EXISTS idx_time_entries_actor_active "
+        "ON time_entries(actor, ended_at)"
+    )
+    _connection.commit()
+
     # Migration: spec_driven v2 → v3 (re-parent, rename types, map statuses)
     _migrate_spec_driven_v3()
 
