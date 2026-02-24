@@ -11,7 +11,7 @@ def dashboard():
     """Show the Taskyn dashboard."""
     from taskyn.core import get_dashboard
 
-    dash = get_dashboard()
+    dash = get_dashboard(actor="cli")
 
     if state.json_output:
         data = {

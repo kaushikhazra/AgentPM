@@ -1092,6 +1092,35 @@ kbd {
     stroke-width: 2;
 }
 
+.timer-entry {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.timer-entry:last-of-type {
+    border-bottom: none;
+}
+
+.timer-actor {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--surface-tertiary);
+    color: var(--text-secondary);
+    margin-left: 6px;
+}
+
+.time-entry-actor {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: var(--surface-tertiary);
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
 /* ============================================
    PASSWORD INPUT
    ============================================ */

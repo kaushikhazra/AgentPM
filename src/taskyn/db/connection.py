@@ -73,6 +73,14 @@ def _run_migrations() -> None:
         _connection.commit()
         _backfill_actual_time()
 
+    # Migration: add actor column to time_entries
+    te_cols = [
+        row[1] for row in _connection.execute("PRAGMA table_info(time_entries)").fetchall()
+    ]
+    if "actor" not in te_cols:
+        _connection.execute("ALTER TABLE time_entries ADD COLUMN actor TEXT")
+        _connection.commit()
+
     # Migration: spec_driven v2 → v3 (re-parent, rename types, map statuses)
     _migrate_spec_driven_v3()
 

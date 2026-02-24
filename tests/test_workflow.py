@@ -15,6 +15,7 @@ from taskyn.core import (
     approve,
     reject,
     get_active_timer,
+    get_active_timers,
 )
 from taskyn.graph import get_node
 from taskyn.exceptions import NotFoundError, ValidationError
@@ -40,8 +41,8 @@ def test_start_node(task):
 
     assert result.status == "in_progress"
 
-    # Timer should be active
-    active = get_active_timer()
+    # Timer should be active (scoped to actor)
+    active = get_active_timer(actor="developer")
     assert active is not None
     assert active.node_id == task.id
 
@@ -50,7 +51,7 @@ def test_complete_node(task):
     """Test completing a node."""
     # Start first
     start_node(task.id, actor="developer")
-    assert get_active_timer() is not None
+    assert get_active_timer(actor="developer") is not None
 
     # Complete
     result = complete_node(task.id, actor="developer")
@@ -59,7 +60,7 @@ def test_complete_node(task):
     assert result.completed_at is not None
 
     # Timer should be stopped
-    active = get_active_timer()
+    active = get_active_timer(actor="developer")
     assert active is None
 
 
@@ -101,7 +102,7 @@ def test_submit_for_review(task):
     assert result.status == "in_review"
 
     # Timer should be stopped
-    assert get_active_timer() is None
+    assert get_active_timer(actor="developer") is None
 
 
 def test_approve(task):
@@ -154,7 +155,7 @@ def test_full_workflow(task):
     # Start work
     task = start_node(task.id, actor="developer")
     assert task.status == "in_progress"
-    assert get_active_timer() is not None
+    assert get_active_timer(actor="developer") is not None
 
     # Block due to dependency
     task = block_node(task.id, reason="Waiting for design", actor="developer")
@@ -199,3 +200,56 @@ def test_story_workflow(project):
 
     result = complete_node(story.id, actor="pm")
     assert result.status == "done"
+
+
+# ============================================================
+# Multi-Actor Scoping Tests
+# ============================================================
+
+
+def test_complete_node_actor_scoping(project):
+    """complete_node(actor='A') stops only A's timer, not B's."""
+    story = create_story(project.id, title="Test Story")
+    task1 = create_task(story.id, title="Task A")
+    task2 = create_task(story.id, title="Task B")
+
+    # Two actors start timers on different tasks
+    start_node(task1.id, actor="agent-A")
+    start_node(task2.id, actor="agent-B")
+
+    # Both timers running
+    assert get_active_timer(actor="agent-A") is not None
+    assert get_active_timer(actor="agent-B") is not None
+    assert len(get_active_timers()) == 2
+
+    # Complete task1 as agent-A
+    result = complete_node(task1.id, actor="agent-A")
+    assert result.status == "done"
+
+    # Agent-A's timer should be stopped
+    assert get_active_timer(actor="agent-A") is None
+
+    # Agent-B's timer should be untouched
+    active_b = get_active_timer(actor="agent-B")
+    assert active_b is not None
+    assert active_b.node_id == task2.id
+
+
+def test_submit_for_review_actor_scoping(project):
+    """submit_for_review(actor='A') stops only A's timer, not B's."""
+    story = create_story(project.id, title="Test Story")
+    task1 = create_task(story.id, title="Task A")
+    task2 = create_task(story.id, title="Task B")
+
+    start_node(task1.id, actor="agent-A")
+    start_node(task2.id, actor="agent-B")
+
+    # Submit task1 for review
+    result = submit_for_review(task1.id, actor="agent-A")
+    assert result.status == "in_review"
+
+    # Agent-A's timer stopped
+    assert get_active_timer(actor="agent-A") is None
+
+    # Agent-B's timer untouched
+    assert get_active_timer(actor="agent-B") is not None

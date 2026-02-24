@@ -54,8 +54,8 @@ def complete_node(node_id: str, actor: str | None = None) -> Node:
     node_id = node.id  # Use full ID
     done_status = methodology.get_done_status(node.node_type)
 
-    # Stop timer if running on this node
-    active = get_active_timer()
+    # Stop timer if running on this node (scoped to actor)
+    active = get_active_timer(actor=actor)
     if active and active.node_id == node_id:
         stop_timer(actor=actor)
 
@@ -117,8 +117,8 @@ def submit_for_review(node_id: str, actor: str | None = None) -> Node:
             f"Node type '{node.node_type}' does not support review workflow"
         )
 
-    # Stop timer if running
-    active = get_active_timer()
+    # Stop timer if running (scoped to actor)
+    active = get_active_timer(actor=actor)
     if active and active.node_id == node_id:
         stop_timer(actor=actor)
 

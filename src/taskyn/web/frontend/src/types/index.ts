@@ -223,6 +223,7 @@ export interface TimeEntry {
   notes: string | null;
   started_at: string;
   ended_at: string | null;
+  actor: string | null;
   node_title?: string;
 }
 
@@ -237,6 +238,7 @@ export interface ActiveTimer {
   node_id: string;
   node_title?: string;
   notes: string | null;
+  actor: string | null;
   started_at: string;
 }
 

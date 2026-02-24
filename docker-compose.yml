@@ -14,7 +14,7 @@ services:
       - taskyn-data:/data
     environment:
       - TASKYN_DB=/data/taskyn.db
-      - TASKYN_ACTOR=mcp
+      - TASKYN_ACTOR=web
       - TASKYN_MCP_HOST=0.0.0.0
       - TASKYN_MCP_PORT=8020
     restart: unless-stopped

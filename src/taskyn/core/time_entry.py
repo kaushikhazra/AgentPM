@@ -43,8 +43,12 @@ def start_timer(
     """
     Start a timer on a node (supports prefix matching).
 
-    If another timer is running, it will be automatically stopped.
+    If this actor already has a running timer, it will be automatically stopped.
+    Other actors' timers are not affected.
     """
+    # Normalize empty string actor to None (D9)
+    actor = actor or None
+
     # Verify node exists
     from taskyn.graph.nodes import get_node
     node = get_node(node_id)
@@ -55,8 +59,8 @@ def start_timer(
     # Enforce can_track_time
     _enforce_time_tracking(node)
 
-    # Stop any active timer first
-    active = get_active_timer()
+    # Stop this actor's active timer (not global)
+    active = get_active_timer(actor=actor)
     if active is not None:
         stop_timer(entry_id=active.id, actor=actor)
 
@@ -65,10 +69,10 @@ def start_timer(
 
     execute(
         """
-        INSERT INTO time_entries (id, node_id, started_at, notes, source, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO time_entries (id, node_id, started_at, notes, source, actor, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (entry_id, node_id, now, notes, source, now),
+        (entry_id, node_id, now, notes, source, actor, now),
     )
 
     log_activity(
@@ -90,6 +94,7 @@ def start_timer(
         duration_minutes=None,
         notes=notes,
         source=source,
+        actor=actor,
         created_at=now,
     )
 
@@ -108,11 +113,11 @@ def stop_timer(
     """
     # Find the timer to stop
     if entry_id is not None:
-        entry = _get_time_entry(entry_id)
+        entry = _get_time_entry(entry_id)        # No actor check (D4)
     elif node_id is not None:
-        entry = _get_active_timer_for_node(node_id)
+        entry = _get_active_timer_for_node(node_id, actor=actor)
     else:
-        entry = get_active_timer()
+        entry = get_active_timer(actor=actor)
 
     if entry is None:
         return None
@@ -148,6 +153,7 @@ def stop_timer(
         duration_minutes=duration,
         notes=entry.notes,
         source=entry.source,
+        actor=entry.actor,
         created_at=entry.created_at,
     )
 
@@ -160,6 +166,9 @@ def log_time(
     actor: str | None = None,
 ) -> TimeEntry:
     """Log a manual time entry (no timer, just duration). Supports prefix matching."""
+    # Normalize empty string actor to None (D9)
+    actor = actor or None
+
     # Verify node exists
     from taskyn.graph.nodes import get_node
     node = get_node(node_id)
@@ -175,10 +184,10 @@ def log_time(
 
     execute(
         """
-        INSERT INTO time_entries (id, node_id, started_at, ended_at, duration_minutes, notes, source, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO time_entries (id, node_id, started_at, ended_at, duration_minutes, notes, source, actor, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (entry_id, node_id, now, now, duration_minutes, notes, source, now),
+        (entry_id, node_id, now, now, duration_minutes, notes, source, actor, now),
     )
 
     log_activity(
@@ -202,18 +211,29 @@ def log_time(
         duration_minutes=duration_minutes,
         notes=notes,
         source=source,
+        actor=actor,
         created_at=now,
     )
 
 
-def get_active_timer() -> TimeEntry | None:
-    """Get the currently active timer (if any)."""
+def get_active_timer(actor: str | None = None) -> TimeEntry | None:
+    """Get the active timer for a specific actor."""
     row = fetchone(
-        "SELECT * FROM time_entries WHERE ended_at IS NULL ORDER BY started_at DESC LIMIT 1"
+        "SELECT * FROM time_entries WHERE actor IS ? AND ended_at IS NULL "
+        "ORDER BY started_at DESC LIMIT 1",
+        (actor,),
     )
     if row is None:
         return None
     return _row_to_time_entry(row)
+
+
+def get_active_timers() -> list[TimeEntry]:
+    """Get all active timers across all actors."""
+    rows = fetchall(
+        "SELECT * FROM time_entries WHERE ended_at IS NULL ORDER BY started_at DESC"
+    )
+    return [_row_to_time_entry(row) for row in rows]
 
 
 def list_time_entries(node_id: str) -> list[TimeEntry]:
@@ -300,8 +320,11 @@ def _get_time_entry(entry_id: str) -> TimeEntry | None:
     return _row_to_time_entry(row)
 
 
-def _get_active_timer_for_node(node_id: str) -> TimeEntry | None:
-    """Get the active timer for a specific node (supports prefix matching)."""
+def _get_active_timer_for_node(
+    node_id: str,
+    actor: str | None = None,
+) -> TimeEntry | None:
+    """Get the active timer for a specific node and actor (supports prefix matching)."""
     from taskyn.graph.nodes import get_node
     node = get_node(node_id)
     if node is None:
@@ -309,8 +332,9 @@ def _get_active_timer_for_node(node_id: str) -> TimeEntry | None:
     node_id = node.id  # Use full ID
 
     row = fetchone(
-        "SELECT * FROM time_entries WHERE node_id = ? AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1",
-        (node_id,),
+        "SELECT * FROM time_entries WHERE node_id = ? AND actor IS ? "
+        "AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1",
+        (node_id, actor),
     )
     if row is None:
         return None
@@ -327,6 +351,7 @@ def _row_to_time_entry(row) -> TimeEntry:
         duration_minutes=row["duration_minutes"],
         notes=row["notes"],
         source=row["source"],
+        actor=row["actor"],
         created_at=_parse_datetime(row["created_at"]),
     )
 

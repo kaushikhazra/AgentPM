@@ -26,7 +26,7 @@ function formatDuration(minutes: number): string {
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const { elapsed } = useTimer();
+  const { elapsedMap } = useTimer();
   const navigate = useNavigate();
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
 
@@ -61,7 +61,8 @@ export function DashboardPage() {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
   const inProgress = dashboard?.nodes_by_status?.in_progress ?? 0;
   const done = dashboard?.nodes_by_status?.done ?? 0;
-  const timeTrackedMinutes = Math.floor(elapsed / 60);
+  const totalElapsed = Object.values(elapsedMap).reduce((sum, s) => sum + s, 0);
+  const timeTrackedMinutes = Math.floor(totalElapsed / 60);
 
   return (
     <div className="content-wrapper">

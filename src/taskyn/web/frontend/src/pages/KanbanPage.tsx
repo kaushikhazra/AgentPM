@@ -34,7 +34,7 @@ function getDueDateLabel(node: Node): string {
 export function KanbanPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { activeTimer, elapsed } = useTimer();
+  const { activeTimers, elapsedMap } = useTimer();
 
   const { data: projects = [] } = useProjects();
   const [selectedId, setSelectedId] = useState(projectId ?? '');
@@ -111,7 +111,8 @@ export function KanbanPage() {
     updateNode.mutate({ id: dragNodeId, data: { status: targetStatus } });
   };
 
-  const isNodeTracking = (nodeId: string): boolean => activeTimer?.node_id === nodeId;
+  const getTrackingTimers = (nodeId: string) => activeTimers.filter((t) => t.node_id === nodeId);
+  const isNodeTracking = (nodeId: string): boolean => getTrackingTimers(nodeId).length > 0;
   const getPriorityClass = (priority: string | null): string => {
     if (priority === 'high') return 'priority-high';
     if (priority === 'low') return 'priority-low';
@@ -166,9 +167,9 @@ export function KanbanPage() {
                       <span>{getDueDateLabel(node)}</span>
                       <span className={`task-priority ${getPriorityClass(node.priority)}`} />
                     </div>
-                    {isTracking && (
-                      <div className="kanban-card-timer">⏱ {formatTimerDuration(elapsed)} tracking</div>
-                    )}
+                    {isTracking && getTrackingTimers(node.id).map((t) => (
+                      <div key={t.id} className="kanban-card-timer">⏱ {formatTimerDuration(elapsedMap[t.id] ?? 0)}{t.actor ? ` (${t.actor})` : ''}</div>
+                    ))}
                   </div>
                 );
               })}

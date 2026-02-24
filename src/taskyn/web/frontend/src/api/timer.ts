@@ -11,6 +11,9 @@ export const timerApi = {
   getCurrent: () =>
     api.get<ActiveTimer | null>('/timer/current'),
 
+  getActive: () =>
+    api.get<ActiveTimer[]>('/timer/active'),
+
   listTimeEntries: (projectId?: string) =>
     api.get<TimeEntry[]>(projectId ? `/time-entries?project_id=${projectId}` : '/time-entries'),
 

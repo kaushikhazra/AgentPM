@@ -136,7 +136,7 @@ export function TrackerPage() {
                     <div className={`time-entry-dot${isRunning ? ' active' : ''}`} />
                     <div className="time-entry-content">
                       <div className="time-entry-title">{entry.node_title ?? entry.node_id.slice(0, 8)}</div>
-                      <div className="time-entry-meta">{formatTime(entry.started_at)}{entry.ended_at ? ` - ${formatTime(entry.ended_at)}` : ' - Running'}{entry.notes ? ` • ${entry.notes}` : ''}</div>
+                      <div className="time-entry-meta">{formatTime(entry.started_at)}{entry.ended_at ? ` - ${formatTime(entry.ended_at)}` : ' - Running'}{entry.actor ? <span className="time-entry-actor">{entry.actor}</span> : null}{entry.notes ? ` • ${entry.notes}` : ''}</div>
                     </div>
                     <div className={`time-entry-duration${isRunning ? ' active' : ''}`}>{formatDuration(entryDurationSeconds(entry))}</div>
                     {!isRunning && (

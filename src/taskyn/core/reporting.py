@@ -80,6 +80,7 @@ def _row_to_time_entry(row) -> TimeEntry:
         duration_minutes=row["duration_minutes"],
         notes=row["notes"],
         source=row["source"] or "manual",
+        actor=row["actor"],
         created_at=_parse_datetime(row["created_at"]),
     )
 
@@ -106,13 +107,16 @@ def _parse_datetime(value) -> datetime:
     return datetime.now(timezone.utc)
 
 
-def get_dashboard() -> Dashboard:
+def get_dashboard(actor: str | None = None) -> Dashboard:
     """
     Get current state summary across all projects.
+
+    Args:
+        actor: If provided, show the active timer for this actor only.
     """
     from taskyn.graph import get_node, list_nodes
 
-    active_timer = get_active_timer()
+    active_timer = get_active_timer(actor=actor)
     active_node = get_node(active_timer.node_id) if active_timer else None
 
     # Get all in-progress nodes

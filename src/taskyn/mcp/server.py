@@ -1058,7 +1058,7 @@ def pm_list_time_entries(
 @mcp.tool()
 def pm_get_active_timer() -> dict | None:
     """
-    Get the currently active timer.
+    Get the currently active timer for this actor.
 
     Returns:
         Active time entry with node info, or None
@@ -1066,7 +1066,7 @@ def pm_get_active_timer() -> dict | None:
     from taskyn.core import get_active_timer
     from taskyn.graph import get_node
 
-    entry = get_active_timer()
+    entry = get_active_timer(actor=get_actor())
     if not entry:
         return None
 
@@ -1076,6 +1076,29 @@ def pm_get_active_timer() -> dict | None:
         "node_title": node.title if node else None,
         "node": node.model_dump() if node else None
     }
+
+
+@mcp.tool()
+def pm_get_active_timers() -> list[dict]:
+    """
+    Get all active timers across all actors.
+
+    Returns:
+        List of active time entries with node info
+    """
+    from taskyn.core import get_active_timers
+    from taskyn.graph import get_node
+
+    entries = get_active_timers()
+    result = []
+    for entry in entries:
+        node = get_node(entry.node_id)
+        result.append({
+            **entry.model_dump(),
+            "node_title": node.title if node else None,
+            "node": node.model_dump() if node else None,
+        })
+    return result
 
 
 @mcp.tool()
@@ -1127,7 +1150,7 @@ def pm_get_dashboard() -> dict:
         Dashboard with active timer, in-progress items, blockers, today's time
     """
     from taskyn.core import get_dashboard
-    dashboard = get_dashboard()
+    dashboard = get_dashboard(actor=get_actor())
     return {
         "active_timer": dashboard.active_timer.model_dump() if dashboard.active_timer else None,
         "active_timer_node": dashboard.active_timer_node.model_dump() if dashboard.active_timer_node else None,
@@ -1386,7 +1409,7 @@ def get_dashboard_resource() -> str:
     """Current work state summary."""
     import json
     from taskyn.core import get_dashboard
-    dashboard = get_dashboard()
+    dashboard = get_dashboard(actor=get_actor())
     return json.dumps({
         "active_timer": dashboard.active_timer.model_dump() if dashboard.active_timer else None,
         "active_timer_node": dashboard.active_timer_node.model_dump() if dashboard.active_timer_node else None,

@@ -49,7 +49,7 @@ def test_get_dashboard_with_active_timer(project):
 
     start_node(task.id, actor="developer")
 
-    dashboard = get_dashboard()
+    dashboard = get_dashboard(actor="developer")
 
     assert dashboard.active_timer is not None
     assert dashboard.active_timer.node_id == task.id

@@ -31,5 +31,13 @@ async def stop_timer(
 async def get_active_timer(
     current_user: User = Depends(get_current_user),
 ):
-    """Get the currently active timer."""
+    """Get the currently active timer for this actor."""
     return await call_mcp_tool("pm_get_active_timer", {})
+
+
+@router.get("/active")
+async def get_active_timers(
+    current_user: User = Depends(get_current_user),
+):
+    """Get all active timers across all actors."""
+    return await call_mcp_tool("pm_get_active_timers", {})

@@ -10,15 +10,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import { timerApi } from '@/api/timer';
 import { queryKeys } from '@/api/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
-import { useTimerCurrent } from '@/hooks/queries/useTimerQuery';
+import { useActiveTimers } from '@/hooks/queries/useTimerQuery';
 import type { ActiveTimer } from '@/types';
 
 export interface TimerContextValue {
-  activeTimer: ActiveTimer | null;
-  elapsed: number; // seconds since start
+  /** All active timers across all actors (from /timer/active). */
+  activeTimers: ActiveTimer[];
+  /** Map of timer id → elapsed seconds for all active timers. */
+  elapsedMap: Record<string, number>;
   loading: boolean;
   start: (nodeId: string, notes?: string) => Promise<void>;
-  stop: () => Promise<void>;
+  stop: (entryId?: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -30,13 +32,13 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !authLoading && !!user;
 
-  // TanStack Query handles polling — 1s refetchInterval when authenticated
-  const { data: activeTimer = null, isPending } = useTimerCurrent({
+  // Single poll for all active timers — 1s refetchInterval when authenticated
+  const { data: activeTimers = [], isPending } = useActiveTimers({
     enabled: isAuthenticated,
     refetchInterval: isAuthenticated ? 1_000 : undefined,
   });
 
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsedMap, setElapsedMap] = useState<Record<string, number>>({});
   const [mutating, setMutating] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -44,23 +46,26 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     return Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
   }, []);
 
-  // Manage the elapsed tick interval based on activeTimer state
+  // Manage the elapsed tick interval for all active timers
   useEffect(() => {
-    if (activeTimer?.started_at) {
-      setElapsed(calcElapsed(activeTimer.started_at));
-      intervalRef.current = setInterval(() => {
-        setElapsed(calcElapsed(activeTimer.started_at));
-      }, 1000);
-    } else {
-      setElapsed(0);
-    }
+    const tick = () => {
+      const map: Record<string, number> = {};
+      for (const t of activeTimers) {
+        map[t.id] = calcElapsed(t.started_at);
+      }
+      setElapsedMap(map);
+    };
+
+    tick();
+    intervalRef.current = setInterval(tick, 1000);
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     };
-  }, [activeTimer, calcElapsed]);
+  }, [activeTimers, calcElapsed]);
 
   const refresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.timer.all() });
@@ -79,10 +84,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
-  const stop = useCallback(async () => {
+  const stop = useCallback(async (entryId?: string) => {
     setMutating(true);
     try {
-      await timerApi.stop();
+      await timerApi.stop(entryId);
       await queryClient.invalidateQueries({ queryKey: queryKeys.timer.all() });
       await queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all() });
     } finally {
@@ -94,7 +99,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
 
   return (
     <TimerContext.Provider
-      value={{ activeTimer, elapsed, loading, start, stop, refresh }}
+      value={{ activeTimers, elapsedMap, loading, start, stop, refresh }}
     >
       {children}
     </TimerContext.Provider>

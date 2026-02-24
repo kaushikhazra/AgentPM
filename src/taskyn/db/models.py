@@ -92,6 +92,7 @@ class TimeEntry(BaseModel):
     duration_minutes: int | None = None
     notes: str | None = None
     source: str = "manual"
+    actor: str | None = None
     created_at: datetime
 
 

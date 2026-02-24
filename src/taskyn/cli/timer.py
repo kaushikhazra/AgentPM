@@ -41,7 +41,7 @@ def stop_timer():
     """Stop the active timer."""
     from taskyn.core import stop_timer as _stop_timer, get_active_timer
 
-    active = get_active_timer()
+    active = get_active_timer(actor="cli")
     if active is None:
         console.print("[dim]No active timer[/dim]")
         raise typer.Exit(0)
@@ -65,7 +65,7 @@ def timer_status():
     from taskyn.core import get_active_timer
     from taskyn.graph import get_node
 
-    active = get_active_timer()
+    active = get_active_timer(actor="cli")
 
     if active is None:
         if state.json_output:
