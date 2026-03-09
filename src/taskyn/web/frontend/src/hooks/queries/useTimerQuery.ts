@@ -2,7 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { timerApi } from '@/api/timer';
 import { queryKeys } from '@/api/queryKeys';
 
-export function useTimerCurrent(options?: { enabled?: boolean; refetchInterval?: number }) {
+interface QueryOptions {
+  enabled?: boolean;
+  refetchInterval?: number | false;
+}
+
+export function useTimerCurrent(options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.timer.current(),
     queryFn: () => timerApi.getCurrent(),
@@ -11,7 +16,7 @@ export function useTimerCurrent(options?: { enabled?: boolean; refetchInterval?:
   });
 }
 
-export function useActiveTimers(options?: { enabled?: boolean; refetchInterval?: number }) {
+export function useActiveTimers(options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.timer.active(),
     queryFn: () => timerApi.getActive(),
@@ -20,11 +25,11 @@ export function useActiveTimers(options?: { enabled?: boolean; refetchInterval?:
   });
 }
 
-export function useTimeEntries(projectId?: string) {
+export function useTimeEntries(projectId?: string, options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.timer.list(projectId),
     queryFn: () => timerApi.listTimeEntries(projectId),
-    refetchInterval: 10_000,
+    refetchInterval: options?.refetchInterval ?? 10_000,
   });
 }
 

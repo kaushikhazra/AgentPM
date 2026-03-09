@@ -2,24 +2,28 @@ import { useQuery } from '@tanstack/react-query';
 import { projectsApi } from '@/api/projects';
 import { queryKeys } from '@/api/queryKeys';
 
+interface QueryOptions {
+  refetchInterval?: number | false;
+}
+
 export function useProjects(filters?: {
   company_id?: string;
   status?: string;
   include_stats?: boolean;
-}) {
+}, options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.projects.list(filters),
     queryFn: () => projectsApi.list(filters),
-    refetchInterval: 10_000,
+    refetchInterval: options?.refetchInterval ?? 10_000,
   });
 }
 
-export function useProject(id: string | undefined) {
+export function useProject(id: string | undefined, options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.projects.detail(id!),
     queryFn: () => projectsApi.get(id!),
     enabled: !!id,
-    refetchInterval: 10_000,
+    refetchInterval: options?.refetchInterval ?? 10_000,
   });
 }
 

@@ -6,11 +6,9 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { timerApi } from '@/api/timer';
-import { queryKeys } from '@/api/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
 import { useActiveTimers } from '@/hooks/queries/useTimerQuery';
+import { useStartTimer, useStopTimer } from '@/hooks/mutations/useTimerMutations';
 import type { ActiveTimer } from '@/types';
 
 export interface TimerContextValue {
@@ -21,14 +19,12 @@ export interface TimerContextValue {
   loading: boolean;
   start: (nodeId: string, notes?: string) => Promise<void>;
   stop: (entryId?: string) => Promise<void>;
-  refresh: () => Promise<void>;
 }
 
 export const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimerProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
 
   const isAuthenticated = !authLoading && !!user;
 
@@ -38,8 +34,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     refetchInterval: isAuthenticated ? 1_000 : undefined,
   });
 
+  const startTimer = useStartTimer();
+  const stopTimer = useStopTimer();
+
   const [elapsedMap, setElapsedMap] = useState<Record<string, number>>({});
-  const [mutating, setMutating] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const calcElapsed = useCallback((startedAt: string): number => {
@@ -67,39 +65,25 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     };
   }, [activeTimers, calcElapsed]);
 
-  const refresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.timer.all() });
-  }, [queryClient]);
-
   const start = useCallback(
     async (nodeId: string, notes?: string) => {
-      setMutating(true);
-      try {
-        await timerApi.start(nodeId, notes);
-        await refresh();
-      } finally {
-        setMutating(false);
-      }
+      await startTimer.mutateAsync({ nodeId, notes });
     },
-    [refresh],
+    [startTimer],
   );
 
-  const stop = useCallback(async (entryId?: string) => {
-    setMutating(true);
-    try {
-      await timerApi.stop(entryId);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.timer.all() });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all() });
-    } finally {
-      setMutating(false);
-    }
-  }, [queryClient]);
+  const stop = useCallback(
+    async (entryId?: string) => {
+      await stopTimer.mutateAsync(entryId);
+    },
+    [stopTimer],
+  );
 
-  const loading = (isPending && isAuthenticated) || mutating;
+  const loading = (isPending && isAuthenticated) || startTimer.isPending || stopTimer.isPending;
 
   return (
     <TimerContext.Provider
-      value={{ activeTimers, elapsedMap, loading, start, stop, refresh }}
+      value={{ activeTimers, elapsedMap, loading, start, stop }}
     >
       {children}
     </TimerContext.Provider>

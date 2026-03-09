@@ -27,13 +27,13 @@ export default function App() {
       <DataRefreshProvider>
         <ThemeProvider>
           <AuthProvider>
-            <TimerProvider>
-              <ModalProvider>
-                <ToastProvider>
+            <ToastProvider>
+              <TimerProvider>
+                <ModalProvider>
                   <RouterProvider router={router} />
-                </ToastProvider>
-              </ModalProvider>
-            </TimerProvider>
+                </ModalProvider>
+              </TimerProvider>
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </DataRefreshProvider>

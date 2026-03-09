@@ -2,20 +2,24 @@ import { useQuery } from '@tanstack/react-query';
 import { companiesApi } from '@/api/companies';
 import { queryKeys } from '@/api/queryKeys';
 
-export function useCompanies(includeStats?: boolean) {
+interface QueryOptions {
+  refetchInterval?: number | false;
+}
+
+export function useCompanies(includeStats?: boolean, options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.companies.list({ includeStats }),
     queryFn: () => companiesApi.list(includeStats),
-    refetchInterval: 10_000,
+    refetchInterval: options?.refetchInterval ?? 10_000,
   });
 }
 
-export function useCompany(id: string | undefined) {
+export function useCompany(id: string | undefined, options?: QueryOptions) {
   return useQuery({
     queryKey: queryKeys.companies.detail(id!),
     queryFn: () => companiesApi.get(id!),
     enabled: !!id,
-    refetchInterval: 10_000,
+    refetchInterval: options?.refetchInterval ?? 10_000,
   });
 }
 
