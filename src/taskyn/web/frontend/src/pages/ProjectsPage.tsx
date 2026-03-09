@@ -275,6 +275,7 @@ export function ProjectsPage() {
           >
             <option value="classic_agile">Classic Agile</option>
             <option value="spec_driven">Spec Driven</option>
+            <option value="learning">Learning</option>
           </select>
           <p className="form-hint">Defines the workflow: node types, statuses, and transitions.</p>
         </div>

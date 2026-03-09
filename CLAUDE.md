@@ -33,7 +33,8 @@ src/taskyn/
 ├── methodologies/      # PM methodologies
 │   ├── base.py         # BaseMethodology ABC
 │   ├── classic_agile.py
-│   └── spec_driven.py
+│   ├── spec_driven.py
+│   └── learning.py
 ├── cli/                # Typer CLI
 │   └── *.py            # Command modules
 ├── mcp/                # MCP server (FastMCP)
@@ -83,6 +84,7 @@ This ensures accurate time tracking across all work.
 
 - `classic_agile`: story → task, statuses: backlog/ready/in_progress/done
 - `spec_driven`: spec → design → implementation → validation (gated workflow)
+- `learning`: subject → topic → activity, topic phases: planned/researching/practicing/documenting/completed (non-gated)
 
 ## CLI Entry Point
 
