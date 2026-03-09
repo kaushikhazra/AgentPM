@@ -1,7 +1,8 @@
 """Status workflow shortcuts."""
 
 from taskyn.core.project import get_project
-from taskyn.core.time_entry import start_timer, stop_timer, get_active_timer
+from taskyn.core.time_entry import start_timer, stop_timer, get_active_timer, propagate_actual_time
+from taskyn.db.connection import serialized
 from taskyn.methodologies import get_methodology
 from taskyn.exceptions import NotFoundError, ValidationError
 from taskyn.db.models import Node
@@ -47,20 +48,30 @@ def complete_node(node_id: str, actor: str | None = None) -> Node:
     Complete a node (supports prefix matching):
     1. Stop any active timer
     2. Transition to terminal status (done)
+    3. Always propagate actual_time (retry-safe)
     """
     from taskyn.graph import update_node
 
-    node, methodology = _get_node_methodology(node_id)
-    node_id = node.id  # Use full ID
-    done_status = methodology.get_done_status(node.node_type)
+    with serialized():
+        node, methodology = _get_node_methodology(node_id)
+        node_id = node.id  # Use full ID
+        done_status = methodology.get_done_status(node.node_type)
 
-    # Stop timer if running on this node (scoped to actor)
-    active = get_active_timer(actor=actor)
-    if active and active.node_id == node_id:
-        stop_timer(actor=actor)
+        # Stop timer if running on this node (scoped to actor)
+        active = get_active_timer(actor=actor)
+        if active and active.node_id == node_id:
+            stop_timer(actor=actor)
 
-    # Update status (this also sets completed_at)
-    return update_node(node_id, status=done_status, actor=actor)
+        # Update status (this also sets completed_at)
+        result = update_node(node_id, status=done_status, actor=actor)
+
+        # Always propagate actual_time so retries don't lose tracked time.
+        # If stop_timer already propagated, this is a harmless re-read.
+        # If a prior attempt stopped the timer but crashed before propagating,
+        # this recovers the time correctly.
+        propagate_actual_time(node_id)
+
+    return result
 
 
 def block_node(node_id: str, reason: str, actor: str | None = None) -> Node:
@@ -107,22 +118,28 @@ def submit_for_review(node_id: str, actor: str | None = None) -> Node:
     """Submit a node for review (transition to in_review status). Supports prefix matching."""
     from taskyn.graph import update_node
 
-    node, methodology = _get_node_methodology(node_id)
-    node_id = node.id  # Use full ID
+    with serialized():
+        node, methodology = _get_node_methodology(node_id)
+        node_id = node.id  # Use full ID
 
-    # Check if in_review is a valid status
-    node_type_def = methodology.get_node_type(node.node_type)
-    if node_type_def is None or "in_review" not in node_type_def.valid_statuses:
-        raise ValidationError(
-            f"Node type '{node.node_type}' does not support review workflow"
-        )
+        # Check if in_review is a valid status
+        node_type_def = methodology.get_node_type(node.node_type)
+        if node_type_def is None or "in_review" not in node_type_def.valid_statuses:
+            raise ValidationError(
+                f"Node type '{node.node_type}' does not support review workflow"
+            )
 
-    # Stop timer if running (scoped to actor)
-    active = get_active_timer(actor=actor)
-    if active and active.node_id == node_id:
-        stop_timer(actor=actor)
+        # Stop timer if running (scoped to actor)
+        active = get_active_timer(actor=actor)
+        if active and active.node_id == node_id:
+            stop_timer(actor=actor)
 
-    return update_node(node_id, status="in_review", actor=actor)
+        result = update_node(node_id, status="in_review", actor=actor)
+
+        # Always propagate actual_time (retry-safe, see complete_node)
+        propagate_actual_time(node_id)
+
+    return result
 
 
 def approve(node_id: str, actor: str | None = None) -> Node:

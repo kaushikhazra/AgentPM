@@ -24,6 +24,15 @@ def get_actor() -> str:
     return os.getenv("TASKYN_ACTOR", "mcp")
 
 
+def _resolve_actor(actor: str | None) -> str:
+    """Resolve caller-provided actor or fall back to transport default.
+
+    - Non-empty string: use as-is (caller override)
+    - None or empty string: fall back to get_actor() (transport default)
+    """
+    return actor if actor else get_actor()
+
+
 # Configure database from environment at import time
 db_path = os.getenv("TASKYN_DB")
 if db_path:
@@ -753,43 +762,45 @@ def pm_update_node(
 
 
 @mcp.tool()
-def pm_start_node(node_id: str) -> dict:
+def pm_start_node(node_id: str, actor: str | None = None) -> dict:
     """
     Start working on a node (workflow action).
 
     This is a workflow action that:
     1. Changes the node's status to in_progress
-    2. Automatically starts a timer
+    2. Automatically starts a timer for this actor
 
     Use this when beginning work on a task. For timer-only operations,
     use pm_start_timer instead.
 
     Args:
         node_id: Node ID
+        actor: Optional actor identity override. If omitted, uses the server's default actor.
 
     Returns:
         The updated node object
     """
     from taskyn.core import start_node
-    node = start_node(node_id, actor=get_actor())
+    node = start_node(node_id, actor=_resolve_actor(actor))
     return node.model_dump()
 
 
 @mcp.tool()
-def pm_complete_node(node_id: str) -> dict:
+def pm_complete_node(node_id: str, actor: str | None = None) -> dict:
     """
     Complete a node.
 
-    Stops any active timer and sets status to done.
+    Stops any active timer for this actor and sets status to done.
 
     Args:
         node_id: Node ID
+        actor: Optional actor identity override. If omitted, uses the server's default actor.
 
     Returns:
         The updated node object
     """
     from taskyn.core import complete_node
-    node = complete_node(node_id, actor=get_actor())
+    node = complete_node(node_id, actor=_resolve_actor(actor))
     return node.model_dump()
 
 
@@ -975,42 +986,44 @@ def pm_get_descendants(node_id: str, edge_type: str | None = None) -> list[dict]
 # ============================================================
 
 @mcp.tool()
-def pm_start_timer(node_id: str, notes: str | None = None) -> dict:
+def pm_start_timer(node_id: str, notes: str | None = None, actor: str | None = None) -> dict:
     """
     Start a timer on a node (timer-only, no status change).
 
     This is a pure time-tracking operation that does NOT change the node's status.
-    If another timer is running, it will be automatically stopped.
+    If another timer is running for this actor, it will be automatically stopped.
 
     Use pm_start_node instead if you want to both change status AND start timing.
 
     Args:
         node_id: Node to track time on
         notes: Optional notes about the work
+        actor: Optional actor identity override. If omitted, uses the server's default actor.
 
     Returns:
         The created time entry object
     """
     from taskyn.core import start_timer
-    entry = start_timer(node_id, notes=notes, actor=get_actor())
+    entry = start_timer(node_id, notes=notes, actor=_resolve_actor(actor))
     return entry.model_dump()
 
 
 @mcp.tool()
-def pm_stop_timer(entry_id: str | None = None) -> dict | None:
+def pm_stop_timer(entry_id: str | None = None, actor: str | None = None) -> dict | None:
     """
     Stop a running timer.
 
-    If no entry_id provided, stops the currently active timer.
+    If no entry_id provided, stops the currently active timer for this actor.
 
     Args:
-        entry_id: Optional - stop specific time entry
+        entry_id: Optional - stop specific time entry (ignores actor)
+        actor: Optional actor identity override. If omitted, uses the server's default actor.
 
     Returns:
         The stopped time entry, or None if no timer was running
     """
     from taskyn.core import stop_timer
-    entry = stop_timer(entry_id=entry_id, actor=get_actor())
+    entry = stop_timer(entry_id=entry_id, actor=_resolve_actor(actor))
     return entry.model_dump() if entry else None
 
 
@@ -1056,9 +1069,12 @@ def pm_list_time_entries(
 
 
 @mcp.tool()
-def pm_get_active_timer() -> dict | None:
+def pm_get_active_timer(actor: str | None = None) -> dict | None:
     """
     Get the currently active timer for this actor.
+
+    Args:
+        actor: Optional actor identity override. If omitted, uses the server's default actor.
 
     Returns:
         Active time entry with node info, or None
@@ -1066,7 +1082,7 @@ def pm_get_active_timer() -> dict | None:
     from taskyn.core import get_active_timer
     from taskyn.graph import get_node
 
-    entry = get_active_timer(actor=get_actor())
+    entry = get_active_timer(actor=_resolve_actor(actor))
     if not entry:
         return None
 

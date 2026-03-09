@@ -1,14 +1,21 @@
 """Database connection management for Taskyn."""
 
 import sqlite3
+import threading
 from pathlib import Path
 from contextlib import contextmanager
 from typing import Generator
 
 from taskyn.config import get_database_path, ensure_db_directory
 
-# Global connection (single-threaded use)
+# Global connection
 _connection: sqlite3.Connection | None = None
+
+# Reentrant lock for serializing multi-step write operations across threads.
+# SQLite allows only one writer at a time; without this, concurrent MCP tool
+# calls can interleave execute()/commit() on the shared connection, causing
+# SQLITE_MISUSE errors and lost writes.
+_write_lock = threading.RLock()
 
 
 def get_connection() -> sqlite3.Connection:
@@ -18,9 +25,13 @@ def get_connection() -> sqlite3.Connection:
     if _connection is None:
         ensure_db_directory()
         db_path = get_database_path()
-        _connection = sqlite3.connect(str(db_path), check_same_thread=False)
+        _connection = sqlite3.connect(
+            str(db_path), check_same_thread=False, timeout=10,
+        )
         _connection.row_factory = sqlite3.Row
 
+        # WAL mode allows concurrent reads during writes
+        _connection.execute("PRAGMA journal_mode = WAL")
         # Enable foreign keys
         _connection.execute("PRAGMA foreign_keys = ON")
 
@@ -395,6 +406,19 @@ def init_database() -> None:
     Can be called explicitly to ensure schema exists.
     """
     get_connection()  # Schema init happens automatically on connection
+
+
+@contextmanager
+def serialized() -> Generator[None, None, None]:
+    """Serialize a multi-step write operation.
+
+    Holds a reentrant lock so that concurrent threads (e.g. parallel MCP
+    tool calls) cannot interleave their execute()/commit() sequences on
+    the shared SQLite connection.  Safe to nest — inner acquisitions are
+    no-ops thanks to RLock.
+    """
+    with _write_lock:
+        yield
 
 
 @contextmanager

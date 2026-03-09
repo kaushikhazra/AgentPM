@@ -25,10 +25,13 @@ export function getAccessToken(): string | null {
 }
 
 async function refreshAccessToken(): Promise<string | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5_000);
   try {
     const res = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
+      signal: controller.signal,
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -36,6 +39,8 @@ async function refreshAccessToken(): Promise<string | null> {
     return accessToken;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

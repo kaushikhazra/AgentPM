@@ -61,3 +61,10 @@
 - [x] Velasari adds `entryId?` parameter to `stop()` in `TimerProvider` — _MAT-7_ (G1)
 - [x] Velasari adds per-timer stop buttons to `TimerWidget` multi-timer layout — _MAT-7_ (W1)
 - [x] Velasari verifies TypeScript + Vite build + all tests pass — _MAT-10_
+
+## 6. Schema Migration & Docker Build Fixes
+
+- [x] Velasari moves `idx_time_entries_actor_active` index from `schema.sql` to `connection.py` migration — _MAT-1_
+- [x] Velasari adds `rm -rf dist` before `npm run build` in `Dockerfile.web` to prevent stale local artifacts — _MAT-10_
+- [x] Velasari adds `**/dist/` to `.dockerignore` to exclude nested frontend dist from Docker context — _MAT-10_
+- [x] Velasari verifies Docker build + browser test: Dashboard (2 Active Timers), Tracker (actor badges + stop), Kanban (timer indicators with actor) — _MAT-7, MAT-8, MAT-9, MAT-10_

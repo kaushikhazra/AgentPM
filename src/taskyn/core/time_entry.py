@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from taskyn.db.connection import execute, fetchone, fetchall, commit
+from taskyn.db.connection import execute, fetchone, fetchall, commit, serialized
 from taskyn.db.models import TimeEntry
 from taskyn.core.activity import log_activity
 from taskyn.exceptions import NotFoundError, ValidationError
@@ -59,32 +59,33 @@ def start_timer(
     # Enforce can_track_time
     _enforce_time_tracking(node)
 
-    # Stop this actor's active timer (not global)
-    active = get_active_timer(actor=actor)
-    if active is not None:
-        stop_timer(entry_id=active.id, actor=actor)
+    with serialized():
+        # Stop this actor's active timer (not global)
+        active = get_active_timer(actor=actor)
+        if active is not None:
+            stop_timer(entry_id=active.id, actor=actor)
 
-    entry_id = uuid4().hex
-    now = _now()
+        entry_id = uuid4().hex
+        now = _now()
 
-    execute(
-        """
-        INSERT INTO time_entries (id, node_id, started_at, notes, source, actor, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (entry_id, node_id, now, notes, source, actor, now),
-    )
+        execute(
+            """
+            INSERT INTO time_entries (id, node_id, started_at, notes, source, actor, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (entry_id, node_id, now, notes, source, actor, now),
+        )
 
-    log_activity(
-        entity_type="time_entry",
-        entity_id=entry_id,
-        action="time_started",
-        new_value=node_id,
-        node_type=node.node_type,
-        actor=actor,
-    )
+        log_activity(
+            entity_type="time_entry",
+            entity_id=entry_id,
+            action="time_started",
+            new_value=node_id,
+            node_type=node.node_type,
+            actor=actor,
+        )
 
-    commit()
+        commit()
 
     return TimeEntry(
         id=entry_id,
@@ -125,25 +126,26 @@ def stop_timer(
     if entry.ended_at is not None:
         return entry  # Already stopped
 
-    now = _now()
-    duration = int((now - entry.started_at).total_seconds() / 60)
+    with serialized():
+        now = _now()
+        duration = int((now - entry.started_at).total_seconds() / 60)
 
-    execute(
-        "UPDATE time_entries SET ended_at = ?, duration_minutes = ? WHERE id = ?",
-        (now, duration, entry.id),
-    )
+        execute(
+            "UPDATE time_entries SET ended_at = ?, duration_minutes = ? WHERE id = ?",
+            (now, duration, entry.id),
+        )
 
-    log_activity(
-        entity_type="time_entry",
-        entity_id=entry.id,
-        action="time_stopped",
-        new_value=str(duration),
-        actor=actor,
-    )
+        log_activity(
+            entity_type="time_entry",
+            entity_id=entry.id,
+            action="time_stopped",
+            new_value=str(duration),
+            actor=actor,
+        )
 
-    commit()
+        commit()
 
-    propagate_actual_time(entry.node_id)
+        propagate_actual_time(entry.node_id)
 
     return TimeEntry(
         id=entry.id,
