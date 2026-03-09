@@ -251,7 +251,9 @@ def pm_list_projects(
             total_count = sum(stats.total_nodes.values())
             completed_nodes = stats.nodes_by_status.get("done", 0)
             data["stats"] = {
-                "total_nodes": stats.total_nodes,  # Record<string, number> by type
+                "total_nodes": total_count,
+                "completed_nodes": completed_nodes,
+                "nodes_by_type": stats.total_nodes,
                 "nodes_by_status": stats.nodes_by_status,
                 "completion_percentage": (
                     round(completed_nodes / total_count * 100, 1)

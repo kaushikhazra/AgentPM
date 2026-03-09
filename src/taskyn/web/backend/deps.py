@@ -1,4 +1,12 @@
-"""FastAPI dependencies — MCP integration via FastMCP Client over HTTP."""
+"""FastAPI dependencies — MCP integration via FastMCP Client.
+
+Supports two transports:
+- HTTP:  set TASKYN_MCP_URL  (production, Docker)
+- stdio: set TASKYN_MCP_CMD  (testing, local dev)
+
+If the global _mcp_client is already set (e.g. by a test fixture), the
+lifespan init is a no-op.
+"""
 
 import logging
 import os
@@ -27,35 +35,59 @@ security = HTTPBearer()
 def get_mcp_settings() -> dict[str, Any]:
     """Get MCP client configuration from environment variables."""
     url = os.environ.get("TASKYN_MCP_URL")
-    if not url:
-        raise RuntimeError("TASKYN_MCP_URL environment variable is required")
+    cmd = os.environ.get("TASKYN_MCP_CMD")
+    if not url and not cmd:
+        raise RuntimeError(
+            "Either TASKYN_MCP_URL or TASKYN_MCP_CMD environment variable is required"
+        )
     return {
         "url": url,
+        "cmd": cmd,
         "timeout": float(os.environ.get("TASKYN_MCP_TIMEOUT", "30")),
     }
 
 
 # Global client instance (managed by lifespan in main.py)
 _mcp_client: Client | None = None
+# Whether the lifespan created the client (vs. externally injected by tests)
+_mcp_client_owned: bool = False
 
 
 async def init_mcp_client() -> None:
-    """Initialize global MCP client. Called during app startup."""
-    global _mcp_client
+    """Initialize global MCP client. Called during app startup.
+
+    No-op if _mcp_client is already set (e.g. by a test fixture).
+    """
+    global _mcp_client, _mcp_client_owned
+    if _mcp_client is not None:
+        logger.info("MCP client already initialized, skipping")
+        return
+
     settings = get_mcp_settings()
-    logger.info("Connecting to MCP server at %s", settings["url"])
-    _mcp_client = Client(settings["url"], timeout=settings["timeout"])
+    if settings["cmd"]:
+        logger.info("Connecting to MCP server via stdio: %s", settings["cmd"])
+        _mcp_client = Client(settings["cmd"])
+    else:
+        logger.info("Connecting to MCP server at %s", settings["url"])
+        _mcp_client = Client(settings["url"], timeout=settings["timeout"])
+
     await _mcp_client.__aenter__()
+    _mcp_client_owned = True
     logger.info("MCP client connected successfully")
 
 
 async def close_mcp_client() -> None:
-    """Close global MCP client. Called during app shutdown."""
-    global _mcp_client
-    if _mcp_client:
+    """Close global MCP client. Called during app shutdown.
+
+    Only closes the client if the lifespan created it. Externally
+    injected clients (test fixtures) are managed by their owner.
+    """
+    global _mcp_client, _mcp_client_owned
+    if _mcp_client and _mcp_client_owned:
         logger.info("Closing MCP client connection")
         await _mcp_client.__aexit__(None, None, None)
-        _mcp_client = None
+    _mcp_client = None
+    _mcp_client_owned = False
 
 
 def get_mcp_client() -> Client:

@@ -7,8 +7,8 @@ from pathlib import Path
 # Set env vars before any web backend imports (jwt.py validates at import time)
 os.environ.setdefault("TASKYN_JWT_SECRET", "test-secret-key-for-pytest-minimum-32-chars")
 os.environ.setdefault("TASKYN_RATE_LIMIT", "false")
-# Set a dummy MCP URL for tests (will be overridden by in-memory transport)
-os.environ.setdefault("TASKYN_MCP_URL", "http://test-mcp:8020/mcp")
+# Use stdio transport marker for tests (actual MCP client is injected by fixtures)
+os.environ.setdefault("TASKYN_MCP_CMD", "python -m taskyn.mcp")
 
 import pytest
 

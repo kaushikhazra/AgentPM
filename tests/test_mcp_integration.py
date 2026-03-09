@@ -4,7 +4,7 @@ Tests the full flow: API → FastMCP Client → MCP Server
 Tests error scenarios and concurrent requests.
 """
 
-import asyncio
+import json
 from unittest.mock import patch, AsyncMock
 
 import pytest
@@ -14,6 +14,23 @@ from fastmcp import Client
 from taskyn.mcp.server import mcp as mcp_server
 from taskyn.web.backend.auth.users import reset_connection
 from taskyn.web.backend import deps
+
+
+def _extract_tool_result(result):
+    """Extract data from a FastMCP CallToolResult (handles API variations)."""
+    # Prefer structured_content (current fastmcp)
+    if hasattr(result, "structured_content") and result.structured_content:
+        sc = result.structured_content
+        return sc.get("result", sc)
+    # Fallback: parse text content
+    if hasattr(result, "content") and result.content:
+        for item in result.content:
+            if hasattr(item, "text"):
+                try:
+                    return json.loads(item.text)
+                except (json.JSONDecodeError, TypeError):
+                    return item.text
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -30,44 +47,29 @@ def _reset_users_db(temp_db):
 
 
 @pytest.fixture
-def mcp_in_memory_client(temp_db):
-    """Create an MCP client using in-memory transport."""
-    return Client(mcp_server)
-
-
-@pytest.fixture
-def web_client_with_mcp(temp_db, mcp_in_memory_client):
+def web_client_with_mcp(temp_db):
     """Create a web TestClient with MCP client using in-memory transport.
 
-    This fixture patches the global MCP client in deps.py to use in-memory
-    transport, allowing tests to run without an HTTP MCP server.
+    Patches the lifespan's init/close so the in-memory MCP client is
+    entered inside TestClient's own event loop (avoids cross-loop hangs).
     """
     from taskyn.web.backend.main import app
 
     async def mock_init():
-        global _client
-        _client = mcp_in_memory_client
-        await _client.__aenter__()
-        deps._mcp_client = _client
+        deps._mcp_client = Client(mcp_server)
+        await deps._mcp_client.__aenter__()
+        deps._mcp_client_owned = True
 
     async def mock_close():
-        global _client
-        if _client:
-            await _client.__aexit__(None, None, None)
+        if deps._mcp_client:
+            await deps._mcp_client.__aexit__(None, None, None)
             deps._mcp_client = None
+            deps._mcp_client_owned = False
 
-    # Initialize before creating TestClient
-    loop = asyncio.new_event_loop()
-    _client = None
-
-    try:
-        loop.run_until_complete(mock_init())
-        # Create client with lifespan disabled (we manage it ourselves)
+    with patch("taskyn.web.backend.main.init_mcp_client", mock_init), \
+         patch("taskyn.web.backend.main.close_mcp_client", mock_close):
         with TestClient(app, raise_server_exceptions=False) as client:
             yield client
-    finally:
-        loop.run_until_complete(mock_close())
-        loop.close()
 
 
 @pytest.fixture
@@ -185,33 +187,16 @@ class TestFullMCPFlow:
 class TestMCPErrorScenarios:
     """Test error handling when MCP server has issues."""
 
-    def test_mcp_server_unavailable(self, temp_db):
-        """Test behavior when MCP client not initialized."""
-        from taskyn.web.backend.main import app
-
-        # Force client to None
+    def test_mcp_server_unavailable(self, web_client_with_mcp, auth_headers):
+        """Test behavior when MCP client is removed after startup."""
+        # Simulate MCP going away after successful startup
         original_client = deps._mcp_client
         deps._mcp_client = None
 
         try:
-            with TestClient(app, raise_server_exceptions=False) as client:
-                # Register and login
-                client.post("/api/v1/auth/register", json={
-                    "email": "error@test.com",
-                    "password": "testpass123",
-                    "name": "Error Tester",
-                })
-                res = client.post("/api/v1/auth/login", json={
-                    "email": "error@test.com",
-                    "password": "testpass123",
-                })
-                token = res.json()["accessToken"]
-                headers = {"Authorization": f"Bearer {token}"}
-
-                # Try to call an MCP tool
-                res = client.get("/api/v1/companies", headers=headers)
-                assert res.status_code == 503
-                assert "not initialized" in res.json()["detail"]
+            res = web_client_with_mcp.get("/api/v1/companies", headers=auth_headers)
+            assert res.status_code == 503
+            assert "not initialized" in res.json()["detail"]
         finally:
             deps._mcp_client = original_client
 
@@ -288,20 +273,17 @@ class TestHealthCheck:
         assert data["mcp"] == "connected"
         assert "tools_count" in data
 
-    def test_health_check_degraded(self, temp_db):
-        """Test health check when MCP client not initialized."""
-        from taskyn.web.backend.main import app
-
+    def test_health_check_degraded(self, web_client_with_mcp):
+        """Test health check when MCP client is removed after startup."""
         original_client = deps._mcp_client
         deps._mcp_client = None
 
         try:
-            with TestClient(app, raise_server_exceptions=False) as client:
-                res = client.get("/health")
-                assert res.status_code == 200
-                data = res.json()
-                assert data["status"] == "degraded"
-                assert data["mcp"] == "unreachable"
+            res = web_client_with_mcp.get("/health")
+            assert res.status_code == 200
+            data = res.json()
+            assert data["status"] == "degraded"
+            assert data["mcp"] == "unreachable"
         finally:
             deps._mcp_client = original_client
 
@@ -334,27 +316,31 @@ class TestDirectMCPClient:
             result = await client.call_tool("pm_create_company", {
                 "name": "Direct MCP Co",
             })
-            assert result.data["name"] == "Direct MCP Co"
-            company_id = result.data["id"]
+            # Extract result from structured content or text
+            import json
+            data = _extract_tool_result(result)
+            assert data["name"] == "Direct MCP Co"
+            company_id = data["id"]
 
             # List companies
             list_result = await client.call_tool("pm_list_companies", {})
-            names = [c["name"] for c in list_result.data]
+            list_data = _extract_tool_result(list_result)
+            names = [c["name"] for c in list_data]
             assert "Direct MCP Co" in names
 
             # Delete company
             delete_result = await client.call_tool("pm_delete_company", {
                 "company_id": company_id,
             })
-            assert delete_result.data is True
+            assert _extract_tool_result(delete_result) is True
 
     @pytest.mark.asyncio
     async def test_tool_error_handling(self, temp_db):
         """Test error handling from MCP tools."""
-        from fastmcp.exceptions import ClientError
+        from fastmcp.exceptions import ClientError, ToolError
 
         async with Client(mcp_server) as client:
-            with pytest.raises(ClientError) as exc_info:
+            with pytest.raises((ClientError, ToolError)) as exc_info:
                 await client.call_tool("pm_get_company", {
                     "company_id": "nonexistent-id",
                 })

@@ -1,6 +1,6 @@
 """Tests for web backend REST routes (Phase 3 + Phase 11D)."""
 
-import asyncio
+from unittest.mock import patch
 
 import pytest
 from fastapi import HTTPException
@@ -23,25 +23,27 @@ def _reset_users_db(temp_db):
 
 @pytest.fixture
 def client(temp_db):
-    """Create a test client with MCP client using in-memory transport."""
-    mcp_client = Client(mcp_server)
+    """Create a test client with MCP client using in-memory transport.
 
-    async def setup():
-        await mcp_client.__aenter__()
-        deps._mcp_client = mcp_client
+    Patches the lifespan's init/close so the in-memory MCP client is
+    entered inside TestClient's own event loop (avoids cross-loop hangs).
+    """
 
-    async def teardown():
-        await mcp_client.__aexit__(None, None, None)
-        deps._mcp_client = None
+    async def mock_init():
+        deps._mcp_client = Client(mcp_server)
+        await deps._mcp_client.__aenter__()
+        deps._mcp_client_owned = True
 
-    loop = asyncio.new_event_loop()
-    try:
-        loop.run_until_complete(setup())
+    async def mock_close():
+        if deps._mcp_client:
+            await deps._mcp_client.__aexit__(None, None, None)
+            deps._mcp_client = None
+            deps._mcp_client_owned = False
+
+    with patch("taskyn.web.backend.main.init_mcp_client", mock_init), \
+         patch("taskyn.web.backend.main.close_mcp_client", mock_close):
         with TestClient(app, raise_server_exceptions=False) as test_client:
             yield test_client
-    finally:
-        loop.run_until_complete(teardown())
-        loop.close()
 
 
 @pytest.fixture

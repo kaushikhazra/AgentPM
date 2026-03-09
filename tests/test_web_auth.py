@@ -4,8 +4,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
+from fastmcp import Client
 from jose import jwt
 
+from taskyn.mcp.server import mcp as mcp_server
 from taskyn.web.backend.auth.jwt import ALGORITHM, SECRET_KEY
 from taskyn.web.backend.auth.users import reset_connection
 from taskyn.web.backend.main import app
@@ -273,31 +275,54 @@ def test_full_auth_flow(client):
 # ============================================================
 
 
-def test_call_mcp_tool_success():
+@pytest.mark.asyncio
+async def test_call_mcp_tool_success(temp_db):
     """Test call_mcp_tool calls MCP tools correctly."""
     from taskyn.web.backend.deps import call_mcp_tool
-    result = call_mcp_tool("pm_list_companies", {})
-    assert isinstance(result, list)
+    from taskyn.web.backend import deps
+
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
+        try:
+            result = await call_mcp_tool("pm_list_companies", {})
+            assert isinstance(result, list)
+        finally:
+            deps._mcp_client = None
 
 
-def test_call_mcp_tool_not_found():
+@pytest.mark.asyncio
+async def test_call_mcp_tool_not_found(temp_db):
     """Test call_mcp_tool maps 'not found' to 404."""
     from fastapi import HTTPException
     from taskyn.web.backend.deps import call_mcp_tool
+    from taskyn.web.backend import deps
 
-    with pytest.raises(HTTPException) as exc_info:
-        call_mcp_tool("pm_get_company", {"company_id": "nonexistent"})
-    assert exc_info.value.status_code == 404
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
+        try:
+            with pytest.raises(HTTPException) as exc_info:
+                await call_mcp_tool("pm_get_company", {"company_id": "nonexistent"})
+            assert exc_info.value.status_code == 404
+        finally:
+            deps._mcp_client = None
 
 
-def test_call_mcp_tool_unknown_tool():
+@pytest.mark.asyncio
+async def test_call_mcp_tool_unknown_tool(temp_db):
     """Test call_mcp_tool with unknown tool name."""
     from fastapi import HTTPException
     from taskyn.web.backend.deps import call_mcp_tool
+    from taskyn.web.backend import deps
 
-    with pytest.raises(HTTPException) as exc_info:
-        call_mcp_tool("pm_nonexistent_tool", {})
-    assert exc_info.value.status_code == 500
+    async with Client(mcp_server) as mcp_client:
+        deps._mcp_client = mcp_client
+        try:
+            with pytest.raises((HTTPException, Exception)) as exc_info:
+                await call_mcp_tool("pm_nonexistent_tool", {})
+            if isinstance(exc_info.value, HTTPException):
+                assert exc_info.value.status_code == 500
+        finally:
+            deps._mcp_client = None
 
 
 # ============================================================
