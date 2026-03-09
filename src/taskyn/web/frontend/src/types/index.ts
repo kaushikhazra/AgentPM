@@ -63,7 +63,9 @@ export interface Project {
 }
 
 export interface ProjectStats {
-  total_nodes: Record<string, number>;
+  total_nodes: number;
+  completed_nodes: number;
+  nodes_by_type: Record<string, number>;
   nodes_by_status: Record<string, number>;
   completion_percentage: number;
   time_total: number;

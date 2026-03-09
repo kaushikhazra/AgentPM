@@ -84,12 +84,7 @@ export function ProjectsPage() {
     : companies.find((c) => c.id === selectedCompany)?.name?.toLowerCase() ?? 'all';
 
   const activeCount = filtered.filter((p) => p.status === 'active').length;
-  const totalNodes = filtered.reduce((sum, p) => {
-    const nodeTotal = p.stats?.total_nodes
-      ? Object.values(p.stats.total_nodes).reduce((a, b) => a + b, 0)
-      : 0;
-    return sum + nodeTotal;
-  }, 0);
+  const totalNodes = filtered.reduce((sum, p) => sum + (p.stats?.total_nodes ?? 0), 0);
 
   return (
     <div className="content-wrapper">
@@ -192,7 +187,7 @@ export function ProjectsPage() {
         <div className="projects-grid">
           {filtered.map((project) => {
             const pct = project.stats?.completion_percentage ?? 0;
-            const nodesByType = project.stats?.total_nodes ?? {};
+            const nodesByType = project.stats?.nodes_by_type ?? {};
             return (
               <div
                 key={project.id}
