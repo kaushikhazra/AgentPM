@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -18,19 +19,36 @@ export interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Max time (ms) to wait for auth init before showing the app as unauthenticated. */
+const AUTH_INIT_TIMEOUT_MS = 8_000;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const initCalled = useRef(false);
 
   /** Fetch current user on mount (uses refresh cookie). */
   useEffect(() => {
+    // Guard against double-invocation in StrictMode dev mode
+    if (initCalled.current) return;
+    initCalled.current = true;
+
+    let settled = false;
+    const settle = () => {
+      if (!settled) {
+        settled = true;
+        setLoading(false);
+      }
+    };
+
+    // Safety timeout — if init hasn't completed, force loading off
+    const timeout = setTimeout(settle, AUTH_INIT_TIMEOUT_MS);
+
     async function init() {
       try {
-        // Use ensureToken (raw fetch) to avoid interceptor race (CR-4)
         const token = await ensureToken();
         if (!token) {
           setUser(null);
-          setLoading(false);
           return;
         }
         const me = await api.get<User>('/auth/me');
@@ -39,7 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAccessToken(null);
         setUser(null);
       } finally {
-        setLoading(false);
+        settle();
+        clearTimeout(timeout);
       }
     }
     void init();

@@ -31,3 +31,4 @@ class Methodology(str, Enum):
 
     CLASSIC_AGILE = "classic_agile"
     SPEC_DRIVEN = "spec_driven"
+    LEARNING = "learning"

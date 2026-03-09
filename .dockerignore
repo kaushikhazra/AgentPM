@@ -35,6 +35,10 @@ ENV/
 .env
 *.db
 
+# Node — local node_modules and build caches must not leak into Docker
+**/node_modules/
+**/.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/

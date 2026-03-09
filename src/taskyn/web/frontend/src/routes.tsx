@@ -1,15 +1,19 @@
-import { lazy, Suspense, type ReactNode } from 'react';
-import { Navigate, type RouteObject } from 'react-router-dom';
+import { lazy, Suspense, useEffect, type ReactNode } from 'react';
+import { useNavigate, type RouteObject } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AppShell } from '@/components/templates/AppShell';
 import { ErrorBoundary } from '@/components/organisms';
 
 /* ============================================================
-   Lazy-loaded pages (CR-13)
+   Eager imports — auth pages load instantly, no async gates
    ============================================================ */
-const LoginPage = lazy(() => import('@/pages/LoginPage').then((m) => ({ default: m.LoginPage })));
-const SignupPage = lazy(() => import('@/pages/SignupPage').then((m) => ({ default: m.SignupPage })));
-const OnboardingPage = lazy(() => import('@/pages/OnboardingPage').then((m) => ({ default: m.OnboardingPage })));
+import { LoginPage } from '@/pages/LoginPage';
+import { SignupPage } from '@/pages/SignupPage';
+import { OnboardingPage } from '@/pages/OnboardingPage';
+
+/* ============================================================
+   Lazy-loaded pages — behind ProtectedRoute auth gate anyway
+   ============================================================ */
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const CompaniesPage = lazy(() => import('@/pages/CompaniesPage').then((m) => ({ default: m.CompaniesPage })));
 const ProjectsPage = lazy(() => import('@/pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
@@ -33,13 +37,26 @@ function LoadingFallback() {
 }
 
 /* ============================================================
-   Protected Route wrapper — redirects unauthenticated to login
+   Redirect — hard navigation via window.location.
+   React Router v7's createBrowserRouter transitions are
+   unreliable for cross-route redirects triggered by state
+   changes. A full page navigation is simple and bulletproof.
+   ============================================================ */
+function Redirect({ to }: { to: string }) {
+  useEffect(() => {
+    window.location.replace(to);
+  }, [to]);
+  return <LoadingFallback />;
+}
+
+/* ============================================================
+   Protected Route — waits for auth, hard-redirects to login
    ============================================================ */
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingFallback />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Redirect to="/login" />;
 
   return (
     <AppShell>
@@ -51,19 +68,30 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 /* ============================================================
-   Guest Route wrapper — redirects authenticated to dashboard (CR-45)
+   Guest Route — renders immediately, no loading gate.
+   Redirects only when auth confirms a logged-in user.
    ============================================================ */
 function GuestRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [loading, user, navigate]);
+
+  return <ErrorBoundary>{children}</ErrorBoundary>;
+}
+
+/* ============================================================
+   Root redirect — auth-aware, no blind redirect chain
+   ============================================================ */
+function RootRedirect() {
+  const { user, loading } = useAuth();
 
   if (loading) return <LoadingFallback />;
-  if (user) return <Navigate to="/dashboard" replace />;
-
-  return (
-    <ErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
-    </ErrorBoundary>
-  );
+  return <Redirect to={user ? '/dashboard' : '/login'} />;
 }
 
 /* ============================================================
@@ -184,7 +212,7 @@ export const routes: RouteObject[] = [
   },
   {
     path: '/',
-    element: <Navigate to="/dashboard" replace />,
+    element: <RootRedirect />,
   },
   {
     path: '*',

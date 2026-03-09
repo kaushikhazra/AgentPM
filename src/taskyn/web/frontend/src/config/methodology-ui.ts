@@ -31,6 +31,11 @@ export const METHODOLOGY_HIERARCHY: Record<string, Record<string, string | strin
     task: 'todo',                              // Task's child is Todo
     // todo is a leaf node
   },
+  learning: {
+    subject: 'topic',    // Subject's child is Topic
+    topic: 'activity',   // Topic's child is Activity
+    // activity is a leaf node
+  },
 };
 
 export const METHODOLOGY_UI: Record<string, MethodologyUI> = {
@@ -109,6 +114,42 @@ export const METHODOLOGY_UI: Record<string, MethodologyUI> = {
     statusLabels: {
       draft: 'Draft',
       active: 'Active',
+      todo: 'To Do',
+      in_progress: 'In Progress',
+      done: 'Done',
+      cancelled: 'Cancelled',
+    },
+  },
+  learning: {
+    displayName: 'Learning',
+    nodeTypes: {
+      subject: {
+        displayName: 'Subject',
+        plural: 'Subjects',
+        icon: 'SB',
+        color: 'var(--accent-lavender)',
+      },
+      topic: {
+        displayName: 'Topic',
+        plural: 'Topics',
+        icon: 'TP',
+        color: 'var(--accent-sky)',
+      },
+      activity: {
+        displayName: 'Activity',
+        plural: 'Activities',
+        icon: 'A',
+        color: 'var(--accent-mint)',
+      },
+    },
+    statusLabels: {
+      planned: 'Planned',
+      active: 'Active',
+      researching: 'Researching',
+      practicing: 'Practicing',
+      documenting: 'Documenting',
+      completed: 'Completed',
+      archived: 'Archived',
       todo: 'To Do',
       in_progress: 'In Progress',
       done: 'Done',

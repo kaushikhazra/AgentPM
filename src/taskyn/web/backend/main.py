@@ -6,7 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -84,11 +84,14 @@ if _frontend_dir.exists():
     # Serve static assets (JS, CSS, etc.)
     app.mount("/assets", StaticFiles(directory=_frontend_dir / "assets"), name="assets")
 
+    # Read index.html once at startup for SPA routing
+    _index_html = (_frontend_dir / "index.html").read_text()
+
     # Serve index.html for all other routes (SPA routing)
     @app.get("/{path:path}")
     async def serve_spa(path: str):
         """Serve the SPA index.html for client-side routing."""
-        index_file = _frontend_dir / "index.html"
-        if index_file.exists():
-            return FileResponse(index_file)
-        return {"detail": "Frontend not found"}
+        return HTMLResponse(
+            content=_index_html,
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+        )
