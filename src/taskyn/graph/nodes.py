@@ -343,9 +343,8 @@ def _parse_datetime(value) -> datetime:
     if isinstance(value, datetime):
         return value
     if isinstance(value, str):
-        for fmt in ["%Y-%m-%d %H:%M:%S.%f%z", "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S%z", "%Y-%m-%d %H:%M:%S"]:
-            try:
-                return datetime.strptime(value, fmt)
-            except ValueError:
-                continue
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            pass
     return _now()

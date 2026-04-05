@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 # Default database path
-DEFAULT_DB_DIR = Path.home() / ".taskyn"
+DEFAULT_DB_DIR = Path.home() / ".taskyn" / "data"
 DEFAULT_DB_PATH = DEFAULT_DB_DIR / "taskyn.db"
 
 # Global database path (can be overridden)

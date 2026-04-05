@@ -1,5 +1,7 @@
 """Tests for MCP server using FastMCP client."""
 
+import json
+
 import pytest
 from fastmcp import Client
 
@@ -14,9 +16,20 @@ def client(temp_db):
 
 def get_result(call_result):
     """Extract the actual result from CallToolResult."""
+    # Prefer structured_content (fastmcp extension)
     if hasattr(call_result, 'structured_content') and call_result.structured_content:
         return call_result.structured_content.get('result', call_result.data)
-    return call_result.data
+    if hasattr(call_result, 'data') and call_result.data is not None:
+        return call_result.data
+    # Fallback: parse TextContent from standard MCP protocol response
+    if hasattr(call_result, 'content') and call_result.content:
+        for item in call_result.content:
+            if hasattr(item, 'text'):
+                try:
+                    return json.loads(item.text)
+                except (json.JSONDecodeError, TypeError):
+                    return item.text
+    return None
 
 
 @pytest.mark.asyncio

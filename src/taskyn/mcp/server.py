@@ -1,11 +1,11 @@
-"""MCP Server using FastMCP."""
+"""MCP Server using the mcp SDK's built-in FastMCP (no external fastmcp package)."""
 
 import os
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 
 from taskyn.config import set_database_path
 
-# Initialize FastMCP server
+# Initialize FastMCP server — stateless_http avoids session management (pydocket/fakeredis)
 mcp = FastMCP("taskyn", instructions="""
 Taskyn is an AI-first project management system.
 
@@ -16,7 +16,7 @@ Key concepts:
 - Each project has a Methodology that defines valid node types, statuses, and transitions
 
 Use pm_get_methodology_info to understand what's valid for a project.
-""")
+""", stateless_http=True)
 
 
 def get_actor() -> str:
@@ -370,6 +370,8 @@ def pm_update_project(
         methodology=method,
         actor=get_actor()
     )
+    if project is None:
+        raise ValueError(f"Project not found: {project_id}")
     return project.model_dump()
 
 
