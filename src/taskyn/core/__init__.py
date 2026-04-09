@@ -94,6 +94,21 @@ from taskyn.core.bulk import (
     bulk_delete,
     bulk_update_priority,
 )
+from taskyn.core.planning import (
+    create_plan,
+    get_plan,
+    update_plan,
+    delete_plan,
+    list_plans,
+    add_plan_item,
+    remove_plan_item,
+    reorder_plan_item,
+    update_plan_item,
+    get_weekly_plan,
+    get_monthly_plan,
+    plan_vs_actual,
+    carry_over_plan,
+)
 
 __all__ = [
     # Exceptions (re-exported for convenience)
@@ -179,4 +194,18 @@ __all__ = [
     "bulk_tag",
     "bulk_delete",
     "bulk_update_priority",
+    # Planning
+    "create_plan",
+    "get_plan",
+    "update_plan",
+    "delete_plan",
+    "list_plans",
+    "add_plan_item",
+    "remove_plan_item",
+    "reorder_plan_item",
+    "update_plan_item",
+    "get_weekly_plan",
+    "get_monthly_plan",
+    "plan_vs_actual",
+    "carry_over_plan",
 ]
