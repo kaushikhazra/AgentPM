@@ -18,6 +18,7 @@ class NodeTypeDefinition:
     optional_properties: list[str] = field(default_factory=list)
     can_track_time: bool = True
     can_have_assignee: bool = True
+    can_be_planned: bool = False
 
 
 @dataclass

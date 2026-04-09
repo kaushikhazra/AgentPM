@@ -422,6 +422,8 @@ def pm_get_methodology_info(project_id: str) -> dict:
                 "terminal_statuses": list(nt.terminal_statuses),
                 "allowed_transitions": nt.allowed_transitions,
                 "can_track_time": nt.can_track_time,
+                "can_be_planned": nt.can_be_planned,
+                "can_have_assignee": nt.can_have_assignee,
             }
             for name, nt in methodology.node_types.items()
         },
@@ -1418,6 +1420,377 @@ def pm_get_tag_usage(tag_name: str) -> dict:
         "tag_name": tag_name,
         "usage_count": get_tag_usage_count(tag_name),
     }
+
+
+# ============================================================
+# Planning Tools
+# ============================================================
+
+@mcp.tool()
+def pm_create_plan(
+    plan_date: str,
+    actor: str | None = None,
+    notes: str | None = None,
+    items: list[dict] | None = None,
+) -> dict:
+    """
+    Create a daily plan for a specific date and actor.
+
+    Args:
+        plan_date: Date for the plan (YYYY-MM-DD)
+        actor: Actor this plan belongs to. If omitted, uses default actor.
+        notes: Optional freetext notes for the day
+        items: Optional list of items. Each dict: {"node_id": str, "planned_minutes": int (optional), "display_order": int (optional)}
+
+    Returns:
+        Created plan dict with enriched items list
+    """
+    from datetime import date
+    from taskyn.core.planning import create_plan
+    return create_plan(
+        plan_date=date.fromisoformat(plan_date),
+        actor=_resolve_actor(actor),
+        notes=notes,
+        items=items,
+    )
+
+
+@mcp.tool()
+def pm_get_plan(
+    plan_id: str | None = None,
+    plan_date: str | None = None,
+    actor: str | None = None,
+) -> dict | None:
+    """
+    Get a plan with all its items enriched with node data.
+
+    Lookup priority:
+    1. plan_id — direct lookup by primary key
+    2. (plan_date, actor) — specific date and actor
+    3. (plan_date, any) — any actor on that date when actor omitted
+    4. (today, actor) — today's plan for the default actor
+
+    Args:
+        plan_id: Direct plan ID lookup (takes priority over date/actor)
+        plan_date: Date to look up (YYYY-MM-DD)
+        actor: Actor to filter by. If omitted, uses default actor (or any actor when plan_date provided without plan_id).
+
+    Returns:
+        Plan dict with enriched items list, or None if not found
+    """
+    from datetime import date
+    from taskyn.core.planning import get_plan
+    d = date.fromisoformat(plan_date) if plan_date else None
+    return get_plan(plan_id=plan_id, plan_date=d, actor=_resolve_actor(actor))
+
+
+@mcp.tool()
+def pm_update_plan(
+    plan_id: str,
+    notes: str | None = None,
+    status: str | None = None,
+    actor: str | None = None,
+) -> dict:
+    """
+    Update plan metadata (notes or status).
+
+    Omit a field to leave it unchanged. To complete a plan, all items must
+    have non-pending outcomes — raises an error listing blocking item IDs.
+
+    Args:
+        plan_id: Plan to update
+        notes: New notes (omit to leave unchanged)
+        status: New status — "active" or "completed" (omit to leave unchanged)
+        actor: Actor performing the update. If omitted, uses default actor.
+
+    Returns:
+        Updated plan dict with items
+    """
+    from taskyn.core.planning import UNSET, update_plan
+    return update_plan(
+        plan_id=plan_id,
+        notes=notes if notes is not None else UNSET,
+        status=status if status is not None else UNSET,
+        actor=_resolve_actor(actor),
+    )
+
+
+@mcp.tool()
+def pm_delete_plan(plan_id: str, actor: str | None = None) -> bool:
+    """
+    Delete a plan and all its items.
+
+    Args:
+        plan_id: Plan to delete
+        actor: Actor performing the deletion. If omitted, uses default actor.
+
+    Returns:
+        True if deleted, False if not found
+    """
+    from taskyn.core.planning import delete_plan
+    return delete_plan(plan_id=plan_id, actor=_resolve_actor(actor))
+
+
+@mcp.tool()
+def pm_list_plans(
+    actor: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
+    status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[dict]:
+    """
+    List plans matching optional filters, ordered by date descending.
+
+    Args:
+        actor: Filter by actor. If omitted, returns plans for all actors.
+        date_from: Include plans on or after this date (YYYY-MM-DD)
+        date_to: Include plans on or before this date (YYYY-MM-DD)
+        status: Filter by status — "active" or "completed"
+        limit: Maximum results to return (default 50)
+        offset: Number of results to skip for pagination (default 0)
+
+    Returns:
+        List of plan objects
+    """
+    from datetime import date
+    from taskyn.core.planning import list_plans
+    d_from = date.fromisoformat(date_from) if date_from else None
+    d_to = date.fromisoformat(date_to) if date_to else None
+    plans = list_plans(
+        actor=actor,  # None means "all actors" — do NOT resolve to default
+        date_from=d_from,
+        date_to=d_to,
+        status=status,
+        limit=limit,
+        offset=offset,
+    )
+    return [p.model_dump() for p in plans]
+
+
+@mcp.tool()
+def pm_add_plan_item(
+    plan_id: str,
+    node_id: str,
+    planned_minutes: int | None = None,
+    position: int | None = None,
+    actor: str | None = None,
+) -> dict:
+    """
+    Add a node to a plan.
+
+    Args:
+        plan_id: Target plan ID
+        node_id: Node to add (must be a plannable node type for its methodology)
+        planned_minutes: Optional time budget in minutes (must be >= 0)
+        position: Insert position (1-indexed). If omitted, appends at end.
+        actor: Actor performing the action. If omitted, uses default actor.
+
+    Returns:
+        Created plan item object
+    """
+    from taskyn.core.planning import add_plan_item
+    item = add_plan_item(
+        plan_id=plan_id,
+        node_id=node_id,
+        planned_minutes=planned_minutes,
+        position=position,
+        actor=_resolve_actor(actor),
+    )
+    return item.model_dump()
+
+
+@mcp.tool()
+def pm_remove_plan_item(item_id: str, actor: str | None = None) -> bool:
+    """
+    Remove an item from its plan and recompact display order.
+
+    Args:
+        item_id: Plan item ID to remove
+        actor: Actor performing the action. If omitted, uses default actor.
+
+    Returns:
+        True if removed, False if not found
+    """
+    from taskyn.core.planning import remove_plan_item
+    return remove_plan_item(item_id=item_id, actor=_resolve_actor(actor))
+
+
+@mcp.tool()
+def pm_reorder_plan_item(
+    item_id: str,
+    new_position: int,
+    actor: str | None = None,
+) -> dict:
+    """
+    Move a plan item to a new position.
+
+    Uses a 4-step algorithm: delete, recompact, shift, re-insert.
+    Position is 1-indexed and must be within 1..N (current item count).
+
+    Args:
+        item_id: Plan item ID to move
+        new_position: Target position (1-indexed)
+        actor: Actor performing the action. If omitted, uses default actor.
+
+    Returns:
+        Updated plan item object with new display_order
+    """
+    from taskyn.core.planning import reorder_plan_item
+    item = reorder_plan_item(
+        item_id=item_id,
+        new_position=new_position,
+        actor=_resolve_actor(actor),
+    )
+    return item.model_dump()
+
+
+@mcp.tool()
+def pm_update_plan_item(
+    item_id: str,
+    planned_minutes: int | None = None,
+    outcome: str | None = None,
+    outcome_notes: str | None = None,
+    actor: str | None = None,
+) -> dict:
+    """
+    Update fields on a plan item.
+
+    Omit a field to leave it unchanged. Valid outcomes: pending, completed,
+    partial, carried_over, dropped.
+
+    Args:
+        item_id: Plan item ID to update
+        planned_minutes: New time budget in minutes (must be >= 0; omit to leave unchanged)
+        outcome: New outcome value (omit to leave unchanged)
+        outcome_notes: Freetext notes on the outcome (omit to leave unchanged)
+        actor: Actor performing the action. If omitted, uses default actor.
+
+    Returns:
+        Updated plan item object
+    """
+    from taskyn.core.planning import UNSET, update_plan_item
+    item = update_plan_item(
+        item_id=item_id,
+        planned_minutes=planned_minutes if planned_minutes is not None else UNSET,
+        outcome=outcome if outcome is not None else UNSET,
+        outcome_notes=outcome_notes if outcome_notes is not None else UNSET,
+        actor=_resolve_actor(actor),
+    )
+    return item.model_dump()
+
+
+@mcp.tool()
+def pm_get_weekly_plan(
+    week_start_date: str,
+    actor: str | None = None,
+) -> dict:
+    """
+    Get an aggregate view of daily plans for a 7-day week.
+
+    The provided date is snapped to the Monday of its week.
+
+    Args:
+        week_start_date: Any date in the target week (YYYY-MM-DD)
+        actor: Filter by actor. If omitted, returns plans for all actors.
+
+    Returns:
+        Dict with week_start, week_end, days (7 lists of plan dicts), and
+        summary (total_planned_items, total_planned_minutes, outcomes, actual_minutes)
+    """
+    from datetime import date
+    from taskyn.core.planning import get_weekly_plan
+    return get_weekly_plan(
+        week_start_date=date.fromisoformat(week_start_date),
+        actor=actor,  # None means "all actors" — do NOT resolve to default
+    )
+
+
+@mcp.tool()
+def pm_get_monthly_plan(
+    year: int,
+    month: int,
+    actor: str | None = None,
+) -> dict:
+    """
+    Get a summary of planning activity for a calendar month.
+
+    Args:
+        year: Calendar year (e.g. 2026)
+        month: Calendar month (1-12)
+        actor: Filter by actor. If omitted, aggregates all actors and includes per_actor breakdown.
+
+    Returns:
+        Dict with year, month, days_in_month, days_with_plans, total_planned_items,
+        total_planned_minutes, outcomes, actual_minutes, per_actor (when no actor filter),
+        and milestones (active milestones with target_date in month)
+    """
+    from taskyn.core.planning import get_monthly_plan
+    return get_monthly_plan(
+        year=year,
+        month=month,
+        actor=actor,  # None means "all actors" — do NOT resolve to default
+    )
+
+
+@mcp.tool()
+def pm_plan_vs_actual(
+    plan_date: str,
+    actor: str,
+) -> dict:
+    """
+    Compare planned work against actual execution for a specific day.
+
+    Actor is required — plan vs actual is always for a specific person's day.
+
+    Args:
+        plan_date: Date to compare (YYYY-MM-DD)
+        actor: Actor whose plan and time entries to compare
+
+    Returns:
+        Dict with planned_items (with actual_minutes, delta_minutes, is_complete),
+        unplanned_items (time entries not in the plan), and summary totals
+    """
+    from datetime import date
+    from taskyn.core.planning import plan_vs_actual
+    return plan_vs_actual(
+        plan_date=date.fromisoformat(plan_date),
+        actor=actor,
+    )
+
+
+@mcp.tool()
+def pm_carry_over_plan(
+    source_plan_id: str,
+    target_date: str,
+    item_ids: list[str] | None = None,
+    actor: str | None = None,
+) -> dict:
+    """
+    Carry unresolved items from one plan to a future plan.
+
+    By default carries all items with outcome "pending" or "partial".
+    Completed and dropped items are skipped. Items already in the target
+    plan are skipped. Source items are marked as "carried_over".
+
+    Args:
+        source_plan_id: Source plan ID to carry items from
+        target_date: Target date (YYYY-MM-DD) — must be after source plan date
+        item_ids: Specific item IDs to carry. If omitted, carries all pending/partial items.
+        actor: Actor for the target plan. If omitted, uses default actor.
+
+    Returns:
+        Dict with source_plan_id, target_plan (full plan dict), carried_count, skipped
+    """
+    from datetime import date
+    from taskyn.core.planning import carry_over_plan
+    return carry_over_plan(
+        source_plan_id=source_plan_id,
+        target_date=date.fromisoformat(target_date),
+        item_ids=item_ids,
+        actor=_resolve_actor(actor),
+    )
 
 
 # ============================================================

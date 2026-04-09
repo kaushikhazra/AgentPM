@@ -32,3 +32,27 @@ class Methodology(str, Enum):
     CLASSIC_AGILE = "classic_agile"
     SPEC_DRIVEN = "spec_driven"
     LEARNING = "learning"
+
+
+class PlanStatus(str, Enum):
+    """Plan lifecycle status."""
+
+    ACTIVE = "active"
+    COMPLETED = "completed"
+
+
+class PlanOutcome(str, Enum):
+    """Outcome of a planned item at day's end.
+
+    - PENDING: not yet resolved (default)
+    - COMPLETED: node reached a terminal status
+    - PARTIAL: work happened but node isn't finished
+    - CARRIED_OVER: moved to a future plan (linked via carried_to_plan_id)
+    - DROPPED: intentionally removed without carrying over
+    """
+
+    PENDING = "pending"
+    COMPLETED = "completed"
+    PARTIAL = "partial"
+    CARRIED_OVER = "carried_over"
+    DROPPED = "dropped"

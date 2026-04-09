@@ -172,3 +172,50 @@ CREATE INDEX IF NOT EXISTS idx_activity_log_entity ON activity_log(entity_type, 
 CREATE INDEX IF NOT EXISTS idx_activity_log_node_type ON activity_log(node_type);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created ON activity_log(created_at);
 CREATE INDEX IF NOT EXISTS idx_activity_log_actor ON activity_log(actor);
+
+-- ============================================================
+-- PLANNING LAYER: Intention-based daily plans
+-- ============================================================
+
+-- Daily plans: one per actor per day
+CREATE TABLE IF NOT EXISTS plans (
+    id TEXT PRIMARY KEY,
+    date DATE NOT NULL,
+    actor TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'completed')),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(date, actor)
+);
+
+-- Plan items: ordered nodes within a plan
+CREATE TABLE IF NOT EXISTS plan_items (
+    id TEXT PRIMARY KEY,
+    plan_id TEXT NOT NULL REFERENCES plans(id) ON DELETE CASCADE,
+    node_id TEXT REFERENCES nodes(id) ON DELETE SET NULL,
+    -- NOTE: NULL node_ids are not constrained by UNIQUE in SQLite (NULLs are always
+    -- distinct), so multiple items with deleted nodes can coexist in the same plan.
+    planned_minutes INTEGER,
+    display_order INTEGER NOT NULL,
+    outcome TEXT NOT NULL DEFAULT 'pending'
+        CHECK (outcome IN ('pending', 'completed', 'partial', 'carried_over', 'dropped')),
+    outcome_notes TEXT,
+    carried_to_plan_id TEXT REFERENCES plans(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(plan_id, node_id)
+);
+
+-- Planning indexes
+CREATE INDEX IF NOT EXISTS idx_plans_date ON plans(date);
+CREATE INDEX IF NOT EXISTS idx_plans_actor ON plans(actor);
+CREATE INDEX IF NOT EXISTS idx_plans_date_actor ON plans(date, actor);
+CREATE INDEX IF NOT EXISTS idx_plans_status ON plans(status);
+CREATE INDEX IF NOT EXISTS idx_plan_items_plan_order ON plan_items(plan_id, display_order);
+CREATE INDEX IF NOT EXISTS idx_plan_items_node ON plan_items(node_id);
+CREATE INDEX IF NOT EXISTS idx_plan_items_outcome ON plan_items(outcome);
+CREATE INDEX IF NOT EXISTS idx_plan_items_carried_to ON plan_items(carried_to_plan_id);

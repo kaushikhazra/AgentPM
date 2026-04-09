@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from taskyn.db.enums import EntityType, Methodology
+from taskyn.db.enums import EntityType, Methodology, PlanStatus, PlanOutcome
 
 
 class Company(BaseModel):
@@ -117,3 +117,30 @@ class ActivityLog(BaseModel):
     actor: str | None = None
     notes: str | None = None
     created_at: datetime
+
+
+class Plan(BaseModel):
+    """Plan model - one actor's intended work for one day."""
+
+    id: str
+    date: date
+    actor: str
+    status: str = PlanStatus.ACTIVE
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class PlanItem(BaseModel):
+    """PlanItem model - a single node in a daily plan."""
+
+    id: str
+    plan_id: str
+    node_id: str | None = None      # None when the referenced node has been deleted
+    planned_minutes: int | None = None
+    display_order: int
+    outcome: str = PlanOutcome.PENDING
+    outcome_notes: str | None = None
+    carried_to_plan_id: str | None = None
+    created_at: datetime
+    updated_at: datetime
