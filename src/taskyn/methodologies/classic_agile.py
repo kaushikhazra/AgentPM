@@ -80,6 +80,7 @@ class ClassicAgileMethodology(BaseMethodology):
                     "done": [],
                     "cancelled": [],
                 },
+                can_be_planned=True,
             ),
         }
 

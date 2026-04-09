@@ -78,6 +78,7 @@ class SpecDrivenMethodology(BaseMethodology):
                     "cancelled": [],
                 },
                 can_track_time=True,
+                can_be_planned=True,
             ),
         }
 

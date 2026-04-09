@@ -86,6 +86,7 @@ class LearningMethodology(BaseMethodology):
                 },
                 can_track_time=True,
                 can_have_assignee=True,
+                can_be_planned=True,
             ),
         }
 
