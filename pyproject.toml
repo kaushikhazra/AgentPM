@@ -1,6 +1,6 @@
 [project]
 name = "taskyn"
-version = "0.1.0"
+version = "1.0.0"
 description = "AI-first personal project management system"
 readme = "README.md"
 license = { text = "MIT" }
